@@ -1,0 +1,83 @@
+<section class="platforms-page">
+  <header class="platforms-header">
+    <h1>Plataformas</h1>
+    <p>Gerencie seus planos e acompanhe disponibilidade de vagas.</p>
+  </header>
+
+  @if (placeholderMessage) {
+    <div class="feedback" role="status" aria-live="polite">
+      <span>{{ placeholderMessage }}</span>
+      <button type="button" (click)="closePlaceholderMessage()">Fechar</button>
+    </div>
+  }
+
+  <div class="platforms-grid">
+    @for (platform of platforms; track platform.id) {
+      <article class="platform-card">
+        <div class="platform-top">
+          <div class="platform-logo">
+            <lucide-angular [img]="cloudIcon" [size]="24"></lucide-angular>
+          </div>
+
+          <div class="platform-title">
+            <strong>Logo - {{ platform.name }}</strong>
+          </div>
+
+          <div class="context-area" (click)="$event.stopPropagation()">
+            <button
+              type="button"
+              class="context-trigger"
+              aria-label="Abrir menu"
+              (click)="toggleMenu(platform.id, $event)"
+            >
+              ...
+            </button>
+
+            @if (openMenuPlatformId === platform.id) {
+              <div class="context-menu">
+                <button type="button" (click)="openDetails(platform)">Detalhes</button>
+                <button type="button" (click)="openEdit(platform)">Editar</button>
+                <button type="button" class="danger" (click)="askDelete(platform)">Excluir</button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <dl class="platform-details">
+          <div>
+            <dt>Preço total</dt>
+            <dd>{{ platform.totalPrice | currency: 'BRL' }}</dd>
+          </div>
+          <div>
+            <dt>Total de vagas</dt>
+            <dd>{{ platform.totalSlots }}</dd>
+          </div>
+          <div>
+            <dt>Disponíveis</dt>
+            <dd>{{ platform.availableSlots }}</dd>
+          </div>
+        </dl>
+      </article>
+    }
+
+    @if (platforms.length === 0) {
+      <article class="empty-card">
+        <strong>Nenhuma plataforma cadastrada.</strong>
+      </article>
+    }
+  </div>
+</section>
+
+@if (platformToDelete) {
+  <div class="modal-overlay" (click)="cancelDelete()">
+    <section class="modal" (click)="$event.stopPropagation()">
+      <h2>Confirmar exclusão</h2>
+      <p>Tem certeza que deseja excluir a plataforma {{ platformToDelete.name }}?</p>
+
+      <div class="modal-actions">
+        <button type="button" class="secondary" (click)="cancelDelete()">Cancelar</button>
+        <button type="button" class="danger" (click)="confirmDelete()">Excluir</button>
+      </div>
+    </section>
+  </div>
+}

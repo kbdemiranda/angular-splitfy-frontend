@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import {
-  CreditCard,
+  Cloud,
   LayoutDashboard,
   LogOut,
   LucideAngularModule,
@@ -42,9 +42,9 @@ export class NavbarComponent {
       icon: Users,
     },
     {
-      path: '/subscribers',
-      label: 'Assinantes',
-      icon: CreditCard,
+      path: '/platforms',
+      label: 'Plataformas',
+      icon: Cloud,
     },
     {
       path: '/settings',
@@ -88,6 +88,6 @@ export const LUCIDE_ICONS = LucideAngularModule.pick({
   LogOut,
   LayoutDashboard,
   Users,
-  CreditCard,
+  Cloud,
   Settings,
 });

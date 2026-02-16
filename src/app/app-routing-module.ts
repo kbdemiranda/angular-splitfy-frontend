@@ -4,6 +4,7 @@ import { AuthGuard } from './core/guards/auth.guard';
 import { DashboardComponent } from './features/dashboard/dashboard-component';
 import { LoginComponent } from './features/auth/login/login-component';
 import { ComingSoonComponent } from './features/common/coming-soon/coming-soon-component';
+import { PlatformsComponent } from './features/platforms/platforms-component';
 
 const routes: Routes = [
   {
@@ -22,10 +23,10 @@ const routes: Routes = [
     data: { title: 'Usuários' },
   },
   {
-    path: 'subscribers',
-    component: ComingSoonComponent,
+    path: 'platforms',
+    component: PlatformsComponent,
     canActivate: [AuthGuard],
-    data: { title: 'Assinantes' },
+    data: { title: 'Plataformas' },
   },
   {
     path: 'settings',
