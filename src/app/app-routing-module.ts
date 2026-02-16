@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
 import { DashboardComponent } from './features/dashboard/dashboard-component';
 import { LoginComponent } from './features/auth/login/login-component';
+import { ComingSoonComponent } from './features/common/coming-soon/coming-soon-component';
 
 const routes: Routes = [
   {
@@ -13,6 +14,24 @@ const routes: Routes = [
     path: 'dashboard',
     component: DashboardComponent,
     canActivate: [AuthGuard],
+  },
+  {
+    path: 'users',
+    component: ComingSoonComponent,
+    canActivate: [AuthGuard],
+    data: { title: 'Usuários' },
+  },
+  {
+    path: 'subscribers',
+    component: ComingSoonComponent,
+    canActivate: [AuthGuard],
+    data: { title: 'Assinantes' },
+  },
+  {
+    path: 'settings',
+    component: ComingSoonComponent,
+    canActivate: [AuthGuard],
+    data: { title: 'Configurações' },
   },
   {
     path: '',
