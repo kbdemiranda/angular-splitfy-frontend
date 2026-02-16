@@ -1,0 +1,31 @@
+<section class="login-page">
+  <article class="login-card">
+    <h1>Splitfy</h1>
+    <p>Faça login para acessar o painel.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label for="email">E-mail</label>
+      <input id="email" type="email" formControlName="email" placeholder="voce@splitfy.app" />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <small>E-mail inválido.</small>
+      }
+
+      <label for="password">Senha</label>
+      <input id="password" type="password" formControlName="password" placeholder="Sua senha" />
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <small>Senha obrigatória.</small>
+      }
+
+      @if (errorMessage) {
+        <div class="error">{{ errorMessage }}</div>
+      }
+
+      <button type="submit">Entrar</button>
+    </form>
+
+    <div class="hint">
+      <span>Mock disponível:</span>
+      <code>admin@splitfy.app / 123456</code>
+    </div>
+  </article>
+</section>

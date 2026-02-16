@@ -1,0 +1,1895 @@
+openapi: 3.1.0
+info:
+  title: Splitfy API
+  description: API for managing shared subscriptions.
+  contact:
+    name: Splitfy Team
+    email: donotanswer.contact@gmail.com
+  version: v1
+servers:
+- url: /
+  description: Current server
+security:
+- bearerAuth: []
+tags:
+- name: Users
+  description: Operations related to application users
+- name: Dashboard
+  description: Dashboard and KPI endpoints
+- name: Subscribers
+  description: Operations related to subscribers
+- name: Authentication
+  description: Authentication and password recovery operations
+- name: Profiles
+  description: Operations related to user access profiles
+- name: Payment Confirmations
+  description: Confirm and approve monthly payments
+- name: General
+  description: General endpoints
+- name: Subscriber Billing
+  description: Billing operations for subscribers
+- name: Platforms
+  description: Operations related to subscription platforms
+paths:
+  /users/{id}:
+    get:
+      tags:
+      - Users
+      summary: Get user by ID
+      description: Returns a user by its unique identifier
+      operationId: getById
+      parameters:
+      - name: id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: User found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "404":
+          description: User not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+    put:
+      tags:
+      - Users
+      summary: Update user
+      description: Updates an existing user
+      operationId: update
+      parameters:
+      - name: id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdateRequest"
+        required: true
+      responses:
+        "200":
+          description: User updated
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          description: Invalid request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "404":
+          description: User not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "409":
+          description: E-mail already in use
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+    delete:
+      tags:
+      - Users
+      summary: Delete user
+      description: Soft-deletes a user
+      operationId: delete
+      parameters:
+      - name: id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: User deleted
+        "404":
+          description: User not found
+  /users/{id}/profile/{profileId}:
+    put:
+      tags:
+      - Users
+      summary: Associate profile
+      description: Associates a profile to a user
+      operationId: associateProfile
+      parameters:
+      - name: id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: profileId
+        in: path
+        description: Profile ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Profile associated
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "404":
+          description: User or profile not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+  /subscribers/{id}:
+    get:
+      tags:
+      - Subscribers
+      summary: Get subscriber
+      description: Returns a subscriber by ID
+      operationId: get
+      parameters:
+      - name: id
+        in: path
+        description: Subscriber ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SubscriberResponse"
+        "404":
+          description: Not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SubscriberResponse"
+    put:
+      tags:
+      - Subscribers
+      summary: Update subscriber
+      description: Updates a subscriber by ID
+      operationId: update_1
+      parameters:
+      - name: id
+        in: path
+        description: Subscriber ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriberRequest"
+        required: true
+      responses:
+        "200":
+          description: Updated
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SubscriberResponse"
+        "404":
+          description: Not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SubscriberResponse"
+    delete:
+      tags:
+      - Subscribers
+      summary: Delete subscriber
+      description: Deletes a subscriber by ID
+      operationId: delete_1
+      parameters:
+      - name: id
+        in: path
+        description: Subscriber ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+  /subscribers/{id}/disassociate:
+    put:
+      tags:
+      - Subscribers
+      summary: Disassociate platforms
+      description: Removes one or more platform associations from a subscriber
+      operationId: disassociate
+      parameters:
+      - name: id
+        in: path
+        description: Subscriber ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Associate Request"
+        required: true
+      responses:
+        "200":
+          description: Disassociated
+        "400":
+          description: Invalid platform IDs
+        "404":
+          description: Not found
+  /profiles/{id}:
+    get:
+      tags:
+      - Profiles
+      summary: Get profile by ID
+      description: Returns a profile by its unique identifier
+      operationId: getById_1
+      parameters:
+      - name: id
+        in: path
+        description: Profile ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Profile found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+        "404":
+          description: Profile not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+    put:
+      tags:
+      - Profiles
+      summary: Update profile
+      description: Updates an existing profile
+      operationId: update_2
+      parameters:
+      - name: id
+        in: path
+        description: Profile ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileRequest"
+        required: true
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+        "400":
+          description: Invalid request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+        "404":
+          description: Profile not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+        "409":
+          description: Profile already exists
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+    delete:
+      tags:
+      - Profiles
+      summary: Delete profile
+      description: Deletes a profile by ID
+      operationId: delete_2
+      parameters:
+      - name: id
+        in: path
+        description: Profile ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: Profile deleted
+        "404":
+          description: Profile not found
+  /platforms/{id}:
+    get:
+      tags:
+      - Platforms
+      summary: Get platform
+      description: Returns a platform by ID
+      operationId: get_1
+      parameters:
+      - name: id
+        in: path
+        description: Platform ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PlatformResponse"
+        "404":
+          description: Not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PlatformResponse"
+    put:
+      tags:
+      - Platforms
+      summary: Update platform
+      description: Updates an existing platform
+      operationId: update_3
+      parameters:
+      - name: id
+        in: path
+        description: Platform ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        description: Updated platform data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlatformRequest"
+        required: true
+      responses:
+        "200":
+          description: Updated
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PlatformResponse"
+        "404":
+          description: Not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PlatformResponse"
+    delete:
+      tags:
+      - Platforms
+      summary: Delete platform
+      description: Marks a platform as deleted
+      operationId: delete_3
+      parameters:
+      - name: id
+        in: path
+        description: Platform ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+  /users:
+    get:
+      tags:
+      - Users
+      summary: List users
+      description: Returns a paginated list of users
+      operationId: list
+      parameters:
+      - name: name
+        in: query
+        description: "Optional filter by user name (partial match, case-insensitive)"
+        required: false
+        schema:
+          type: string
+      - name: pageable
+        in: query
+        description: Pagination and sorting configuration
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          description: Users listed
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageUserResponse"
+    post:
+      tags:
+      - Users
+      summary: Create user
+      description: Creates a new user
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreateRequest"
+        required: true
+      responses:
+        "201":
+          description: User created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          description: Invalid request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "409":
+          description: E-mail already in use
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+  /subscribers:
+    get:
+      tags:
+      - Subscribers
+      summary: List subscribers
+      description: Returns all subscribers
+      operationId: list_1
+      parameters:
+      - name: name
+        in: query
+        description: "Filter by name (partial match, case-insensitive)"
+        required: false
+        schema:
+          type: string
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageSubscriberResponse"
+    post:
+      tags:
+      - Subscribers
+      summary: Create subscriber
+      description: Creates a new subscriber
+      operationId: create_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriberRequest"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SubscriberResponse"
+        "400":
+          description: Invalid request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SubscriberResponse"
+  /subscribers/{id}/associate:
+    post:
+      tags:
+      - Subscribers
+      summary: Associate platforms
+      description: Associates one or more platforms with a subscriber
+      operationId: associate
+      parameters:
+      - name: id
+        in: path
+        description: Subscriber ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Associate Request"
+        required: true
+      responses:
+        "200":
+          description: Associated
+        "400":
+          description: Invalid platform IDs
+        "404":
+          description: Not found
+  /subscribers/payments/confirmations:
+    post:
+      tags:
+      - Payment Confirmations
+      summary: Register payment confirmations
+      description: Registers monthly payment confirmations sent by subscribers
+      operationId: confirmPayments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentConfirmationBatchRequest"
+        required: true
+      responses:
+        "200":
+          description: Payment confirmations registered
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PaymentConfirmationResponse"
+        "400":
+          description: Invalid request
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PaymentConfirmationResponse"
+        "403":
+          description: Forbidden
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PaymentConfirmationResponse"
+  /subscribers/payments/confirmations/{id}/approve:
+    post:
+      tags:
+      - Payment Confirmations
+      summary: Approve payment confirmation
+      description: Approves a pending payment confirmation (admin only)
+      operationId: approve
+      parameters:
+      - name: id
+        in: path
+        description: Payment confirmation ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Payment confirmation approved
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PaymentConfirmationResponse"
+        "404":
+          description: Payment confirmation not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PaymentConfirmationResponse"
+  /subscribers/billing/email-summary:
+    post:
+      tags:
+      - Subscribers
+      summary: Send billing summary by e-mail
+      description: Sends billing summary for one or more subscribers to one or more
+        e-mails
+      operationId: sendBillingSummary
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriberBillingEmailRequest"
+        required: true
+      responses:
+        "200":
+          description: Billing summary sent
+        "400":
+          description: Invalid request
+        "404":
+          description: Subscriber not found
+  /profiles:
+    get:
+      tags:
+      - Profiles
+      summary: List profiles
+      description: Returns a paginated list of profiles
+      operationId: list_2
+      parameters:
+      - name: pageable
+        in: query
+        description: Pagination and sorting configuration
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          description: Profiles listed
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageProfileResponse"
+    post:
+      tags:
+      - Profiles
+      summary: Create profile
+      description: Creates a new access profile
+      operationId: create_2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileRequest"
+        required: true
+      responses:
+        "201":
+          description: Profile created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+        "400":
+          description: Invalid request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+        "409":
+          description: Profile already exists
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+  /platforms:
+    get:
+      tags:
+      - Platforms
+      summary: List platforms
+      description: Returns all platforms
+      operationId: list_3
+      parameters:
+      - name: name
+        in: query
+        description: "Filter by name (partial match, case-insensitive)"
+        required: false
+        schema:
+          type: string
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PagePlatformResponse"
+    post:
+      tags:
+      - Platforms
+      summary: Create platform
+      description: Creates a new subscription platform
+      operationId: create_3
+      requestBody:
+        description: Platform data to be created
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlatformRequest"
+        required: true
+      responses:
+        "201":
+          description: Created successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PlatformResponse"
+        "400":
+          description: Invalid request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PlatformResponse"
+  /auth/reset-password:
+    post:
+      tags:
+      - Authentication
+      summary: Reset password
+      description: Resets the user password using a valid reset token
+      operationId: resetPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+        required: true
+      responses:
+        "200":
+          description: Password updated successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SimpleMessageResponse"
+        "400":
+          description: Invalid token or password
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SimpleMessageResponse"
+  /auth/logout:
+    post:
+      tags:
+      - Authentication
+      summary: Logout
+      description: Revokes the provided JWT token
+      operationId: logout
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Logout successful
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/LogoutResponse"
+        "400":
+          description: Authorization Bearer token is required
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/LogoutResponse"
+  /auth/login:
+    post:
+      tags:
+      - Authentication
+      summary: Login
+      description: Authenticates a user and returns a JWT token
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      responses:
+        "200":
+          description: Authentication successful
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          description: Invalid request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "429":
+          description: Too many login attempts
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+  /auth/forgot-password:
+    post:
+      tags:
+      - Authentication
+      summary: Request password reset
+      description: Sends a password reset token to the user e-mail
+      operationId: forgotPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordRequest"
+        required: true
+      responses:
+        "200":
+          description: Password reset instructions sent
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SimpleMessageResponse"
+        "400":
+          description: Invalid request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SimpleMessageResponse"
+        "429":
+          description: Too many password reset attempts
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SimpleMessageResponse"
+  /subscribers/{id}/billing:
+    get:
+      tags:
+      - Subscriber Billing
+      summary: Get subscriber billing
+      description: Returns billing details for a subscriber and an optional reference
+        month
+      operationId: getBilling
+      parameters:
+      - name: id
+        in: path
+        description: Subscriber ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: referenceMonth
+        in: query
+        description: "Reference month in format YYYY-MM, e.g. 2026-02"
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Billing loaded
+          content:
+            '*/*':
+              schema:
+                type: object
+        "400":
+          description: Invalid reference month format
+          content:
+            '*/*':
+              schema:
+                type: object
+        "404":
+          description: Subscriber not found
+          content:
+            '*/*':
+              schema:
+                type: object
+  /subscribers/payments/confirmations/pending:
+    get:
+      tags:
+      - Payment Confirmations
+      summary: List pending payment confirmations
+      description: Lists pending payment confirmations for approval (admin only)
+      operationId: listPending
+      parameters:
+      - name: referenceMonth
+        in: query
+        description: Optional reference month in format YYYY-MM
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Pending confirmations listed
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PendingPaymentApprovalResponse"
+  /dashboard/kpis:
+    get:
+      tags:
+      - Dashboard
+      summary: Get billing dashboard KPIs
+      description: Returns KPI metrics for the billing dashboard
+      operationId: getKpis
+      parameters:
+      - name: referenceMonth
+        in: query
+        description: "Reference month in format YYYY-MM, e.g. 2026-02"
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: KPIs loaded
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/DashboardKpiResponse"
+        "400":
+          description: Invalid reference month format
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/DashboardKpiResponse"
+  /:
+    get:
+      tags:
+      - General
+      summary: Greeting
+      description: Simple health-check style endpoint that returns a welcome message
+      operationId: hello
+      responses:
+        "200":
+          description: Greeting returned
+          content:
+            '*/*':
+              schema:
+                type: string
+  /users/{id}/profile:
+    delete:
+      tags:
+      - Users
+      summary: Disassociate profile
+      description: Removes the profile association from a user
+      operationId: disassociateProfile
+      parameters:
+      - name: id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: Profile disassociated
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "404":
+          description: User not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+components:
+  schemas:
+    UserUpdateRequest:
+      type: object
+      description: Update user request payload
+      properties:
+        name:
+          type: string
+          description: User full name
+          example: John Doe
+          maxLength: 120
+          minLength: 0
+        email:
+          type: string
+          format: email
+          description: User e-mail
+          example: john.doe@example.com
+          maxLength: 255
+          minLength: 0
+        password:
+          type: string
+          description: User password
+          example: MyUpdatedPass#123
+          maxLength: 120
+          minLength: 8
+        profileId:
+          type: string
+          format: uuid
+          description: Profile ID to associate with the user
+        profileName:
+          type: string
+          description: Profile name to associate when profileId is not informed
+          enum:
+          - VIEWER
+          - EDITOR
+          - ADMIN
+        enabled:
+          type: boolean
+    ProfileSummaryResponse:
+      type: object
+      description: Profile summary payload
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Profile ID
+        name:
+          type: string
+          description: Profile name
+          enum:
+          - VIEWER
+          - EDITOR
+          - ADMIN
+    UserResponse:
+      type: object
+      description: User response payload
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: User ID
+        name:
+          type: string
+          description: User full name
+          example: John Doe
+        email:
+          type: string
+          description: User e-mail
+          example: john.doe@example.com
+        profile:
+          $ref: "#/components/schemas/ProfileSummaryResponse"
+          description: Associated profile data
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+        deletedAt:
+          type: string
+          format: date-time
+          description: Deletion timestamp
+        enabled:
+          type: boolean
+    SubscriberRequest:
+      type: object
+      description: Subscriber input data
+      properties:
+        name:
+          type: string
+          description: Subscriber name
+          example: Ana Silva
+        email:
+          type: string
+          description: Subscriber email
+          example: ana.silva@example.com
+    SubscriberResponse:
+      type: object
+      description: Subscriber data
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Subscriber ID
+        name:
+          type: string
+          description: Subscriber name
+        email:
+          type: string
+          description: Subscriber email
+        createdAt:
+          type: string
+          format: date-time
+          description: Created at
+        updatedAt:
+          type: string
+          format: date-time
+          description: Updated at
+        deletedAt:
+          type: string
+          format: date-time
+          description: Deleted at
+    Associate Request:
+      type: object
+      description: Request payload for associating platforms with a subscriber
+      properties:
+        platformIds:
+          type: array
+          description: List of platform IDs to associate with the subscriber
+          example:
+          - 1
+          - 2
+          - 3
+          items:
+            type: integer
+            format: int64
+    ProfileRequest:
+      type: object
+      description: Profile request payload
+      properties:
+        name:
+          type: string
+          description: Profile name
+          enum:
+          - VIEWER
+          - EDITOR
+          - ADMIN
+          example: ADMIN
+      required:
+      - name
+    ProfileResponse:
+      type: object
+      description: Profile response payload
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Profile ID
+        name:
+          type: string
+          description: Profile name
+          enum:
+          - VIEWER
+          - EDITOR
+          - ADMIN
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+    PlatformRequest:
+      type: object
+      description: Subscription platform input data
+      properties:
+        name:
+          type: string
+          description: Platform name
+          example: Netflix
+        price:
+          type: number
+          description: Price
+          example: 19.9
+        currency:
+          type: string
+          default: BRL
+          description: Currency
+          enum:
+          - BRL
+          - USD
+          - EUR
+          example: BRL
+        url:
+          type: string
+          description: URL
+          example: https://www.netflix.com
+        serviceType:
+          type: string
+          description: Service type
+          enum:
+          - Video Streaming
+          - Music Streaming
+          - Software
+          - Games
+          - News
+          - Cloud Storage
+          - Fitness
+          example: Video Streaming
+        totalSlots:
+          type: integer
+          format: int32
+          description: Total slots
+          example: 4
+        availableSlots:
+          type: integer
+          format: int32
+          description: Available slots
+          example: 2
+        billingCycle:
+          type: string
+          description: Billing cycle
+          enum:
+          - MONTHLY
+          - SEMI_ANNUAL
+          - ANNUAL
+        billingDay:
+          type: string
+          description: Billing day (if applicable)
+    PlatformResponse:
+      type: object
+      description: Platform data
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Platform ID
+        name:
+          type: string
+          description: Platform name
+          example: Netflix
+        price:
+          type: number
+          description: Price
+          example: 19.9
+        currency:
+          type: string
+          description: Currency
+          enum:
+          - BRL
+          - USD
+          - EUR
+          example: BRL
+        priceInBrl:
+          type: number
+          description: Price converted to BRL using the latest available exchange
+            rate
+        exchangeRateToBrl:
+          type: number
+          description: Exchange rate used to convert the original price to BRL
+        exchangeRateDate:
+          type: string
+          format: date
+          description: Date of the exchange rate used for conversion
+        url:
+          type: string
+          description: URL
+          example: https://www.netflix.com
+        serviceType:
+          type: string
+          description: Service type
+          enum:
+          - Video Streaming
+          - Music Streaming
+          - Software
+          - Games
+          - News
+          - Cloud Storage
+          - Fitness
+          example: Video Streaming
+        totalSlots:
+          type: integer
+          format: int32
+          description: Total slots
+          example: 4
+        availableSlots:
+          type: integer
+          format: int32
+          description: Available slots
+          example: 2
+        createdAt:
+          type: string
+          format: date-time
+          description: Created at
+        updatedAt:
+          type: string
+          format: date-time
+          description: Updated at
+        deletedAt:
+          type: string
+          format: date-time
+          description: Deleted at
+        billingCycle:
+          type: string
+          description: Billing cycle
+          enum:
+          - MONTHLY
+          - SEMI_ANNUAL
+          - ANNUAL
+        billingDay:
+          type: string
+          description: Billing day (if applicable)
+    UserCreateRequest:
+      type: object
+      description: Create user request payload
+      properties:
+        name:
+          type: string
+          description: User full name
+          example: John Doe
+          maxLength: 120
+          minLength: 0
+        email:
+          type: string
+          format: email
+          description: User e-mail
+          example: john.doe@example.com
+          maxLength: 255
+          minLength: 0
+        password:
+          type: string
+          description: User password
+          example: MySecurePass#123
+          maxLength: 120
+          minLength: 8
+        profileId:
+          type: string
+          format: uuid
+          description: Profile ID to associate with the user
+        profileName:
+          type: string
+          description: Profile name to associate when profileId is not informed
+          enum:
+          - VIEWER
+          - EDITOR
+          - ADMIN
+        enabled:
+          type: boolean
+      required:
+      - email
+      - name
+      - password
+    PaymentConfirmationBatchRequest:
+      type: object
+      description: Batch request to confirm payments for a reference month
+      properties:
+        referenceMonth:
+          type: string
+          description: Reference month in format YYYY-MM
+          example: 2026-02
+        confirmations:
+          type: array
+          description: Payment confirmations grouped by subscriber
+          items:
+            $ref: "#/components/schemas/PaymentConfirmationItemRequest"
+    PaymentConfirmationItemRequest:
+      type: object
+      description: Payment confirmation entry for one subscriber
+      properties:
+        subscriberId:
+          type: integer
+          format: int64
+          description: Subscriber id
+          example: 1
+        platformIds:
+          type: array
+          description: List of platform/service ids paid by subscriber
+          example:
+          - 1
+          - 2
+          items:
+            type: integer
+            format: int64
+    PaymentConfirmationResponse:
+      type: object
+      description: Payment confirmation response payload
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Payment confirmation ID
+          example: 1
+        subscriberId:
+          type: integer
+          format: int64
+          description: Subscriber ID
+          example: 1
+        platformId:
+          type: integer
+          format: int64
+          description: Platform ID
+          example: 2
+        referenceMonth:
+          type: string
+          description: Reference month
+          example: 2026-02
+        status:
+          type: string
+          description: Payment confirmation status
+          enum:
+          - PENDING
+          - CONFIRMED
+        requestedByEmail:
+          type: string
+          description: E-mail of the user who requested confirmation
+          example: john.doe@example.com
+        requestedAt:
+          type: string
+          format: date-time
+          description: Date and time when confirmation was requested
+        validatedByEmail:
+          type: string
+          description: E-mail of the approver user
+        validatedAt:
+          type: string
+          format: date-time
+          description: Date and time when confirmation was approved
+    SubscriberBillingEmailRequest:
+      type: object
+      description: Billing summary e-mail request payload
+      properties:
+        subscriberIds:
+          type: array
+          description: Subscriber IDs that will be included in the billing summary
+          example:
+          - 1
+          - 2
+          items:
+            type: integer
+            format: int64
+        emails:
+          type: array
+          description: Destination e-mail addresses
+          example:
+          - finance@example.com
+          - admin@example.com
+          items:
+            type: string
+    ResetPasswordRequest:
+      type: object
+      description: Reset password request payload
+      properties:
+        token:
+          type: string
+          description: Six-digit reset token
+          example: 123456
+          minLength: 1
+          pattern: "^\\d{6}$"
+        newPassword:
+          type: string
+          description: New password
+          example: MyNewPass#2026
+          maxLength: 128
+          minLength: 8
+          pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,128}$"
+      required:
+      - newPassword
+      - token
+    SimpleMessageResponse:
+      type: object
+      description: Simple message response payload
+      properties:
+        message:
+          type: string
+          description: Operation result message
+          example: Password reset instructions sent
+    LogoutResponse:
+      type: object
+      description: Logout response payload
+      properties:
+        message:
+          type: string
+          description: Operation result message
+          example: Logout successful
+    LoginRequest:
+      type: object
+      description: Login request payload
+      properties:
+        email:
+          type: string
+          format: email
+          description: User e-mail
+          example: john.doe@example.com
+          minLength: 1
+        password:
+          type: string
+          description: User password
+          example: MySecurePass#123
+          minLength: 1
+      required:
+      - email
+      - password
+    LoginResponse:
+      type: object
+      description: Login response payload
+      properties:
+        token:
+          type: string
+          description: JWT access token
+        tokenType:
+          type: string
+          description: Token type
+          example: Bearer
+        expiresInMs:
+          type: integer
+          format: int64
+          description: Token expiration in milliseconds
+          example: 3600000
+        userId:
+          type: string
+          format: uuid
+          description: Authenticated user ID
+        email:
+          type: string
+          description: Authenticated user e-mail
+          example: john.doe@example.com
+        profile:
+          type: string
+          description: Authenticated user profile
+          enum:
+          - VIEWER
+          - EDITOR
+          - ADMIN
+    ForgotPasswordRequest:
+      type: object
+      description: Forgot password request payload
+      properties:
+        email:
+          type: string
+          format: email
+          description: User e-mail
+          example: john.doe@example.com
+          minLength: 1
+      required:
+      - email
+    Pageable:
+      type: object
+      properties:
+        page:
+          type: integer
+          format: int32
+          minimum: 0
+        size:
+          type: integer
+          format: int32
+          minimum: 1
+        sort:
+          type: array
+          items:
+            type: string
+    PageUserResponse:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        numberOfElements:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserResponse"
+        number:
+          type: integer
+          format: int32
+        empty:
+          type: boolean
+    PageableObject:
+      type: object
+      properties:
+        paged:
+          type: boolean
+        pageNumber:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        unpaged:
+          type: boolean
+        offset:
+          type: integer
+          format: int64
+    SortObject:
+      type: object
+      properties:
+        sorted:
+          type: boolean
+        unsorted:
+          type: boolean
+        empty:
+          type: boolean
+    PageSubscriberResponse:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        numberOfElements:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubscriberResponse"
+        number:
+          type: integer
+          format: int32
+        empty:
+          type: boolean
+    PendingPaymentApprovalResponse:
+      type: object
+      description: Pending payment confirmation awaiting approval
+      properties:
+        confirmationId:
+          type: integer
+          format: int64
+          description: Payment confirmation ID
+          example: 1
+        referenceMonth:
+          type: string
+          description: Reference month
+          example: 2026-02
+        status:
+          type: string
+          description: Current confirmation status
+          enum:
+          - PENDING
+          - CONFIRMED
+        requestedByEmail:
+          type: string
+          description: E-mail of the user who requested the confirmation
+          example: john.doe@example.com
+        requestedAt:
+          type: string
+          format: date-time
+          description: Date and time when confirmation was requested
+        subscriber:
+          $ref: "#/components/schemas/PendingPaymentSubscriber"
+          description: Subscriber details
+        platform:
+          $ref: "#/components/schemas/PendingPaymentPlatform"
+          description: Platform details
+    PendingPaymentPlatform:
+      type: object
+      description: Platform details for pending payment approval
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Platform ID
+          example: 1
+        name:
+          type: string
+          description: Platform name
+          example: Netflix
+        serviceType:
+          type: string
+          description: Platform service type
+          enum:
+          - Video Streaming
+          - Music Streaming
+          - Software
+          - Games
+          - News
+          - Cloud Storage
+          - Fitness
+        currency:
+          type: string
+          description: Platform currency
+          enum:
+          - BRL
+          - USD
+          - EUR
+        price:
+          type: number
+          description: Platform price
+          example: 19.9
+    PendingPaymentSubscriber:
+      type: object
+      description: Subscriber details for pending payment approval
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Subscriber ID
+          example: 1
+        name:
+          type: string
+          description: Subscriber name
+          example: John Doe
+        email:
+          type: string
+          description: Subscriber e-mail
+          example: john.doe@example.com
+    PageProfileResponse:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        numberOfElements:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfileResponse"
+        number:
+          type: integer
+          format: int32
+        empty:
+          type: boolean
+    PagePlatformResponse:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        numberOfElements:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlatformResponse"
+        number:
+          type: integer
+          format: int32
+        empty:
+          type: boolean
+    DashboardKpiResponse:
+      type: object
+      description: Billing dashboard KPI response
+      properties:
+        referenceMonth:
+          type: string
+          description: Reference month for the KPI calculation
+          example: 2026-02
+        currency:
+          type: string
+          description: Currency used in KPI values
+          example: BRL
+        totalDue:
+          type: number
+          description: Total amount due for the period
+          example: 200.5
+        totalPaid:
+          type: number
+          description: Total amount paid for the period
+          example: 150.25
+        totalPending:
+          type: number
+          description: Total amount pending approval
+          example: 30.0
+        totalUnpaid:
+          type: number
+          description: Total unpaid amount
+          example: 20.25
+        delinquencyRate:
+          type: number
+          description: Delinquency rate percentage
+          example: 10.1
+        pendingByPlatform:
+          type: array
+          description: Pending amount grouped by platform
+          items:
+            $ref: "#/components/schemas/PendingByPlatformItem"
+    PendingByPlatformItem:
+      type: object
+      description: Pending payment metrics for a specific platform
+      properties:
+        platformId:
+          type: integer
+          format: int64
+          description: Platform ID
+          example: 1
+        platformName:
+          type: string
+          description: Platform name
+          example: Netflix
+        pendingCount:
+          type: integer
+          format: int32
+          description: Number of pending payments
+          example: 3
+        pendingAmount:
+          type: number
+          description: Pending amount for the platform
+          example: 59.7
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

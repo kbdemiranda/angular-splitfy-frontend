@@ -353,4 +353,10 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+## Environment variables files
+.env
+
+# OpenAPI files
+OpenAPI.yaml
+
 # End of https://www.toptal.com/developers/gitignore/api/angular,node,visualstudiocode,jetbrains+all,windows,linux,macos
