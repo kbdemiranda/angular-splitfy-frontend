@@ -26,16 +26,68 @@
       </div>
     </article>
 
-    <article class="platforms">
-      <h2>Pendências por plataforma</h2>
-      <ul>
-        @for (item of kpis.pendingByPlatform; track item.platformId) {
-          <li>
-            <span>{{ item.platformName }}</span>
-            <span>{{ item.pendingAmount | currency: kpis.currency }} ({{ item.pendingCount }})</span>
-          </li>
-        }
-      </ul>
-    </article>
+    <section class="bottom-grid">
+      <article class="status-card">
+        <h2>Pagamentos por status</h2>
+
+        <div class="status-content">
+          <div class="donut" [style.background]="donutBackground">
+            <div class="donut-hole">
+              <strong>{{ totalStatusAmount | currency: kpis.currency }}</strong>
+              <small>Total</small>
+            </div>
+          </div>
+
+          <ul class="legend">
+            <li>
+              <span class="dot paid"></span>
+              <div>
+                <strong>Pago</strong>
+                <small>{{ kpis.totalPaid | currency: kpis.currency }} ({{ paidPercentage | number: '1.0-1' }}%)</small>
+              </div>
+            </li>
+            <li>
+              <span class="dot pending"></span>
+              <div>
+                <strong>Pendente (status)</strong>
+                <small>{{ kpis.totalPending | currency: kpis.currency }} ({{ pendingPercentage | number: '1.0-1' }}%)</small>
+              </div>
+            </li>
+            <li>
+              <span class="dot unpaid"></span>
+              <div>
+                <strong>Não pago</strong>
+                <small>{{ kpis.totalUnpaid | currency: kpis.currency }} ({{ unpaidPercentage | number: '1.0-1' }}%)</small>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="platforms-table-card">
+        <h2>Pendências por usuários</h2>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Usuário</th>
+                <th>Valor pendente</th>
+                <th>Valor total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of pendingByUsers; track item.userName) {
+                <tr>
+                  <td>{{ item.userName }}</td>
+                  <td>{{ item.pendingAmount | currency: kpis.currency }}</td>
+                  <td>{{ item.totalAmount | currency: kpis.currency }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
   }
 </section>

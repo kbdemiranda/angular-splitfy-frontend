@@ -21,16 +21,6 @@ p {
   color: #475569;
 }
 
-button {
-  height: 40px;
-  border: 0;
-  border-radius: 10px;
-  background: #1d4ed8;
-  color: white;
-  padding: 0 14px;
-  cursor: pointer;
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -51,31 +41,149 @@ button {
   font-weight: 700;
 }
 
-.platforms {
+.bottom-grid {
   margin-top: 18px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(300px, 380px) minmax(360px, 1fr);
+  align-items: start;
+}
+
+.status-card,
+.platforms-table-card {
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 16px;
 }
 
-ul {
+.status-card h2,
+.platforms-table-card h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.status-card > p {
+  margin-top: 6px;
+  font-size: 0.85rem;
+}
+
+.status-content {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.donut {
+  width: 156px;
+  height: 156px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+}
+
+.donut-hole {
+  width: 96px;
+  height: 96px;
+  border-radius: 999px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 8px;
+}
+
+.donut-hole strong {
+  font-size: 0.9rem;
+}
+
+.donut-hole small {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.legend {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: grid;
+  gap: 8px;
 }
 
-li {
+.legend li {
   display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.legend strong {
+  display: block;
+  font-size: 0.88rem;
+}
+
+.legend small {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.dot.paid {
+  background: #16a34a;
+}
+
+.dot.pending {
+  background: #f59e0b;
+}
+
+.dot.unpaid {
+  background: #ef4444;
+}
+
+.table-wrapper {
+  margin-top: 12px;
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 8px 6px;
   border-bottom: 1px solid #f1f5f9;
 }
 
-li:last-child {
+th {
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+tbody tr:last-child td {
   border-bottom: 0;
 }
 
-.loading {
-  color: #475569;
+@media (max-width: 1024px) {
+  .bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .status-content {
+    flex-wrap: wrap;
+  }
 }
