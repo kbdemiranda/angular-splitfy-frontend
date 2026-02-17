@@ -26,8 +26,8 @@ export class LoginComponent {
     private readonly changeDetectorRef: ChangeDetectorRef,
   ) {
     this.form = this.formBuilder.nonNullable.group({
-      email: ['admin@splitfy.app', [Validators.required, Validators.email]],
-      password: ['123456', [Validators.required]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required]],
     });
 
     if (this.authService.isAuthenticated()) {
