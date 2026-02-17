@@ -29,7 +29,7 @@ export class AuthService {
   }
 
   logout(): Observable<void> {
-    return this.http.post(API_ROUTES.authLogout, {}).pipe(
+    return this.http.post(API_ROUTES.authLogout, null).pipe(
       tap(() => this.clearSession()),
       map(() => void 0),
     );

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -15,12 +15,15 @@ export class LoginComponent {
     password: FormControl<string>;
   }>;
 
-  errorMessage: string | null = null;
+  invalidLogin = false;
+  submitting = false;
 
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly authService: AuthService,
     private readonly router: Router,
+    private readonly ngZone: NgZone,
+    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {
     this.form = this.formBuilder.nonNullable.group({
       email: ['admin@splitfy.app', [Validators.required, Validators.email]],
@@ -33,21 +36,34 @@ export class LoginComponent {
   }
 
   submit(): void {
+    if (this.submitting) {
+      return;
+    }
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    this.errorMessage = null;
+    this.invalidLogin = false;
+    this.submitting = true;
 
     this.authService
       .login(this.form.getRawValue())
       .subscribe({
         next: () => {
-          void this.router.navigate(['/dashboard']);
+          this.ngZone.run(() => {
+            this.submitting = false;
+            this.changeDetectorRef.detectChanges();
+            void this.router.navigate(['/dashboard']);
+          });
         },
         error: () => {
-          this.errorMessage = 'Credenciais inválidas.';
+          this.ngZone.run(() => {
+            this.invalidLogin = true;
+            this.submitting = false;
+            this.changeDetectorRef.detectChanges();
+          });
         },
       });
   }

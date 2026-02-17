@@ -14,7 +14,6 @@ import { SubscriberSubscriptionsComponent } from './features/subscribers/subscri
 import { SettingsComponent } from './features/settings/settings-component';
 import { PaymentConfirmationsComponent } from './features/payment-confirmations/payment-confirmations-component';
 import { ApiBaseUrlInterceptor } from './core/interceptors/api-base-url.interceptor';
-import { MockBackendInterceptor } from './core/interceptors/mock-backend.interceptor';
 import { AuthTokenInterceptor } from './core/interceptors/auth-token.interceptor';
 import { ErrorInterceptor } from './core/interceptors/error.interceptor';
 
@@ -36,7 +35,6 @@ import { ErrorInterceptor } from './core/interceptors/error.interceptor';
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptorsFromDi()),
     { provide: HTTP_INTERCEPTORS, useClass: ApiBaseUrlInterceptor, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: MockBackendInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: AuthTokenInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
   ],

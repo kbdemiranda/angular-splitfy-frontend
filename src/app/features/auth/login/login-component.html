@@ -16,16 +16,11 @@
         <small>Senha obrigatória.</small>
       }
 
-      @if (errorMessage) {
-        <div class="error">{{ errorMessage }}</div>
-      }
+      <div class="error" *ngIf="invalidLogin">Login inválido</div>
 
-      <button type="submit">Entrar</button>
+      <button type="submit" [disabled]="submitting">
+        {{ submitting ? 'Entrando...' : 'Entrar' }}
+      </button>
     </form>
-
-    <div class="hint">
-      <span>Mock disponível:</span>
-      <code>admin@splitfy.app / 123456</code>
-    </div>
   </article>
 </section>
