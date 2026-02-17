@@ -6,7 +6,12 @@
     </div>
   </header>
 
-  @if (kpis) {
+  @if (isLoading) {
+    <section class="loading-state" aria-live="polite" aria-busy="true">
+      <div class="spinner" role="status" aria-label="Carregando KPIs"></div>
+      <p>Carregando KPIs...</p>
+    </section>
+  } @else if (kpis) {
     <article class="grid">
       <div class="card">
         <strong>Total devido</strong>
@@ -88,6 +93,10 @@
           </table>
         </div>
       </article>
+    </section>
+  } @else {
+    <section class="empty-state">
+      <p>Nenhum dado de KPI disponível no momento.</p>
     </section>
   }
 </section>

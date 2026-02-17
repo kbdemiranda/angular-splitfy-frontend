@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { DashboardKpiResponse } from '../../shared/models/dashboard.model';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
@@ -10,13 +11,34 @@ import { DashboardKpiResponse } from '../../shared/models/dashboard.model';
 })
 export class DashboardComponent implements OnInit {
   kpis: DashboardKpiResponse | null = null;
+  isLoading = false;
 
-  constructor(private readonly dashboardService: DashboardService) {}
+  constructor(
+    private readonly dashboardService: DashboardService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
+  ) {}
 
   ngOnInit(): void {
-    this.dashboardService.getKpis().subscribe((kpis) => {
-      this.kpis = kpis;
-    });
+    this.loadKpis();
+  }
+
+  private loadKpis(): void {
+    this.isLoading = true;
+
+    this.dashboardService
+      .getKpis()
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+          this.changeDetectorRef.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: (kpis) => {
+          this.kpis = kpis;
+          this.changeDetectorRef.markForCheck();
+        },
+      });
   }
 
   get totalStatusAmount(): number {
