@@ -1,7 +1,7 @@
 import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
 import { LoginComponent } from './features/auth/login/login-component';
@@ -12,6 +12,7 @@ import { PlatformsComponent } from './features/platforms/platforms-component';
 import { SubscribersComponent } from './features/subscribers/subscribers-component';
 import { SubscriberSubscriptionsComponent } from './features/subscribers/subscriber-subscriptions-component';
 import { SettingsComponent } from './features/settings/settings-component';
+import { PaymentConfirmationsComponent } from './features/payment-confirmations/payment-confirmations-component';
 import { ApiBaseUrlInterceptor } from './core/interceptors/api-base-url.interceptor';
 import { MockBackendInterceptor } from './core/interceptors/mock-backend.interceptor';
 import { AuthTokenInterceptor } from './core/interceptors/auth-token.interceptor';
@@ -28,8 +29,9 @@ import { ErrorInterceptor } from './core/interceptors/error.interceptor';
     SubscribersComponent,
     SubscriberSubscriptionsComponent,
     SettingsComponent,
+    PaymentConfirmationsComponent,
   ],
-  imports: [BrowserModule, ReactiveFormsModule, AppRoutingModule, LUCIDE_ICONS],
+  imports: [BrowserModule, FormsModule, ReactiveFormsModule, AppRoutingModule, LUCIDE_ICONS],
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(withInterceptorsFromDi()),

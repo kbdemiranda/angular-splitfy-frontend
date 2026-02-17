@@ -1,0 +1,99 @@
+<section class="payment-confirmations-page">
+  <header class="page-header">
+    <h1>Gestão de pagamentos</h1>
+    <p>Registre confirmações e aprove pendências por mês de referência.</p>
+  </header>
+
+  <div class="feedback">
+    @if (successMessage) {
+      <p class="message success">{{ successMessage }}</p>
+    }
+    @if (errorMessage) {
+      <p class="message error">{{ errorMessage }}</p>
+    }
+  </div>
+
+  <div class="content-grid">
+    <article class="panel">
+      <h2>Registrar pagamento</h2>
+      <form [formGroup]="registerForm" (ngSubmit)="submitRegister()" class="register-form">
+        <label>
+          Referência
+          <input type="month" formControlName="referenceMonth" />
+        </label>
+
+        <label>
+          Assinante
+          <select formControlName="subscriberId" (change)="onSubscriberChange()">
+            <option value="">Selecione um assinante</option>
+            @for (subscriber of subscribers; track subscriber.id) {
+              <option [value]="subscriber.id">{{ subscriber.name }}</option>
+            }
+          </select>
+        </label>
+
+        @if (selectedSubscriber) {
+          <fieldset class="platform-list">
+            <legend>Plataformas para confirmar</legend>
+            @for (platform of selectedSubscriber.associatedPlatforms; track platform.id) {
+              <label class="platform-item">
+                <input
+                  type="checkbox"
+                  [checked]="hasPlatformSelected(platform.id)"
+                  (change)="togglePlatform(platform.id, $any($event.target).checked)"
+                />
+                <span>{{ platform.name }}</span>
+                <small>{{ formatCurrency(platform.individualPrice, platform.currency) }}</small>
+              </label>
+            }
+          </fieldset>
+        }
+
+        <button type="submit" class="primary" [disabled]="registering">
+          {{ registering ? 'Registrando...' : 'Registrar confirmação' }}
+        </button>
+      </form>
+    </article>
+
+    <article class="panel">
+      <div class="panel-header">
+        <h2>Pendências para aprovação</h2>
+        <div class="pending-filters">
+          <label>
+            Referência
+            <input type="month" [(ngModel)]="pendingReferenceMonth" name="pendingReferenceMonth" />
+          </label>
+          <button type="button" class="secondary" (click)="loadPending()">Atualizar</button>
+        </div>
+      </div>
+
+      @if (loadingPending) {
+        <p class="empty-state">Carregando pendências...</p>
+      } @else if (pendingConfirmations.length === 0) {
+        <p class="empty-state">Nenhuma confirmação pendente para esse mês.</p>
+      } @else {
+        <ul class="pending-list">
+          @for (item of pendingConfirmations; track trackByPendingId($index, item)) {
+            <li class="pending-item">
+              <div class="pending-main">
+                <strong>#{{ item.confirmationId }} • {{ item.subscriber.name }}</strong>
+                <p>{{ item.platform.name }} • {{ formatCurrency(item.platform.price, item.platform.currency) }}</p>
+                <p class="meta">
+                  Solicitado por {{ item.requestedByEmail }} em {{ formatDateTime(item.requestedAt) }}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="approve"
+                [disabled]="isApproving(item.confirmationId)"
+                (click)="approve(item.confirmationId)"
+              >
+                {{ isApproving(item.confirmationId) ? 'Aprovando...' : 'Aprovar' }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </article>
+  </div>
+</section>

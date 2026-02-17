@@ -50,6 +50,11 @@ export class NavbarComponent {
       icon: Cloud,
     },
     {
+      path: '/payment-confirmations',
+      label: 'Pagamentos',
+      icon: CircleCheck,
+    },
+    {
       path: '/settings',
       label: 'Configurações',
       icon: Settings,

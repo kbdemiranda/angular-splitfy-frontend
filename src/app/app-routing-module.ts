@@ -7,6 +7,7 @@ import { SettingsComponent } from './features/settings/settings-component';
 import { PlatformsComponent } from './features/platforms/platforms-component';
 import { SubscribersComponent } from './features/subscribers/subscribers-component';
 import { SubscriberSubscriptionsComponent } from './features/subscribers/subscriber-subscriptions-component';
+import { PaymentConfirmationsComponent } from './features/payment-confirmations/payment-confirmations-component';
 
 const routes: Routes = [
   {
@@ -35,6 +36,12 @@ const routes: Routes = [
     component: PlatformsComponent,
     canActivate: [AuthGuard],
     data: { title: 'Plataformas' },
+  },
+  {
+    path: 'payment-confirmations',
+    component: PaymentConfirmationsComponent,
+    canActivate: [AuthGuard],
+    data: { title: 'Confirmações de pagamento' },
   },
   {
     path: 'settings',
