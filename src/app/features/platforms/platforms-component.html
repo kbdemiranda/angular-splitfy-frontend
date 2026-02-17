@@ -20,7 +20,7 @@
           </div>
 
           <div class="platform-title">
-            <strong>Logo - {{ platform.name }}</strong>
+            <strong>{{ platform.name }}</strong>
           </div>
 
           <div class="context-area" (click)="$event.stopPropagation()">
@@ -123,7 +123,7 @@
           Tipo de serviço
           <input
             type="text"
-            [value]="viewingPlatform.serviceType"
+            [value]="serviceTypeLabel(viewingPlatform.serviceType)"
             readonly
             class="mt-1 w-full rounded-md border-slate-700 bg-slate-950 text-slate-200"
           />
@@ -133,7 +133,7 @@
           Ciclo de cobrança
           <input
             type="text"
-            [value]="viewingPlatform.billingCycle"
+            [value]="billingCycleLabel(viewingPlatform.billingCycle)"
             readonly
             class="mt-1 w-full rounded-md border-slate-700 bg-slate-950 text-slate-200"
           />
@@ -159,15 +159,17 @@
           />
         </label>
 
-        <label class="block text-sm text-slate-200 sm:col-span-2">
-          Dia da cobrança (MM-DD sem ano)
-          <input
-            type="text"
-            [value]="formatBillingDayForDisplay(viewingPlatform.billingDay)"
-            readonly
-            class="mt-1 w-full rounded-md border-slate-700 bg-slate-950 text-slate-200"
-          />
-        </label>
+        @if (viewingPlatform.billingCycle === 'ANNUAL') {
+          <label class="block text-sm text-slate-200 sm:col-span-2">
+            Data de cobrança
+            <input
+              type="text"
+              [value]="formatBillingDayForDisplay(viewingPlatform.billingDay)"
+              readonly
+              class="mt-1 w-full rounded-md border-slate-700 bg-slate-950 text-slate-200"
+            />
+          </label>
+        }
 
         <div class="modal-actions sm:col-span-2">
           <button type="button" class="secondary" (click)="closeDetails()">Fechar</button>
@@ -214,7 +216,6 @@
               placeholder="0,00"
             />
           </div>
-          <small class="mt-1 block text-xs text-slate-400">Formatado: {{ formattedPricePreview }}</small>
         </label>
 
         <label class="block text-sm text-slate-200">
@@ -246,7 +247,7 @@
             class="mt-1 w-full rounded-md border-slate-600 bg-slate-900 text-slate-100 focus:border-cyan-500 focus:ring-cyan-500"
           >
             @for (option of serviceTypeOptions; track option) {
-              <option [value]="option">{{ option }}</option>
+              <option [value]="option">{{ serviceTypeLabel(option) }}</option>
             }
           </select>
         </label>
@@ -258,7 +259,7 @@
             class="mt-1 w-full rounded-md border-slate-600 bg-slate-900 text-slate-100 focus:border-cyan-500 focus:ring-cyan-500"
           >
             @for (option of billingCycleOptions; track option) {
-              <option [value]="option">{{ option }}</option>
+              <option [value]="option">{{ billingCycleLabel(option) }}</option>
             }
           </select>
         </label>
@@ -283,41 +284,40 @@
           />
         </label>
 
-        <fieldset class="sm:col-span-2">
-          <legend class="text-sm text-slate-200">Dia da cobrança (MM-DD sem ano)</legend>
-          <div class="relative mt-1 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
-            <div>
-              <label class="block text-sm text-slate-200">Selecionar no calendário</label>
-              <div class="mt-1 flex items-center gap-2">
+        @if (isAnnualBilling) {
+          <fieldset class="sm:col-span-2">
+            <legend class="text-sm text-slate-200">Data de cobrança</legend>
+            <div class="relative mt-1 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
+              <div>
+                <label class="block text-sm text-slate-200">Selecionar no calendário</label>
+                <div class="mt-1 flex items-center gap-2">
+                  <input
+                    type="text"
+                    [value]="billingDayPreview"
+                    readonly
+                    class="w-full rounded-md border-slate-600 bg-slate-900 text-slate-100 focus:border-cyan-500 focus:ring-cyan-500"
+                    placeholder="DD/MM"
+                  />
+                  <button
+                    type="button"
+                    class="rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800"
+                    (click)="openBillingDatePicker(billingDateInput)"
+                  >
+                    Calendário
+                  </button>
+                </div>
                 <input
-                  type="text"
-                  [value]="billingDayPreview"
-                  readonly
-                  class="w-full rounded-md border-slate-600 bg-slate-900 text-slate-100 focus:border-cyan-500 focus:ring-cyan-500"
-                  placeholder="DD/MM"
+                  #billingDateInput
+                  formControlName="billingDateFull"
+                  type="date"
+                  [min]="calendarMinDate"
+                  [max]="calendarMaxDate"
+                  class="calendar-native-input"
                 />
-                <button
-                  type="button"
-                  class="rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                  [disabled]="!isAnnualBilling"
-                  (click)="openBillingDatePicker(billingDateInput)"
-                >
-                  Calendário
-                </button>
               </div>
-              <input
-                #billingDateInput
-                formControlName="billingDateFull"
-                type="date"
-                [min]="calendarMinDate"
-                [max]="calendarMaxDate"
-                [disabled]="!isAnnualBilling"
-                class="calendar-native-input"
-              />
             </div>
-
-          </div>
-        </fieldset>
+          </fieldset>
+        }
 
         @if (editErrorMessage) {
           <p class="sm:col-span-2 rounded-md border border-rose-700 bg-rose-950 px-3 py-2 text-sm text-rose-200">

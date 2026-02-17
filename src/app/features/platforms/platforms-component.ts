@@ -48,7 +48,21 @@ export class PlatformsComponent {
     'Cloud Storage',
     'Fitness',
   ];
+  private readonly serviceTypeLabels: Record<ServiceType, string> = {
+    'Video Streaming': 'Streaming de vídeo',
+    'Music Streaming': 'Streaming de música',
+    Software: 'Software',
+    Games: 'Jogos',
+    News: 'Notícias',
+    'Cloud Storage': 'Armazenamento em nuvem',
+    Fitness: 'Fitness',
+  };
   readonly billingCycleOptions: BillingCycle[] = ['MONTHLY', 'SEMI_ANNUAL', 'ANNUAL'];
+  private readonly billingCycleLabels: Record<BillingCycle, string> = {
+    MONTHLY: 'Mensal',
+    SEMI_ANNUAL: 'Semestral',
+    ANNUAL: 'Anual',
+  };
 
   platforms: PlatformCard[] = [
     {
@@ -422,6 +436,14 @@ export class PlatformsComponent {
     }
 
     return `${match[2]}/${match[1]}`;
+  }
+
+  billingCycleLabel(cycle: string): string {
+    return this.billingCycleLabels[cycle as BillingCycle] ?? cycle;
+  }
+
+  serviceTypeLabel(type: string): string {
+    return this.serviceTypeLabels[type as ServiceType] ?? type;
   }
 
   private applyBillingDayRules(cycle: string): void {
