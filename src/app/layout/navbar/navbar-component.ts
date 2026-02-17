@@ -38,7 +38,7 @@ export class NavbarComponent {
     },
     {
       path: '/users',
-      label: 'Usuários',
+      label: 'Assinantes',
       icon: Users,
     },
     {

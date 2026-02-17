@@ -1,0 +1,110 @@
+<section class="subscribers-page">
+  <header class="subscribers-header">
+    <h1>Assinantes</h1>
+    <p>Acompanhe os participantes ativos das suas plataformas.</p>
+  </header>
+
+  <ul
+    role="list"
+    class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3"
+  >
+    @for (subscriber of subscribers; track trackById($index, subscriber)) {
+      <li class="col-span-1 divide-y divide-slate-700 rounded-lg border border-slate-700 bg-slate-900/80 shadow-sm">
+        <div class="flex w-full items-center justify-between space-x-6 p-6">
+          <div class="flex-1 truncate">
+            <h3 class="truncate text-sm/6 font-semibold text-slate-100">{{ subscriber.name }}</h3>
+            <p class="mt-1 truncate text-sm text-slate-300">{{ subscriber.email }}</p>
+            <div class="mt-3 flex flex-wrap gap-2">
+              @for (platform of subscriber.associatedPlatforms; track platform.id) {
+                <span class="inline-flex items-center rounded-md bg-sky-500/15 px-2 py-1 text-xs font-medium text-sky-300 ring-1 ring-sky-400/30 ring-inset">
+                  {{ platform.name }}
+                </span>
+              }
+            </div>
+          </div>
+          <div class="avatar">{{ initials(subscriber.name) }}</div>
+        </div>
+
+        <div>
+          <button
+            type="button"
+            class="block w-full bg-slate-800 py-3 text-sm font-semibold text-slate-100 hover:bg-slate-700"
+            (click)="openDetails(subscriber)"
+          >
+            Detalhar
+          </button>
+        </div>
+      </li>
+    }
+
+    @if (subscribers.length === 0) {
+      <li class="empty-card">Nenhum assinante cadastrado.</li>
+    }
+  </ul>
+</section>
+
+@if (selectedSubscriber) {
+  <div class="modal-overlay" (click)="closeDetails()">
+    <section class="modal detail-modal" (click)="$event.stopPropagation()">
+      <div class="detail-header">
+        <h2>Assinante</h2>
+        <button type="button" class="close-icon" (click)="closeDetails()">Fechar</button>
+      </div>
+
+      <div class="subscriber-identification">
+        <div class="avatar large">{{ initials(selectedSubscriber.name) }}</div>
+        <div>
+          <strong>{{ selectedSubscriber.name }}</strong>
+          <p>{{ selectedSubscriber.email }}</p>
+        </div>
+      </div>
+
+      <section class="monthly-total-card">
+        <span>VALOR POR MÊS</span>
+        <strong>{{ formatCurrency(totalPerMonth(selectedSubscriber)) }}</strong>
+      </section>
+
+      <section class="platforms-section">
+        <h3>Plataformas associadas</h3>
+        <div class="platforms-grid">
+          @for (platform of selectedSubscriber.associatedPlatforms; track platform.id) {
+            <article class="platform-detail-card">
+              <div class="title-row">
+                <strong>{{ platform.name }}</strong>
+              </div>
+              <div class="price-row">
+                <div>
+                  <span>PREÇO MENSAL</span>
+                  <strong>{{ formatCurrency(platform.monthlyPrice, platform.currency) }}</strong>
+                </div>
+                <div>
+                  <span>PREÇO INDIVIDUAL</span>
+                  <strong>{{ formatCurrency(platform.individualPrice, platform.currency) }}</strong>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+
+      <div class="modal-actions">
+        <button type="button" class="primary" (click)="openEdit(selectedSubscriber)">Editar</button>
+        <button type="button" class="danger" (click)="askDelete(selectedSubscriber)">Excluir</button>
+      </div>
+
+    </section>
+  </div>
+}
+
+@if (subscriberToDelete) {
+  <div class="modal-overlay" (click)="cancelDelete()">
+    <section class="modal confirm-modal" (click)="$event.stopPropagation()">
+      <h2>Confirmar exclusão</h2>
+      <p>Tem certeza que deseja excluir {{ subscriberToDelete.name }}?</p>
+      <div class="modal-actions">
+        <button type="button" class="secondary" (click)="cancelDelete()">Cancelar</button>
+        <button type="button" class="danger" (click)="confirmDelete()">Excluir</button>
+      </div>
+    </section>
+  </div>
+}

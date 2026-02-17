@@ -5,6 +5,7 @@ import { DashboardComponent } from './features/dashboard/dashboard-component';
 import { LoginComponent } from './features/auth/login/login-component';
 import { ComingSoonComponent } from './features/common/coming-soon/coming-soon-component';
 import { PlatformsComponent } from './features/platforms/platforms-component';
+import { SubscribersComponent } from './features/subscribers/subscribers-component';
 
 const routes: Routes = [
   {
@@ -18,9 +19,9 @@ const routes: Routes = [
   },
   {
     path: 'users',
-    component: ComingSoonComponent,
+    component: SubscribersComponent,
     canActivate: [AuthGuard],
-    data: { title: 'Usuários' },
+    data: { title: 'Assinantes' },
   },
   {
     path: 'platforms',

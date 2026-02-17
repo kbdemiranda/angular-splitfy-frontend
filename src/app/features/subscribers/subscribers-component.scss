@@ -1,0 +1,226 @@
+.subscribers-page {
+  min-height: 100dvh;
+  padding: 28px;
+  background: #020817;
+}
+
+.subscribers-header h1 {
+  margin: 0;
+  color: #f8fafc;
+}
+
+.subscribers-header p {
+  margin: 6px 0 0;
+  color: #94a3b8;
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.avatar.large {
+  width: 64px;
+  height: 64px;
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.empty-card {
+  border: 1px dashed #334155;
+  color: #94a3b8;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.65);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 60;
+}
+
+.modal {
+  width: min(460px, 100%);
+  border-radius: 12px;
+  border: 1px solid #24324a;
+  background: #0b1830;
+  color: #e2e8f0;
+  padding: 18px;
+}
+
+.modal h2 {
+  margin: 0;
+}
+
+.modal p {
+  margin: 4px 0 0;
+  color: #cbd5e1;
+}
+
+.detail-modal {
+  width: min(980px, 100%);
+  max-height: 90dvh;
+  overflow: auto;
+  border-color: #24324a;
+  background: #0b1830;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.close-icon {
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+.subscriber-identification {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.subscriber-identification strong {
+  font-size: 1.2rem;
+}
+
+.monthly-total-card {
+  border: 1px solid #24324a;
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: #12213b;
+}
+
+.monthly-total-card span {
+  display: block;
+  color: #94a3b8;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.monthly-total-card strong {
+  font-size: 1.8rem;
+}
+
+.platforms-section {
+  margin-top: 20px;
+}
+
+.platforms-section h3 {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+}
+
+.platforms-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.platform-detail-card {
+  border: 1px solid #24324a;
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, #12213b 0%, #0b1830 100%);
+}
+
+.title-row small {
+  display: block;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.price-row {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.price-row span {
+  display: block;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.price-row strong {
+  margin-top: 4px;
+  display: block;
+  font-size: 1.2rem;
+}
+
+.modal-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-actions button {
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.modal-actions .primary {
+  background: #0284c7;
+  color: #f8fafc;
+}
+
+.modal-actions .secondary {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+.modal-actions .danger {
+  background: #be123c;
+  color: #ffe4e6;
+}
+
+.confirm-modal {
+  width: min(420px, 100%);
+}
+
+@media (min-width: 768px) {
+  .subscribers-page {
+    padding: 32px;
+  }
+
+  .platforms-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .platforms-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .subscribers-page {
+    padding: 36px 56px;
+  }
+}
