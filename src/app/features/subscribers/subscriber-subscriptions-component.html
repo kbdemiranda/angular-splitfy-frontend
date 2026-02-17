@@ -1,0 +1,70 @@
+<section class="subscriptions-editor-page">
+  <header class="editor-header">
+    <button type="button" class="back-button" (click)="backToSubscribers()">Voltar</button>
+    <div>
+      <h1>Editar assinaturas</h1>
+      <p>Gerencie associações de plataformas do assinante.</p>
+    </div>
+  </header>
+
+  @if (infoMessage) {
+    <div class="feedback" role="status" aria-live="polite">{{ infoMessage }}</div>
+  }
+
+  @if (subscriber) {
+    <article class="subscriber-card">
+      <div>
+        <h2>{{ subscriber.name }}</h2>
+        <p>{{ subscriber.email }}</p>
+      </div>
+      <div class="total">
+        <span>Total mensal (individual)</span>
+        <strong>{{ formatCurrency(totalPerMonth()) }}</strong>
+      </div>
+    </article>
+
+    <div class="platforms-columns">
+      <section class="platform-column">
+        <h3>Plataformas já associadas</h3>
+        <div class="platform-list">
+          @for (platform of associatedPlatforms; track platform.id) {
+            <article class="platform-card associated">
+              <div>
+                <strong>{{ platform.name }}</strong>
+                <p>Mensal: {{ formatCurrency(platform.monthlyPrice, platform.currency) }}</p>
+                <p>Individual: {{ formatCurrency(platform.individualPrice, platform.currency) }}</p>
+              </div>
+              <button type="button" class="action-button remove" (click)="removePlatform(platform)">
+                Remover
+              </button>
+            </article>
+          }
+          @if (associatedPlatforms.length === 0) {
+            <article class="empty">Nenhuma plataforma associada.</article>
+          }
+        </div>
+      </section>
+
+      <section class="platform-column">
+        <h3>Plataformas disponíveis para assinatura</h3>
+        <div class="platform-list">
+          @for (platform of availablePlatforms; track platform.id) {
+            <article class="platform-card available">
+              <div>
+                <strong>{{ platform.name }}</strong>
+                <p>Mensal: {{ formatCurrency(platform.monthlyPrice, platform.currency) }}</p>
+                <p>Individual: {{ formatCurrency(platform.individualPrice, platform.currency) }}</p>
+              </div>
+              <button type="button" class="action-button add" (click)="associatePlatform(platform)">
+                Associar
+              </button>
+            </article>
+          }
+          @if (availablePlatforms.length === 0) {
+            <article class="empty">Sem plataformas disponíveis.</article>
+          }
+        </div>
+      </section>
+    </div>
+  }
+</section>

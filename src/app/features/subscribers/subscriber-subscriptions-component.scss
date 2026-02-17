@@ -1,0 +1,164 @@
+.subscriptions-editor-page {
+  min-height: 100dvh;
+  padding: 28px;
+  background: #020817;
+}
+
+.editor-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.back-button {
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-weight: 600;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.editor-header h1 {
+  margin: 0;
+  color: #f8fafc;
+}
+
+.editor-header p {
+  margin: 4px 0 0;
+  color: #94a3b8;
+}
+
+.feedback {
+  margin-top: 14px;
+  border: 1px solid #1e3a8a;
+  background: #0b2a67;
+  color: #dbeafe;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.subscriber-card {
+  margin-top: 20px;
+  border: 1px solid #24324a;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #12213b 0%, #0b1830 100%);
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.subscriber-card h2 {
+  margin: 0;
+  color: #f8fafc;
+}
+
+.subscriber-card p {
+  margin: 6px 0 0;
+  color: #cbd5e1;
+}
+
+.total span {
+  display: block;
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.total strong {
+  color: #f8fafc;
+  font-size: 1.5rem;
+}
+
+.platforms-columns {
+  margin-top: 18px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.platform-column {
+  border: 1px solid #24324a;
+  border-radius: 14px;
+  background: #0b1830;
+  padding: 14px;
+}
+
+.platform-column h3 {
+  margin: 0 0 12px;
+  color: #e2e8f0;
+  font-size: 1rem;
+}
+
+.platform-list {
+  display: grid;
+  gap: 10px;
+}
+
+.platform-card {
+  border: 1px solid #334155;
+  border-radius: 12px;
+  background: #12213b;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.platform-card strong {
+  color: #f8fafc;
+}
+
+.platform-card p {
+  margin: 4px 0 0;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+}
+
+.action-button {
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.action-button.add {
+  background: #0284c7;
+  color: #f8fafc;
+}
+
+.action-button.add:hover {
+  background: #0369a1;
+}
+
+.action-button.remove {
+  background: #be123c;
+  color: #ffe4e6;
+}
+
+.action-button.remove:hover {
+  background: #9f1239;
+}
+
+.empty {
+  border: 1px dashed #334155;
+  border-radius: 10px;
+  color: #94a3b8;
+  padding: 14px;
+  text-align: center;
+}
+
+@media (min-width: 1024px) {
+  .platforms-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .subscriptions-editor-page {
+    padding: 36px 56px;
+  }
+}

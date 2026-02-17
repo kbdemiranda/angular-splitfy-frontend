@@ -1,19 +1,8 @@
-import { Component } from '@angular/core';
-
-interface SubscriberCard {
-  id: number;
-  name: string;
-  email: string;
-  associatedPlatforms: SubscriberPlatform[];
-}
-
-interface SubscriberPlatform {
-  id: number;
-  name: string;
-  monthlyPrice: number;
-  individualPrice: number;
-  currency: string;
-}
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { SubscriberCard } from './subscribers-data';
+import { SubscribersStateService } from './subscribers-state.service';
 
 @Component({
   selector: 'app-subscribers',
@@ -21,75 +10,32 @@ interface SubscriberPlatform {
   styleUrl: './subscribers-component.scss',
   standalone: false,
 })
-export class SubscribersComponent {
-  subscribers: SubscriberCard[] = [
-    {
-      id: 1,
-      name: 'Ana Luiza Costa',
-      email: 'ana.luiza@email.com',
-      associatedPlatforms: [
-        {
-          id: 1,
-          name: 'Netflix',
-          monthlyPrice: 24.9,
-          individualPrice: 12.45,
-          currency: 'BRL',
-        },
-        {
-          id: 2,
-          name: 'Spotify',
-          monthlyPrice: 34.9,
-          individualPrice: 6.98,
-          currency: 'BRL',
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: 'Bruno Almeida',
-      email: 'bruno.almeida@email.com',
-      associatedPlatforms: [
-        {
-          id: 3,
-          name: 'Disney+',
-          monthlyPrice: 27.9,
-          individualPrice: 13.95,
-          currency: 'BRL',
-        },
-        {
-          id: 4,
-          name: 'Prime Video',
-          monthlyPrice: 19.9,
-          individualPrice: 9.95,
-          currency: 'BRL',
-        },
-        {
-          id: 5,
-          name: 'Apple TV+',
-          monthlyPrice: 21.9,
-          individualPrice: 10.95,
-          currency: 'BRL',
-        },
-      ],
-    },
-    {
-      id: 3,
-      name: 'Carla Ferreira',
-      email: 'carla.ferreira@email.com',
-      associatedPlatforms: [
-        {
-          id: 6,
-          name: 'YouTube Premium',
-          monthlyPrice: 26.9,
-          individualPrice: 26.9,
-          currency: 'BRL',
-        },
-      ],
-    },
-  ];
+export class SubscribersComponent implements OnInit {
+  subscribers: SubscriberCard[] = [];
 
   selectedSubscriber: SubscriberCard | null = null;
   subscriberToDelete: SubscriberCard | null = null;
+  editOptionsSubscriber: SubscriberCard | null = null;
+  editingSubscriberId: number | null = null;
+  readonly editProfileForm: FormGroup<{
+    name: FormControl<string>;
+    email: FormControl<string>;
+  }>;
+
+  constructor(
+    private readonly formBuilder: FormBuilder,
+    private readonly router: Router,
+    private readonly subscribersState: SubscribersStateService,
+  ) {
+    this.editProfileForm = this.formBuilder.group({
+      name: this.formBuilder.nonNullable.control('', [Validators.required, Validators.minLength(3)]),
+      email: this.formBuilder.nonNullable.control('', [Validators.required, Validators.email]),
+    });
+  }
+
+  ngOnInit(): void {
+    this.refreshSubscribers();
+  }
 
   trackById(_: number, subscriber: SubscriberCard): number {
     return subscriber.id;
@@ -103,10 +49,73 @@ export class SubscribersComponent {
     this.selectedSubscriber = null;
   }
 
-  openEdit(subscriber: SubscriberCard | null): void {
+  openEditOptions(subscriber: SubscriberCard | null): void {
     if (!subscriber) {
       return;
     }
+
+    this.editOptionsSubscriber = subscriber;
+  }
+
+  closeEditOptions(): void {
+    this.editOptionsSubscriber = null;
+  }
+
+  chooseEditSubscriber(): void {
+    const subscriber = this.editOptionsSubscriber;
+    this.closeEditOptions();
+
+    if (!subscriber) {
+      return;
+    }
+
+    this.editingSubscriberId = subscriber.id;
+    this.editProfileForm.setValue({
+      name: subscriber.name,
+      email: subscriber.email,
+    });
+  }
+
+  cancelEdit(): void {
+    this.editingSubscriberId = null;
+    this.editProfileForm.reset({
+      name: '',
+      email: '',
+    });
+  }
+
+  saveEdit(): void {
+    if (this.editingSubscriberId === null) {
+      return;
+    }
+
+    if (this.editProfileForm.invalid) {
+      this.editProfileForm.markAllAsTouched();
+      return;
+    }
+
+    const { name, email } = this.editProfileForm.getRawValue();
+    this.subscribersState.updateSubscriberProfile(this.editingSubscriberId, name.trim(), email.trim());
+    this.refreshSubscribers();
+
+    if (this.selectedSubscriber?.id === this.editingSubscriberId) {
+      this.selectedSubscriber = this.subscribers.find(
+        (subscriber) => subscriber.id === this.editingSubscriberId,
+      ) ?? null;
+    }
+
+    this.cancelEdit();
+  }
+
+  chooseEditSubscriptions(): void {
+    const subscriber = this.editOptionsSubscriber;
+    this.closeEditOptions();
+
+    if (!subscriber) {
+      return;
+    }
+
+    void this.router.navigate(['/users', subscriber.id, 'subscriptions']);
   }
 
   askDelete(subscriber: SubscriberCard | null): void {
@@ -127,7 +136,8 @@ export class SubscribersComponent {
     }
 
     const deletedId = this.subscriberToDelete.id;
-    this.subscribers = this.subscribers.filter((subscriber) => subscriber.id !== deletedId);
+    this.subscribersState.deleteSubscriber(deletedId);
+    this.refreshSubscribers();
     this.subscriberToDelete = null;
 
     if (this.selectedSubscriber?.id === deletedId) {
@@ -150,5 +160,9 @@ export class SubscribersComponent {
 
   formatCurrency(value: number, currency = 'BRL'): string {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(value);
+  }
+
+  private refreshSubscribers(): void {
+    this.subscribers = this.subscribersState.getSubscribers();
   }
 }

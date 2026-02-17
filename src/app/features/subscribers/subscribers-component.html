@@ -88,10 +88,67 @@
       </section>
 
       <div class="modal-actions">
-        <button type="button" class="primary" (click)="openEdit(selectedSubscriber)">Editar</button>
+        <button type="button" class="primary" (click)="openEditOptions(selectedSubscriber)">Editar</button>
         <button type="button" class="danger" (click)="askDelete(selectedSubscriber)">Excluir</button>
       </div>
 
+    </section>
+  </div>
+}
+
+@if (editOptionsSubscriber) {
+  <div class="modal-overlay" (click)="closeEditOptions()">
+    <section class="modal choice-modal" (click)="$event.stopPropagation()">
+      <h2>Editar</h2>
+      <p>Escolha o tipo de edição para {{ editOptionsSubscriber.name }}.</p>
+      <div class="choice-actions">
+        <button type="button" class="choice-subscriber" (click)="chooseEditSubscriber()">
+          Editar assinante
+        </button>
+        <button type="button" class="choice-subscriptions" (click)="chooseEditSubscriptions()">
+          Editar assinaturas
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (editingSubscriberId !== null) {
+  <div class="modal-overlay" (click)="cancelEdit()">
+    <section class="modal edit-modal" (click)="$event.stopPropagation()">
+      <h2>Editar assinante</h2>
+      <p>Atualize os dados básicos do assinante.</p>
+
+      <form [formGroup]="editProfileForm" (ngSubmit)="saveEdit()" class="edit-form">
+        <label>
+          Nome
+          <input
+            type="text"
+            formControlName="name"
+            placeholder="Nome completo"
+          />
+          @if (editProfileForm.controls.name.invalid && editProfileForm.controls.name.touched) {
+            <small class="field-error">Informe um nome válido.</small>
+          }
+        </label>
+
+        <label>
+          Email
+          <input
+            type="email"
+            formControlName="email"
+            placeholder="email@dominio.com"
+          />
+          @if (editProfileForm.controls.email.invalid && editProfileForm.controls.email.touched) {
+            <small class="field-error">Informe um email válido.</small>
+          }
+        </label>
+
+        <div class="modal-actions">
+          <button type="button" class="secondary" (click)="cancelEdit()">Cancelar</button>
+          <button type="submit" class="primary">Salvar</button>
+        </div>
+      </form>
     </section>
   </div>
 }

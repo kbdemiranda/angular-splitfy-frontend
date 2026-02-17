@@ -203,6 +203,77 @@
   width: min(420px, 100%);
 }
 
+.choice-modal {
+  width: min(420px, 100%);
+}
+
+.choice-actions {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.choice-actions button {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.choice-actions .choice-subscriber {
+  background: #16a34a;
+}
+
+.choice-actions .choice-subscriber:hover {
+  background: #15803d;
+}
+
+.choice-actions .choice-subscriptions {
+  background: #0284c7;
+}
+
+.choice-actions .choice-subscriptions:hover {
+  background: #0369a1;
+}
+
+.edit-modal {
+  width: min(520px, 100%);
+}
+
+.edit-form {
+  margin-top: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.edit-form label {
+  display: grid;
+  gap: 6px;
+  color: #cbd5e1;
+  font-size: 0.92rem;
+}
+
+.edit-form input {
+  width: 100%;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 10px 12px;
+}
+
+.edit-form input:focus {
+  outline: 2px solid #0284c7;
+  outline-offset: 1px;
+}
+
+.field-error {
+  color: #fda4af;
+  font-size: 0.8rem;
+}
+
 @media (min-width: 768px) {
   .subscribers-page {
     padding: 32px;
