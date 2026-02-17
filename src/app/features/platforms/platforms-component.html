@@ -68,6 +68,113 @@
   </div>
 </section>
 
+@if (viewingPlatform) {
+  <div class="modal-overlay" (click)="closeDetails()">
+    <section class="modal edit-modal" (click)="$event.stopPropagation()">
+      <h2>Detalhes da plataforma</h2>
+      <p>Visualização somente leitura.</p>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <label class="block text-sm text-slate-200 sm:col-span-2">
+          Nome
+          <input
+            type="text"
+            [value]="viewingPlatform.name"
+            readonly
+            class="mt-1 w-full rounded-md border-slate-700 bg-slate-950 text-slate-200"
+          />
+        </label>
+
+        <label class="block text-sm text-slate-200">
+          Preço
+          <input
+            type="text"
+            [value]="viewingPlatform.price | currency: viewingPlatform.currency"
+            readonly
+            class="mt-1 w-full rounded-md border-slate-700 bg-slate-950 text-slate-200"
+          />
+        </label>
+
+        <label class="block text-sm text-slate-200">
+          Moeda
+          <input
+            type="text"
+            [value]="viewingPlatform.currency"
+            readonly
+            class="mt-1 w-full rounded-md border-slate-700 bg-slate-950 text-slate-200"
+          />
+        </label>
+
+        <label class="block text-sm text-slate-200 sm:col-span-2">
+          URL
+          <input
+            type="text"
+            [value]="viewingPlatform.url"
+            readonly
+            class="mt-1 w-full rounded-md border-slate-700 bg-slate-950 text-slate-200"
+          />
+        </label>
+
+        <label class="block text-sm text-slate-200">
+          Tipo de serviço
+          <input
+            type="text"
+            [value]="viewingPlatform.serviceType"
+            readonly
+            class="mt-1 w-full rounded-md border-slate-700 bg-slate-950 text-slate-200"
+          />
+        </label>
+
+        <label class="block text-sm text-slate-200">
+          Ciclo de cobrança
+          <input
+            type="text"
+            [value]="viewingPlatform.billingCycle"
+            readonly
+            class="mt-1 w-full rounded-md border-slate-700 bg-slate-950 text-slate-200"
+          />
+        </label>
+
+        <label class="block text-sm text-slate-200">
+          Total de vagas
+          <input
+            type="text"
+            [value]="viewingPlatform.totalSlots"
+            readonly
+            class="mt-1 w-full rounded-md border-slate-700 bg-slate-950 text-slate-200"
+          />
+        </label>
+
+        <label class="block text-sm text-slate-200">
+          Vagas disponíveis
+          <input
+            type="text"
+            [value]="viewingPlatform.availableSlots"
+            readonly
+            class="mt-1 w-full rounded-md border-slate-700 bg-slate-950 text-slate-200"
+          />
+        </label>
+
+        <label class="block text-sm text-slate-200 sm:col-span-2">
+          Dia da cobrança (MM-DD sem ano)
+          <input
+            type="text"
+            [value]="formatBillingDayForDisplay(viewingPlatform.billingDay)"
+            readonly
+            class="mt-1 w-full rounded-md border-slate-700 bg-slate-950 text-slate-200"
+          />
+        </label>
+
+        <div class="modal-actions sm:col-span-2">
+          <button type="button" class="secondary" (click)="closeDetails()">Fechar</button>
+          <button type="button" class="primary" (click)="openEditFromDetails()">Editar</button>
+          <button type="button" class="danger" (click)="askDeleteFromDetails()">Excluir</button>
+        </div>
+      </div>
+    </section>
+  </div>
+}
+
 @if (editingPlatformId !== null) {
   <div class="modal-overlay" (click)="cancelEdit()">
     <section class="modal edit-modal" (click)="$event.stopPropagation()">

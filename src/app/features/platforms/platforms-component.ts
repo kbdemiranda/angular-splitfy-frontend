@@ -101,6 +101,7 @@ export class PlatformsComponent {
 
   openMenuPlatformId: number | null = null;
   platformToDelete: PlatformCard | null = null;
+  viewingPlatform: PlatformCard | null = null;
   editingPlatformId: number | null = null;
   placeholderMessage: string | null = null;
   editErrorMessage: string | null = null;
@@ -191,8 +192,32 @@ export class PlatformsComponent {
   }
 
   openDetails(platform: PlatformCard): void {
-    this.placeholderMessage = `Detalhes de ${platform.name} será implementado em seguida.`;
+    this.viewingPlatform = platform;
     this.openMenuPlatformId = null;
+  }
+
+  closeDetails(): void {
+    this.viewingPlatform = null;
+  }
+
+  openEditFromDetails(): void {
+    if (!this.viewingPlatform) {
+      return;
+    }
+
+    const selected = this.viewingPlatform;
+    this.closeDetails();
+    this.openEdit(selected);
+  }
+
+  askDeleteFromDetails(): void {
+    if (!this.viewingPlatform) {
+      return;
+    }
+
+    const selected = this.viewingPlatform;
+    this.closeDetails();
+    this.askDelete(selected);
   }
 
   openEdit(platform: PlatformCard): void {
@@ -281,6 +306,19 @@ export class PlatformsComponent {
 
   closePlaceholderMessage(): void {
     this.placeholderMessage = null;
+  }
+
+  formatBillingDayForDisplay(value: string | null): string {
+    if (!value) {
+      return '-';
+    }
+
+    const match = value.match(/^--(\d{2})-(\d{2})$/);
+    if (!match) {
+      return '-';
+    }
+
+    return `${match[2]}/${match[1]}`;
   }
 
   private applyBillingDayRules(cycle: string): void {
