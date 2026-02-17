@@ -59,32 +59,53 @@
         </div>
       </div>
 
-      <section class="monthly-total-card">
-        <span>VALOR POR MÊS</span>
-        <strong>{{ formatCurrency(totalPerMonth(selectedSubscriber)) }}</strong>
-      </section>
-
-      <section class="platforms-section">
-        <h3>Plataformas associadas</h3>
-        <div class="platforms-grid">
-          @for (platform of selectedSubscriber.associatedPlatforms; track platform.id) {
-            <article class="platform-detail-card">
-              <div class="title-row">
-                <strong>{{ platform.name }}</strong>
-              </div>
-              <div class="price-row">
-                <div>
-                  <span>PREÇO MENSAL</span>
-                  <strong>{{ formatCurrency(platform.monthlyPrice, platform.currency) }}</strong>
-                </div>
-                <div>
-                  <span>PREÇO INDIVIDUAL</span>
-                  <strong>{{ formatCurrency(platform.individualPrice, platform.currency) }}</strong>
-                </div>
-              </div>
-            </article>
-          }
+      <section class="billing-section">
+        <div class="billing-header">
+          <h3>Pendências do mês</h3>
+          <label>
+            Referência
+            <input
+              #monthInput
+              type="month"
+              [value]="billingReferenceMonth"
+              (change)="changeBillingMonth(monthInput.value)"
+            />
+          </label>
         </div>
+
+        @if (billingLoading) {
+          <article class="billing-state">Carregando pendências...</article>
+        } @else if (billingError) {
+          <article class="billing-state error">{{ billingError }}</article>
+        } @else if (selectedSubscriberBilling) {
+          <div class="billing-items-grid">
+            @for (item of selectedSubscriberBilling.items; track trackBillingItem($index, item)) {
+              <article class="billing-item-card">
+                <div class="billing-item-header">
+                  <strong>{{ item.serviceName }}</strong>
+                  <span
+                    class="status-icon"
+                    [ngClass]="paymentStatusClass(item.paymentStatus)"
+                    [attr.aria-label]="paymentStatusLabel(item.paymentStatus)"
+                    [title]="paymentStatusLabel(item.paymentStatus)"
+                    role="img"
+                  >
+                    <lucide-angular [img]="paymentStatusIcon(item.paymentStatus)" [size]="18"></lucide-angular>
+                  </span>
+                </div>
+                <div class="billing-item-content">
+                  <p>{{ billingCycleLabel(item.billingCycle) }} • {{ item.participantsCount }} participantes</p>
+                  <p>Valor mensal: {{ formatCurrency(item.serviceMonthlyAmount, item.serviceCurrency) }}</p>
+                  <p>Sua parte: {{ formatCurrency(item.userMonthlyShare, selectedSubscriberBilling.currency) }}</p>
+                </div>
+              </article>
+            }
+
+            @if (selectedSubscriberBilling.items.length === 0) {
+              <article class="billing-state">Nenhuma pendência encontrada para o mês.</article>
+            }
+          </div>
+        }
       </section>
 
       <div class="modal-actions">

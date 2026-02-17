@@ -1,7 +1,10 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import {
+  CircleCheck,
+  CircleX,
   Cloud,
+  Clock3,
   LayoutDashboard,
   LogOut,
   LucideAngularModule,
@@ -90,4 +93,7 @@ export const LUCIDE_ICONS = LucideAngularModule.pick({
   Users,
   Cloud,
   Settings,
+  CircleCheck,
+  Clock3,
+  CircleX,
 });

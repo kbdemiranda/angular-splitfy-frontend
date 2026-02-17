@@ -1,8 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { CircleCheck, CircleX, Clock3, LucideIconData } from 'lucide-angular';
 import { SubscriberCard } from './subscribers-data';
 import { SubscribersStateService } from './subscribers-state.service';
+import { SubscriberBillingService } from '../../core/services/subscriber-billing.service';
+import { SubscriberBillingItem, SubscriberBillingResponse } from '../../shared/models/subscriber-billing.model';
 
 @Component({
   selector: 'app-subscribers',
@@ -14,6 +17,10 @@ export class SubscribersComponent implements OnInit {
   subscribers: SubscriberCard[] = [];
 
   selectedSubscriber: SubscriberCard | null = null;
+  selectedSubscriberBilling: SubscriberBillingResponse | null = null;
+  billingReferenceMonth = this.currentReferenceMonth();
+  billingLoading = false;
+  billingError: string | null = null;
   subscriberToDelete: SubscriberCard | null = null;
   editOptionsSubscriber: SubscriberCard | null = null;
   editingSubscriberId: number | null = null;
@@ -21,11 +28,17 @@ export class SubscribersComponent implements OnInit {
     name: FormControl<string>;
     email: FormControl<string>;
   }>;
+  readonly billingStatusIcons: Record<string, LucideIconData> = {
+    PAID: CircleCheck,
+    PENDING: Clock3,
+    UNPAID: CircleX,
+  };
 
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly router: Router,
     private readonly subscribersState: SubscribersStateService,
+    private readonly subscriberBillingService: SubscriberBillingService,
   ) {
     this.editProfileForm = this.formBuilder.group({
       name: this.formBuilder.nonNullable.control('', [Validators.required, Validators.minLength(3)]),
@@ -43,10 +56,14 @@ export class SubscribersComponent implements OnInit {
 
   openDetails(subscriber: SubscriberCard): void {
     this.selectedSubscriber = subscriber;
+    this.loadSubscriberBilling(subscriber.id, this.billingReferenceMonth);
   }
 
   closeDetails(): void {
     this.selectedSubscriber = null;
+    this.selectedSubscriberBilling = null;
+    this.billingLoading = false;
+    this.billingError = null;
   }
 
   openEditOptions(subscriber: SubscriberCard | null): void {
@@ -154,15 +171,97 @@ export class SubscribersComponent implements OnInit {
       .join('');
   }
 
-  totalPerMonth(subscriber: SubscriberCard): number {
-    return subscriber.associatedPlatforms.reduce((total, platform) => total + platform.individualPrice, 0);
-  }
-
   formatCurrency(value: number, currency = 'BRL'): string {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(value);
   }
 
+  changeBillingMonth(referenceMonth: string): void {
+    if (!referenceMonth) {
+      return;
+    }
+
+    this.billingReferenceMonth = referenceMonth;
+    if (this.selectedSubscriber) {
+      this.loadSubscriberBilling(this.selectedSubscriber.id, referenceMonth);
+    }
+  }
+
+  trackBillingItem(_: number, item: SubscriberBillingItem): number {
+    return item.serviceId;
+  }
+
+  billingCycleLabel(cycle: string): string {
+    if (cycle === 'MONTHLY') {
+      return 'Mensal';
+    }
+
+    if (cycle === 'ANNUAL') {
+      return 'Anual';
+    }
+
+    return cycle;
+  }
+
+  paymentStatusLabel(status: string): string {
+    if (status === 'PAID') {
+      return 'Pago';
+    }
+
+    if (status === 'PENDING') {
+      return 'Pendente';
+    }
+
+    if (status === 'UNPAID') {
+      return 'Não pago';
+    }
+
+    return status;
+  }
+
+  paymentStatusIcon(status: string): LucideIconData {
+    return this.billingStatusIcons[status] ?? CircleX;
+  }
+
+  paymentStatusClass(status: string): string {
+    if (status === 'PAID') {
+      return 'paid';
+    }
+
+    if (status === 'PENDING') {
+      return 'pending';
+    }
+
+    if (status === 'UNPAID') {
+      return 'unpaid';
+    }
+
+    return 'neutral';
+  }
+
   private refreshSubscribers(): void {
     this.subscribers = this.subscribersState.getSubscribers();
+  }
+
+  private currentReferenceMonth(): string {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${now.getFullYear()}-${month}`;
+  }
+
+  private loadSubscriberBilling(subscriberId: number, referenceMonth?: string): void {
+    this.billingLoading = true;
+    this.billingError = null;
+    this.selectedSubscriberBilling = null;
+
+    this.subscriberBillingService.getBilling(subscriberId, referenceMonth).subscribe({
+      next: (response) => {
+        this.selectedSubscriberBilling = response;
+        this.billingLoading = false;
+      },
+      error: () => {
+        this.billingError = 'Não foi possível carregar as pendências deste assinante.';
+        this.billingLoading = false;
+      },
+    });
   }
 }

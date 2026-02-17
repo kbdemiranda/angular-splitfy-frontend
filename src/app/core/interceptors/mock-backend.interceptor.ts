@@ -12,6 +12,7 @@ import { environment } from '../../../environments/environment';
 import { API_ROUTES } from '../constants/api-routes';
 import { DashboardKpiResponse } from '../../shared/models/dashboard.model';
 import { LoginRequest, LoginResponse, UserProfile } from '../../shared/models/auth.model';
+import { SubscriberBillingResponse } from '../../shared/models/subscriber-billing.model';
 
 interface MockUser {
   userId: string;
@@ -54,6 +55,10 @@ export class MockBackendInterceptor implements HttpInterceptor {
 
     if (request.method === 'GET' && path === API_ROUTES.dashboardKpis) {
       return this.handleDashboardKpis(request);
+    }
+
+    if (request.method === 'GET' && /^\/subscribers\/\d+\/billing$/.test(path)) {
+      return this.handleSubscriberBilling(request, path);
     }
 
     return next.handle(request);
@@ -112,6 +117,156 @@ export class MockBackendInterceptor implements HttpInterceptor {
     };
 
     return of(new HttpResponse({ status: 200, body: response }));
+  }
+
+  private handleSubscriberBilling(request: HttpRequest<unknown>, path: string): Observable<HttpEvent<unknown>> {
+    const idMatch = path.match(/^\/subscribers\/(\d+)\/billing$/);
+    const subscriberId = Number(idMatch?.[1]);
+
+    if (!idMatch || Number.isNaN(subscriberId) || subscriberId <= 0) {
+      return this.mockError(404, 'Subscriber not found');
+    }
+
+    const referenceMonth = request.params.get('referenceMonth') ?? '2026-02';
+    const response = this.buildSubscriberBillingResponse(subscriberId, referenceMonth);
+    return of(new HttpResponse({ status: 200, body: response }));
+  }
+
+  private buildSubscriberBillingResponse(userId: number, referenceMonth: string): SubscriberBillingResponse {
+    const baseResponse: SubscriberBillingResponse = {
+      userId,
+      referenceMonth,
+      items: [
+        {
+          serviceId: 2,
+          serviceName: 'Prime Video',
+          billingCycle: 'MONTHLY',
+          serviceCurrency: 'BRL',
+          serviceMonthlyAmount: 12.0,
+          participantsCount: 4,
+          userMonthlyShare: 3.0,
+          serviceMonthlyAmountOriginal: null,
+          userMonthlyShareOriginal: null,
+          exchangeRateToBrl: null,
+          exchangeRateDate: null,
+          paymentStatus: 'PAID',
+        },
+        {
+          serviceId: 5,
+          serviceName: 'Microsoft 365 Family',
+          billingCycle: 'ANNUAL',
+          serviceCurrency: 'BRL',
+          serviceMonthlyAmount: 599.0,
+          participantsCount: 2,
+          userMonthlyShare: 299.5,
+          serviceMonthlyAmountOriginal: null,
+          userMonthlyShareOriginal: null,
+          exchangeRateToBrl: null,
+          exchangeRateDate: null,
+          paymentStatus: 'PAID',
+        },
+      ],
+      totalMonthlyDue: 302.5,
+      currency: 'BRL',
+    };
+
+    if (userId === 1) {
+      return {
+        ...baseResponse,
+        userId,
+        referenceMonth,
+        items: [
+          {
+            serviceId: 1,
+            serviceName: 'Netflix',
+            billingCycle: 'MONTHLY',
+            serviceCurrency: 'BRL',
+            serviceMonthlyAmount: 24.9,
+            participantsCount: 2,
+            userMonthlyShare: 12.45,
+            serviceMonthlyAmountOriginal: null,
+            userMonthlyShareOriginal: null,
+            exchangeRateToBrl: null,
+            exchangeRateDate: null,
+            paymentStatus: 'PENDING',
+          },
+          {
+            serviceId: 2,
+            serviceName: 'Spotify',
+            billingCycle: 'MONTHLY',
+            serviceCurrency: 'BRL',
+            serviceMonthlyAmount: 34.9,
+            participantsCount: 5,
+            userMonthlyShare: 6.98,
+            serviceMonthlyAmountOriginal: null,
+            userMonthlyShareOriginal: null,
+            exchangeRateToBrl: null,
+            exchangeRateDate: null,
+            paymentStatus: 'UNPAID',
+          },
+        ],
+        totalMonthlyDue: 19.43,
+      };
+    }
+
+    if (userId === 2) {
+      return {
+        ...baseResponse,
+        userId,
+        referenceMonth,
+        items: [
+          {
+            serviceId: 3,
+            serviceName: 'Disney+',
+            billingCycle: 'MONTHLY',
+            serviceCurrency: 'BRL',
+            serviceMonthlyAmount: 27.9,
+            participantsCount: 2,
+            userMonthlyShare: 13.95,
+            serviceMonthlyAmountOriginal: null,
+            userMonthlyShareOriginal: null,
+            exchangeRateToBrl: null,
+            exchangeRateDate: null,
+            paymentStatus: 'PAID',
+          },
+          {
+            serviceId: 4,
+            serviceName: 'Prime Video',
+            billingCycle: 'MONTHLY',
+            serviceCurrency: 'BRL',
+            serviceMonthlyAmount: 19.9,
+            participantsCount: 2,
+            userMonthlyShare: 9.95,
+            serviceMonthlyAmountOriginal: null,
+            userMonthlyShareOriginal: null,
+            exchangeRateToBrl: null,
+            exchangeRateDate: null,
+            paymentStatus: 'PENDING',
+          },
+          {
+            serviceId: 5,
+            serviceName: 'Apple TV+',
+            billingCycle: 'MONTHLY',
+            serviceCurrency: 'BRL',
+            serviceMonthlyAmount: 21.9,
+            participantsCount: 2,
+            userMonthlyShare: 10.95,
+            serviceMonthlyAmountOriginal: null,
+            userMonthlyShareOriginal: null,
+            exchangeRateToBrl: null,
+            exchangeRateDate: null,
+            paymentStatus: 'PAID',
+          },
+        ],
+        totalMonthlyDue: 34.85,
+      };
+    }
+
+    return {
+      ...baseResponse,
+      userId,
+      referenceMonth,
+    };
   }
 
   private extractPath(url: string): string {
