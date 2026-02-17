@@ -34,7 +34,9 @@ interface PlatformCard {
 })
 export class PlatformsComponent {
   readonly cloudIcon: LucideIconData = Cloud;
+  private readonly createSentinelId = -1;
   private readonly currentYear = new Date().getFullYear();
+  priceInputValue = '';
 
   readonly currencyOptions: Currency[] = ['BRL', 'USD', 'EUR'];
   readonly serviceTypeOptions: ServiceType[] = [
@@ -109,7 +111,7 @@ export class PlatformsComponent {
   constructor(private readonly formBuilder: FormBuilder) {
     this.editForm = this.formBuilder.group({
       name: this.formBuilder.nonNullable.control('', [Validators.required]),
-      price: this.formBuilder.nonNullable.control(0, [Validators.required, Validators.min(0.01)]),
+      price: this.formBuilder.nonNullable.control(0, [Validators.required, Validators.min(0)]),
       currency: this.formBuilder.nonNullable.control('BRL'),
       url: this.formBuilder.nonNullable.control('', [Validators.required]),
       serviceType: this.formBuilder.nonNullable.control('Video Streaming'),
@@ -120,14 +122,42 @@ export class PlatformsComponent {
     });
 
     this.applyBillingDayRules(this.editForm.controls.billingCycle.value);
+    this.setPriceInputFromNumber(0);
 
     this.editForm.controls.billingCycle.valueChanges.subscribe((value) => {
       this.applyBillingDayRules(value ?? 'MONTHLY');
+    });
+
+    this.editForm.controls.totalSlots.valueChanges.subscribe((value) => {
+      if (this.isCreateMode) {
+        this.editForm.controls.availableSlots.setValue(value, { emitEvent: false });
+      }
     });
   }
 
   get isAnnualBilling(): boolean {
     return this.editForm.controls.billingCycle.value === 'ANNUAL';
+  }
+
+  get isCreateMode(): boolean {
+    return this.editingPlatformId === this.createSentinelId;
+  }
+
+  get currencyPrefix(): string {
+    const currency = this.editForm.controls.currency.value;
+    if (currency === 'USD') {
+      return '$';
+    }
+    if (currency === 'EUR') {
+      return 'EUR';
+    }
+    return 'R$';
+  }
+
+  get formattedPricePreview(): string {
+    const currency = this.editForm.controls.currency.value || 'BRL';
+    const value = this.editForm.controls.price.value || 0;
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(value);
   }
 
   get billingDayPreview(): string {
@@ -235,9 +265,30 @@ export class PlatformsComponent {
       billingCycle: platform.billingCycle,
       billingDateFull: this.fromBackendBillingDate(platform.billingDay),
     });
+    this.editForm.controls.availableSlots.enable({ emitEvent: false });
+    this.setPriceInputFromNumber(platform.price);
 
     this.applyBillingDayRules(platform.billingCycle);
     this.openMenuPlatformId = null;
+  }
+
+  openCreate(): void {
+    this.editingPlatformId = this.createSentinelId;
+    this.editErrorMessage = null;
+    this.editForm.setValue({
+      name: '',
+      price: 0,
+      currency: 'BRL',
+      url: '',
+      serviceType: 'Video Streaming',
+      totalSlots: 1,
+      availableSlots: 1,
+      billingCycle: 'MONTHLY',
+      billingDateFull: null,
+    });
+    this.editForm.controls.availableSlots.disable({ emitEvent: false });
+    this.applyBillingDayRules('MONTHLY');
+    this.setPriceInputFromNumber(0);
   }
 
   cancelEdit(): void {
@@ -252,7 +303,10 @@ export class PlatformsComponent {
     }
 
     const value = this.editForm.getRawValue();
-    if (value.availableSlots > value.totalSlots) {
+    const isCreate = this.isCreateMode;
+    const availableSlots = isCreate ? value.totalSlots : value.availableSlots;
+
+    if (availableSlots > value.totalSlots) {
       this.editErrorMessage = 'Vagas disponíveis não pode ser maior que o total de vagas.';
       return;
     }
@@ -262,26 +316,50 @@ export class PlatformsComponent {
         ? this.toBackendBillingDate(value.billingDateFull)
         : null;
 
-    this.platforms = this.platforms.map((platform) =>
-      platform.id === this.editingPlatformId
-        ? {
-            ...platform,
-            name: value.name,
-            price: value.price,
-            currency: value.currency,
-            url: value.url,
-            serviceType: value.serviceType,
-            totalSlots: value.totalSlots,
-            availableSlots: value.availableSlots,
-            billingCycle: value.billingCycle,
-            billingDay,
-          }
-        : platform,
-    );
+    if (isCreate) {
+      const nextId = this.platforms.length
+        ? Math.max(...this.platforms.map((platform) => platform.id)) + 1
+        : 1;
+
+      this.platforms = [
+        ...this.platforms,
+        {
+          id: nextId,
+          name: value.name,
+          price: value.price,
+          currency: value.currency,
+          url: value.url,
+          serviceType: value.serviceType,
+          totalSlots: value.totalSlots,
+          availableSlots,
+          billingCycle: value.billingCycle,
+          billingDay,
+        },
+      ];
+    } else {
+      this.platforms = this.platforms.map((platform) =>
+        platform.id === this.editingPlatformId
+          ? {
+              ...platform,
+              name: value.name,
+              price: value.price,
+              currency: value.currency,
+              url: value.url,
+              serviceType: value.serviceType,
+              totalSlots: value.totalSlots,
+              availableSlots,
+              billingCycle: value.billingCycle,
+              billingDay,
+            }
+          : platform,
+      );
+    }
 
     this.editingPlatformId = null;
     this.editErrorMessage = null;
-    this.placeholderMessage = 'Plataforma atualizada com sucesso.';
+    this.placeholderMessage = isCreate
+      ? 'Plataforma criada com sucesso.'
+      : 'Plataforma atualizada com sucesso.';
   }
 
   askDelete(platform: PlatformCard): void {
@@ -306,6 +384,31 @@ export class PlatformsComponent {
 
   closePlaceholderMessage(): void {
     this.placeholderMessage = null;
+  }
+
+  onPriceInput(rawValue: string): void {
+    const digitsOnly = rawValue.replace(/\D/g, '');
+    const cents = digitsOnly.length > 0 ? Number.parseInt(digitsOnly, 10) : 0;
+    const parsed = cents / 100;
+
+    this.priceInputValue = this.formatMoneyInput(parsed);
+    this.editForm.controls.price.markAsDirty();
+    this.editForm.controls.price.setValue(parsed, { emitEvent: false });
+  }
+
+  onPriceBlur(): void {
+    this.editForm.controls.price.markAsTouched();
+    this.setPriceInputFromNumber(this.editForm.controls.price.value);
+  }
+
+  onPriceFocus(event: FocusEvent): void {
+    const input = event.target as HTMLInputElement | null;
+    if (!input) {
+      return;
+    }
+
+    // Allow typing over the default value in one keystroke.
+    input.select();
   }
 
   formatBillingDayForDisplay(value: string | null): string {
@@ -368,5 +471,16 @@ export class PlatformsComponent {
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     return `${this.currentYear}-${month}-${day}`;
+  }
+
+  private setPriceInputFromNumber(value: number): void {
+    this.priceInputValue = this.formatMoneyInput(value);
+  }
+
+  private formatMoneyInput(value: number): string {
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
   }
 }

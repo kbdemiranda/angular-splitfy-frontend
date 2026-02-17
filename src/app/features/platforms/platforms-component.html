@@ -66,6 +66,10 @@
       </article>
     }
   </div>
+
+  <button type="button" class="floating-create-button" (click)="openCreate()">
+    + Nova plataforma
+  </button>
 </section>
 
 @if (viewingPlatform) {
@@ -178,8 +182,11 @@
 @if (editingPlatformId !== null) {
   <div class="modal-overlay" (click)="cancelEdit()">
     <section class="modal edit-modal" (click)="$event.stopPropagation()">
-      <h2>Editar plataforma</h2>
-      <p>Campos baseados no schema <code>PlatformRequest</code> do OpenAPI.</p>
+      <h2>{{ isCreateMode ? 'Nova plataforma' : 'Editar plataforma' }}</h2>
+      <p>
+        {{ isCreateMode ? 'Preencha os dados para criar uma nova plataforma.' : 'Campos baseados no schema' }}
+        <code>PlatformRequest</code> do OpenAPI.
+      </p>
 
       <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label class="block text-sm text-slate-200 sm:col-span-2">
@@ -194,13 +201,20 @@
 
         <label class="block text-sm text-slate-200">
           Preço
-          <input
-            formControlName="price"
-            type="number"
-            step="0.01"
-            class="mt-1 w-full rounded-md border-slate-600 bg-slate-900 text-slate-100 placeholder-slate-400 focus:border-cyan-500 focus:ring-cyan-500"
-            placeholder="19.90"
-          />
+          <div class="mt-1 flex items-center rounded-md border border-slate-600 bg-slate-900 px-3">
+            <span class="mr-2 text-sm font-semibold text-slate-300">{{ currencyPrefix }}</span>
+            <input
+              type="text"
+              inputmode="decimal"
+              [value]="priceInputValue"
+              (input)="onPriceInput($any($event.target).value)"
+              (focus)="onPriceFocus($event)"
+              (blur)="onPriceBlur()"
+              class="w-full border-0 bg-transparent px-0 text-slate-100 placeholder-slate-400 focus:ring-0"
+              placeholder="0,00"
+            />
+          </div>
+          <small class="mt-1 block text-xs text-slate-400">Formatado: {{ formattedPricePreview }}</small>
         </label>
 
         <label class="block text-sm text-slate-200">
@@ -313,7 +327,9 @@
 
         <div class="modal-actions sm:col-span-2">
           <button type="button" class="secondary" (click)="cancelEdit()">Cancelar</button>
-          <button type="submit" class="primary">Salvar alterações</button>
+          <button type="submit" class="primary">
+            {{ isCreateMode ? 'Criar plataforma' : 'Salvar alterações' }}
+          </button>
         </div>
       </form>
     </section>
