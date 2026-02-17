@@ -9,8 +9,8 @@
     class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3"
   >
     @for (subscriber of subscribers; track trackById($index, subscriber)) {
-      <li class="col-span-1 divide-y divide-slate-700 rounded-lg border border-slate-700 bg-slate-900/80 shadow-sm">
-        <div class="flex w-full items-center justify-between space-x-6 p-6">
+      <li class="col-span-1 flex h-full flex-col divide-y divide-slate-700 rounded-lg border border-slate-700 bg-slate-900/80 shadow-sm">
+        <div class="flex w-full flex-1 items-center justify-between space-x-6 p-6">
           <div class="flex-1 truncate">
             <h3 class="truncate text-sm/6 font-semibold text-slate-100">{{ subscriber.name }}</h3>
             <p class="mt-1 truncate text-sm text-slate-300">{{ subscriber.email }}</p>
@@ -25,7 +25,7 @@
           <div class="avatar">{{ initials(subscriber.name) }}</div>
         </div>
 
-        <div>
+        <div class="mt-auto">
           <button
             type="button"
             class="block w-full bg-slate-800 py-3 text-sm font-semibold text-slate-100 hover:bg-slate-700"
