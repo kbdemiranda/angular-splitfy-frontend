@@ -1,11 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CircleCheck, CircleX, Clock3, LucideIconData } from 'lucide-angular';
-import { SubscriberCard } from './subscribers-data';
-import { SubscribersStateService } from './subscribers-state.service';
 import { SubscriberBillingService } from '../../core/services/subscriber-billing.service';
 import { SubscriberBillingItem, SubscriberBillingResponse } from '../../shared/models/subscriber-billing.model';
+import {
+  SubscriberPageResponse,
+  SubscriberResponse,
+} from '../../shared/models/subscribers.model';
+import { SubscribersService } from '../../core/services/subscribers.service';
 
 @Component({
   selector: 'app-subscribers',
@@ -14,15 +17,26 @@ import { SubscriberBillingItem, SubscriberBillingResponse } from '../../shared/m
   standalone: false,
 })
 export class SubscribersComponent implements OnInit {
-  subscribers: SubscriberCard[] = [];
+  subscribers: SubscriberResponse[] = [];
+  subscribersPage: SubscriberPageResponse = {
+    content: [],
+    page: 0,
+    size: 20,
+    totalElements: 0,
+    totalPages: 0,
+  };
+  isLoadingSubscribers = false;
+  subscribersError: string | null = null;
+  hasLoadedSubscribers = false;
 
-  selectedSubscriber: SubscriberCard | null = null;
+  selectedSubscriber: SubscriberResponse | null = null;
   selectedSubscriberBilling: SubscriberBillingResponse | null = null;
   billingReferenceMonth = this.currentReferenceMonth();
   billingLoading = false;
   billingError: string | null = null;
-  subscriberToDelete: SubscriberCard | null = null;
-  editOptionsSubscriber: SubscriberCard | null = null;
+  openingDetailsSubscriberId: number | null = null;
+  subscriberToDelete: SubscriberResponse | null = null;
+  editOptionsSubscriber: SubscriberResponse | null = null;
   editingSubscriberId: number | null = null;
   readonly editProfileForm: FormGroup<{
     name: FormControl<string>;
@@ -37,8 +51,10 @@ export class SubscribersComponent implements OnInit {
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly router: Router,
-    private readonly subscribersState: SubscribersStateService,
+    private readonly subscribersService: SubscribersService,
     private readonly subscriberBillingService: SubscriberBillingService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
+    private readonly ngZone: NgZone,
   ) {
     this.editProfileForm = this.formBuilder.group({
       name: this.formBuilder.nonNullable.control('', [Validators.required, Validators.minLength(3)]),
@@ -47,16 +63,49 @@ export class SubscribersComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.refreshSubscribers();
+    this.loadSubscribers();
   }
 
-  trackById(_: number, subscriber: SubscriberCard): number {
+  trackById(_: number, subscriber: SubscriberResponse): number {
     return subscriber.id;
   }
 
-  openDetails(subscriber: SubscriberCard): void {
-    this.selectedSubscriber = subscriber;
-    this.loadSubscriberBilling(subscriber.id, this.billingReferenceMonth);
+  openDetails(subscriber: SubscriberResponse): void {
+    if (this.openingDetailsSubscriberId !== null) {
+      return;
+    }
+
+    this.runInZone(() => {
+      this.openingDetailsSubscriberId = subscriber.id;
+      this.billingLoading = true;
+      this.billingError = null;
+      this.selectedSubscriberBilling = null;
+      this.syncView();
+    });
+
+    this.subscriberBillingService.getBilling(subscriber.id, this.billingReferenceMonth).subscribe({
+      next: (response) => {
+        this.runInZone(() => {
+          this.selectedSubscriber = { ...subscriber };
+          this.selectedSubscriberBilling = {
+            ...response,
+            items: [...response.items],
+          };
+          this.billingLoading = false;
+          this.billingError = null;
+          this.openingDetailsSubscriberId = null;
+          this.syncView();
+        });
+      },
+      error: () => {
+        this.runInZone(() => {
+          this.billingError = 'Não foi possível carregar as pendências deste assinante.';
+          this.billingLoading = false;
+          this.openingDetailsSubscriberId = null;
+          this.syncView();
+        });
+      },
+    });
   }
 
   closeDetails(): void {
@@ -64,9 +113,10 @@ export class SubscribersComponent implements OnInit {
     this.selectedSubscriberBilling = null;
     this.billingLoading = false;
     this.billingError = null;
+    this.openingDetailsSubscriberId = null;
   }
 
-  openEditOptions(subscriber: SubscriberCard | null): void {
+  openEditOptions(subscriber: SubscriberResponse | null): void {
     if (!subscriber) {
       return;
     }
@@ -112,16 +162,27 @@ export class SubscribersComponent implements OnInit {
     }
 
     const { name, email } = this.editProfileForm.getRawValue();
-    this.subscribersState.updateSubscriberProfile(this.editingSubscriberId, name.trim(), email.trim());
-    this.refreshSubscribers();
-
-    if (this.selectedSubscriber?.id === this.editingSubscriberId) {
-      this.selectedSubscriber = this.subscribers.find(
-        (subscriber) => subscriber.id === this.editingSubscriberId,
-      ) ?? null;
-    }
-
-    this.cancelEdit();
+    const editingId = this.editingSubscriberId;
+    this.subscribersService
+      .updateProfile(editingId, { name: name.trim(), email: email.trim() })
+      .subscribe({
+        next: (updatedSubscriber) => {
+          this.runInZone(() => {
+            this.subscribers = this.subscribers.map((subscriber) =>
+              subscriber.id === editingId ? updatedSubscriber : subscriber,
+            );
+            this.subscribersPage = {
+              ...this.subscribersPage,
+              content: this.subscribers,
+            };
+            if (this.selectedSubscriber?.id === editingId) {
+              this.selectedSubscriber = updatedSubscriber;
+            }
+            this.cancelEdit();
+            this.syncView();
+          });
+        },
+      });
   }
 
   chooseEditSubscriptions(): void {
@@ -135,7 +196,7 @@ export class SubscribersComponent implements OnInit {
     void this.router.navigate(['/users', subscriber.id, 'subscriptions']);
   }
 
-  askDelete(subscriber: SubscriberCard | null): void {
+  askDelete(subscriber: SubscriberResponse | null): void {
     if (!subscriber) {
       return;
     }
@@ -153,13 +214,24 @@ export class SubscribersComponent implements OnInit {
     }
 
     const deletedId = this.subscriberToDelete.id;
-    this.subscribersState.deleteSubscriber(deletedId);
-    this.refreshSubscribers();
-    this.subscriberToDelete = null;
+    this.subscribersService.delete(deletedId).subscribe({
+      next: () => {
+        this.runInZone(() => {
+          this.subscribers = this.subscribers.filter((subscriber) => subscriber.id !== deletedId);
+          this.subscribersPage = {
+            ...this.subscribersPage,
+            content: this.subscribers,
+            totalElements: Math.max(0, this.subscribersPage.totalElements - 1),
+          };
+          this.subscriberToDelete = null;
 
-    if (this.selectedSubscriber?.id === deletedId) {
-      this.closeDetails();
-    }
+          if (this.selectedSubscriber?.id === deletedId) {
+            this.closeDetails();
+          }
+          this.syncView();
+        });
+      },
+    });
   }
 
   initials(name: string): string {
@@ -182,7 +254,7 @@ export class SubscribersComponent implements OnInit {
 
     this.billingReferenceMonth = referenceMonth;
     if (this.selectedSubscriber) {
-      this.loadSubscriberBilling(this.selectedSubscriber.id, referenceMonth);
+      this.loadSubscriberBilling(this.selectedSubscriber.id, referenceMonth, true);
     }
   }
 
@@ -238,30 +310,80 @@ export class SubscribersComponent implements OnInit {
     return 'neutral';
   }
 
-  private refreshSubscribers(): void {
-    this.subscribers = this.subscribersState.getSubscribers();
-  }
-
   private currentReferenceMonth(): string {
     const now = new Date();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     return `${now.getFullYear()}-${month}`;
   }
 
-  private loadSubscriberBilling(subscriberId: number, referenceMonth?: string): void {
-    this.billingLoading = true;
-    this.billingError = null;
-    this.selectedSubscriberBilling = null;
+  private loadSubscriberBilling(subscriberId: number, referenceMonth?: string, keepCurrentData = false): void {
+    this.runInZone(() => {
+      this.billingLoading = true;
+      this.billingError = null;
+      if (!keepCurrentData) {
+        this.selectedSubscriberBilling = null;
+      }
+      this.syncView();
+    });
 
     this.subscriberBillingService.getBilling(subscriberId, referenceMonth).subscribe({
       next: (response) => {
-        this.selectedSubscriberBilling = response;
-        this.billingLoading = false;
+        this.runInZone(() => {
+          this.selectedSubscriberBilling = {
+            ...response,
+            items: [...response.items],
+          };
+          this.billingLoading = false;
+          this.syncView();
+        });
       },
       error: () => {
-        this.billingError = 'Não foi possível carregar as pendências deste assinante.';
-        this.billingLoading = false;
+        this.runInZone(() => {
+          this.billingError = 'Não foi possível carregar as pendências deste assinante.';
+          this.billingLoading = false;
+          this.syncView();
+        });
       },
     });
+  }
+
+  private loadSubscribers(page = 0, size = 20): void {
+    this.runInZone(() => {
+      this.isLoadingSubscribers = true;
+      this.subscribersError = null;
+      this.hasLoadedSubscribers = false;
+      this.syncView();
+    });
+
+    this.subscribersService.list(page, size).subscribe({
+      next: (response) => {
+        this.runInZone(() => {
+          const list = [...response.content];
+          this.subscribersPage = { ...response, content: list };
+          this.subscribers = list;
+          this.isLoadingSubscribers = false;
+          this.subscribersError = null;
+          this.hasLoadedSubscribers = true;
+          this.syncView();
+        });
+      },
+      error: () => {
+        this.runInZone(() => {
+          this.subscribersError = 'Falha ao carregar assinantes.';
+          this.isLoadingSubscribers = false;
+          this.hasLoadedSubscribers = false;
+          this.syncView();
+        });
+      },
+    });
+  }
+
+  private runInZone(action: () => void): void {
+    this.ngZone.run(action);
+  }
+
+  private syncView(): void {
+    this.changeDetectorRef.markForCheck();
+    this.changeDetectorRef.detectChanges();
   }
 }

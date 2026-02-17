@@ -4,6 +4,8 @@ export const API_ROUTES = {
   dashboardKpis: '/dashboard/kpis',
   platforms: '/platforms',
   platformById: (id: number | string) => `/platforms/${id}`,
+  subscribers: '/subscribers',
+  subscriberById: (id: number | string) => `/subscribers/${id}`,
   subscriberBilling: (id: number | string) => `/subscribers/${id}/billing`,
   paymentConfirmations: '/subscribers/payments/confirmations',
   approvePaymentConfirmation: (id: number | string) => `/subscribers/payments/confirmations/${id}/approve`,

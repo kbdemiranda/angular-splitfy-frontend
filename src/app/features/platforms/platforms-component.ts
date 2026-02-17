@@ -1,7 +1,6 @@
 import { ChangeDetectorRef, Component, HostListener, NgZone, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Cloud, LucideIconData } from 'lucide-angular';
-import { finalize } from 'rxjs';
 import { PlatformsService } from '../../core/services/platforms.service';
 import {
   PlatformBillingCycle,
@@ -15,7 +14,14 @@ import {
 type Currency = PlatformCurrency;
 type ServiceType = PlatformServiceType;
 type BillingCycle = PlatformBillingCycle;
-type PlatformCard = PlatformResponse;
+type Platform = PlatformResponse;
+type Page<T> = {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+};
 
 @Component({
   selector: 'app-platforms',
@@ -29,6 +35,8 @@ export class PlatformsComponent implements OnInit {
   private readonly currentYear = new Date().getFullYear();
   priceInputValue = '';
   isLoading = false;
+  errorMessage?: string;
+  hasLoadedData = false;
 
   readonly currencyOptions: Currency[] = ['BRL', 'USD', 'EUR'];
   readonly serviceTypeOptions: ServiceType[] = [
@@ -56,8 +64,8 @@ export class PlatformsComponent implements OnInit {
     ANNUAL: 'Anual',
   };
 
-  platforms: PlatformCard[] = [];
-  platformsPage: PlatformPageResponse = {
+  platforms: Platform[] = [];
+  page: Page<Platform> = {
     content: [],
     page: 0,
     size: 20,
@@ -78,8 +86,8 @@ export class PlatformsComponent implements OnInit {
   }>;
 
   openMenuPlatformId: number | null = null;
-  platformToDelete: PlatformCard | null = null;
-  viewingPlatform: PlatformCard | null = null;
+  platformToDelete: Platform | null = null;
+  viewingPlatform: Platform | null = null;
   editingPlatformId: number | null = null;
   placeholderMessage: string | null = null;
   editErrorMessage: string | null = null;
@@ -206,7 +214,7 @@ export class PlatformsComponent implements OnInit {
     this.openMenuPlatformId = this.openMenuPlatformId === platformId ? null : platformId;
   }
 
-  openDetails(platform: PlatformCard): void {
+  openDetails(platform: Platform): void {
     this.viewingPlatform = platform;
     this.openMenuPlatformId = null;
   }
@@ -235,7 +243,7 @@ export class PlatformsComponent implements OnInit {
     this.askDelete(selected);
   }
 
-  openEdit(platform: PlatformCard): void {
+  openEdit(platform: Platform): void {
     this.editingPlatformId = platform.id;
     this.editErrorMessage = null;
 
@@ -310,21 +318,21 @@ export class PlatformsComponent implements OnInit {
         next: (createdPlatform) => {
           this.runInZone(() => {
             this.platforms = [...this.platforms, createdPlatform];
-            this.platformsPage = {
-              ...this.platformsPage,
+            this.page = {
+              ...this.page,
               content: this.platforms,
-              totalElements: this.platformsPage.totalElements + 1,
+              totalElements: this.page.totalElements + 1,
             };
             this.editingPlatformId = null;
             this.editErrorMessage = null;
             this.placeholderMessage = 'Plataforma criada com sucesso.';
-            this.changeDetectorRef.markForCheck();
+            this.syncView();
           });
         },
         error: () => {
           this.runInZone(() => {
             this.editErrorMessage = 'Falha ao criar plataforma.';
-            this.changeDetectorRef.markForCheck();
+            this.syncView();
           });
         },
       });
@@ -338,26 +346,26 @@ export class PlatformsComponent implements OnInit {
           this.platforms = this.platforms.map((platform) =>
             platform.id === platformId ? updatedPlatform : platform,
           );
-          this.platformsPage = {
-            ...this.platformsPage,
+          this.page = {
+            ...this.page,
             content: this.platforms,
           };
           this.editingPlatformId = null;
           this.editErrorMessage = null;
           this.placeholderMessage = 'Plataforma atualizada com sucesso.';
-          this.changeDetectorRef.markForCheck();
+          this.syncView();
         });
       },
       error: () => {
         this.runInZone(() => {
           this.editErrorMessage = 'Falha ao atualizar plataforma.';
-          this.changeDetectorRef.markForCheck();
+          this.syncView();
         });
       },
     });
   }
 
-  askDelete(platform: PlatformCard): void {
+  askDelete(platform: Platform): void {
     this.platformToDelete = platform;
     this.openMenuPlatformId = null;
   }
@@ -378,20 +386,20 @@ export class PlatformsComponent implements OnInit {
       next: () => {
         this.runInZone(() => {
           this.platforms = this.platforms.filter((platform) => platform.id !== deletedId);
-          this.platformsPage = {
-            ...this.platformsPage,
+          this.page = {
+            ...this.page,
             content: this.platforms,
-            totalElements: Math.max(0, this.platformsPage.totalElements - 1),
+            totalElements: Math.max(0, this.page.totalElements - 1),
           };
           this.platformToDelete = null;
           this.placeholderMessage = `${deletedName} excluída com sucesso.`;
-          this.changeDetectorRef.markForCheck();
+          this.syncView();
         });
       },
       error: () => {
         this.runInZone(() => {
           this.placeholderMessage = `Falha ao excluir ${deletedName}.`;
-          this.changeDetectorRef.markForCheck();
+          this.syncView();
         });
       },
     });
@@ -448,40 +456,52 @@ export class PlatformsComponent implements OnInit {
   }
 
   private loadPlatforms(page = 0, size = 20): void {
-    this.runInZone(() => {
+    this.deferStateUpdate(() => {
       this.isLoading = true;
-      this.changeDetectorRef.markForCheck();
-    });
+      this.errorMessage = undefined;
+      this.hasLoadedData = false;
+    }, 0);
 
-    this.platformsService
-      .list(page, size)
-      .pipe(
-        finalize(() => {
-          this.runInZone(() => {
-            this.isLoading = false;
-            this.changeDetectorRef.markForCheck();
-          });
-        }),
-      )
-      .subscribe({
-        next: (response) => {
-          this.runInZone(() => {
-            this.platformsPage = response;
-            this.platforms = response.content;
-            this.changeDetectorRef.markForCheck();
-          });
-        },
-        error: () => {
-          this.runInZone(() => {
-            this.placeholderMessage = 'Falha ao carregar plataformas.';
-            this.changeDetectorRef.markForCheck();
-          });
-        },
-      });
+    this.platformsService.list(page, size).subscribe({
+      next: (response: PlatformPageResponse) => {
+        this.deferStateUpdate(() => {
+          const list = [...response.content];
+          this.platforms = list;
+          this.page = {
+            ...response,
+            content: list,
+          };
+          this.isLoading = false;
+          this.errorMessage = undefined;
+          this.hasLoadedData = true;
+        });
+      },
+      error: () => {
+        this.deferStateUpdate(() => {
+          this.errorMessage = 'Falha ao carregar plataformas.';
+          this.isLoading = false;
+          this.hasLoadedData = false;
+        });
+      },
+    });
   }
 
   private runInZone(action: () => void): void {
     this.ngZone.run(action);
+  }
+
+  private syncView(): void {
+    this.changeDetectorRef.markForCheck();
+    this.changeDetectorRef.detectChanges();
+  }
+
+  private deferStateUpdate(action: () => void, delayMs = 50): void {
+    window.setTimeout(() => {
+      this.runInZone(() => {
+        action();
+        this.syncView();
+      });
+    }, delayMs);
   }
 
   private toPlatformRequest(

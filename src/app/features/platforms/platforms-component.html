@@ -1,22 +1,30 @@
-<section class="platforms-page">
-  <header class="platforms-header">
-    <h1>Plataformas</h1>
-    <p>Gerencie seus planos e acompanhe disponibilidade de vagas.</p>
-  </header>
-
-  @if (placeholderMessage) {
-    <div class="feedback" role="status" aria-live="polite">
-      <span>{{ placeholderMessage }}</span>
-      <button type="button" (click)="closePlaceholderMessage()">Fechar</button>
-    </div>
-  }
-
-  @if (isLoading) {
+@if (isLoading && !hasLoadedData) {
+  <section class="platforms-page">
     <section class="loading-state" aria-live="polite" aria-busy="true">
       <div class="spinner" role="status" aria-label="Carregando plataformas"></div>
       <p>Carregando plataformas...</p>
     </section>
-  } @else {
+  </section>
+} @else if (errorMessage && !hasLoadedData) {
+  <section class="platforms-page">
+    <article class="loading-state" role="alert">
+      <p>{{ errorMessage }}</p>
+    </article>
+  </section>
+} @else if (hasLoadedData) {
+  <section class="platforms-page">
+    <header class="platforms-header">
+      <h1>Plataformas</h1>
+      <p>Gerencie seus planos e acompanhe disponibilidade de vagas.</p>
+    </header>
+
+    @if (placeholderMessage) {
+      <div class="feedback" role="status" aria-live="polite">
+        <span>{{ placeholderMessage }}</span>
+        <button type="button" (click)="closePlaceholderMessage()">Fechar</button>
+      </div>
+    }
+
     <div class="platforms-grid">
       @for (platform of platforms; track platform.id) {
         <article class="platform-card">
@@ -72,12 +80,12 @@
         </article>
       }
     </div>
-  }
 
-  <button type="button" class="floating-create-button" (click)="openCreate()">
-    + Nova plataforma
-  </button>
-</section>
+    <button type="button" class="floating-create-button" (click)="openCreate()">
+      + Nova plataforma
+    </button>
+  </section>
+}
 
 @if (viewingPlatform) {
   <div class="modal-overlay" (click)="closeDetails()">
