@@ -1,30 +1,21 @@
-import { Component, HostListener } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, NgZone, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Cloud, LucideIconData } from 'lucide-angular';
+import { finalize } from 'rxjs';
+import { PlatformsService } from '../../core/services/platforms.service';
+import {
+  PlatformBillingCycle,
+  PlatformCurrency,
+  PlatformPageResponse,
+  PlatformRequest,
+  PlatformResponse,
+  PlatformServiceType,
+} from '../../shared/models/platforms.model';
 
-type Currency = 'BRL' | 'USD' | 'EUR';
-type ServiceType =
-  | 'Video Streaming'
-  | 'Music Streaming'
-  | 'Software'
-  | 'Games'
-  | 'News'
-  | 'Cloud Storage'
-  | 'Fitness';
-type BillingCycle = 'MONTHLY' | 'SEMI_ANNUAL' | 'ANNUAL';
-
-interface PlatformCard {
-  id: number;
-  name: string;
-  price: number;
-  currency: string;
-  url: string;
-  serviceType: string;
-  totalSlots: number;
-  availableSlots: number;
-  billingCycle: string;
-  billingDay: string | null; // Backend format: --MM-DD
-}
+type Currency = PlatformCurrency;
+type ServiceType = PlatformServiceType;
+type BillingCycle = PlatformBillingCycle;
+type PlatformCard = PlatformResponse;
 
 @Component({
   selector: 'app-platforms',
@@ -32,11 +23,12 @@ interface PlatformCard {
   styleUrl: './platforms-component.scss',
   standalone: false,
 })
-export class PlatformsComponent {
+export class PlatformsComponent implements OnInit {
   readonly cloudIcon: LucideIconData = Cloud;
   private readonly createSentinelId = -1;
   private readonly currentYear = new Date().getFullYear();
   priceInputValue = '';
+  isLoading = false;
 
   readonly currencyOptions: Currency[] = ['BRL', 'USD', 'EUR'];
   readonly serviceTypeOptions: ServiceType[] = [
@@ -64,44 +56,14 @@ export class PlatformsComponent {
     ANNUAL: 'Anual',
   };
 
-  platforms: PlatformCard[] = [
-    {
-      id: 1,
-      name: 'Netflix',
-      price: 21.9,
-      currency: 'BRL',
-      url: 'https://www.netflix.com',
-      serviceType: 'Video Streaming',
-      totalSlots: 6,
-      availableSlots: 4,
-      billingCycle: 'MONTHLY',
-      billingDay: null,
-    },
-    {
-      id: 2,
-      name: 'Spotify',
-      price: 34.9,
-      currency: 'BRL',
-      url: 'https://www.spotify.com',
-      serviceType: 'Music Streaming',
-      totalSlots: 6,
-      availableSlots: 2,
-      billingCycle: 'MONTHLY',
-      billingDay: null,
-    },
-    {
-      id: 3,
-      name: 'YouTube Premium',
-      price: 41.9,
-      currency: 'BRL',
-      url: 'https://www.youtube.com/premium',
-      serviceType: 'Video Streaming',
-      totalSlots: 5,
-      availableSlots: 1,
-      billingCycle: 'ANNUAL',
-      billingDay: '--02-20',
-    },
-  ];
+  platforms: PlatformCard[] = [];
+  platformsPage: PlatformPageResponse = {
+    content: [],
+    page: 0,
+    size: 20,
+    totalElements: 0,
+    totalPages: 0,
+  };
 
   readonly editForm: FormGroup<{
     name: FormControl<string>;
@@ -122,7 +84,12 @@ export class PlatformsComponent {
   placeholderMessage: string | null = null;
   editErrorMessage: string | null = null;
 
-  constructor(private readonly formBuilder: FormBuilder) {
+  constructor(
+    private readonly formBuilder: FormBuilder,
+    private readonly platformsService: PlatformsService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
+    private readonly ngZone: NgZone,
+  ) {
     this.editForm = this.formBuilder.group({
       name: this.formBuilder.nonNullable.control('', [Validators.required]),
       price: this.formBuilder.nonNullable.control(0, [Validators.required, Validators.min(0)]),
@@ -147,6 +114,10 @@ export class PlatformsComponent {
         this.editForm.controls.availableSlots.setValue(value, { emitEvent: false });
       }
     });
+  }
+
+  ngOnInit(): void {
+    this.loadPlatforms();
   }
 
   get isAnnualBilling(): boolean {
@@ -325,55 +296,65 @@ export class PlatformsComponent {
       return;
     }
 
+    const payload = this.toPlatformRequest(value, availableSlots);
+
     const billingDay =
       value.billingCycle === 'ANNUAL' && value.billingDateFull
         ? this.toBackendBillingDate(value.billingDateFull)
         : null;
 
-    if (isCreate) {
-      const nextId = this.platforms.length
-        ? Math.max(...this.platforms.map((platform) => platform.id)) + 1
-        : 1;
+    payload.billingDay = billingDay;
 
-      this.platforms = [
-        ...this.platforms,
-        {
-          id: nextId,
-          name: value.name,
-          price: value.price,
-          currency: value.currency,
-          url: value.url,
-          serviceType: value.serviceType,
-          totalSlots: value.totalSlots,
-          availableSlots,
-          billingCycle: value.billingCycle,
-          billingDay,
+    if (isCreate) {
+      this.platformsService.create(payload).subscribe({
+        next: (createdPlatform) => {
+          this.runInZone(() => {
+            this.platforms = [...this.platforms, createdPlatform];
+            this.platformsPage = {
+              ...this.platformsPage,
+              content: this.platforms,
+              totalElements: this.platformsPage.totalElements + 1,
+            };
+            this.editingPlatformId = null;
+            this.editErrorMessage = null;
+            this.placeholderMessage = 'Plataforma criada com sucesso.';
+            this.changeDetectorRef.markForCheck();
+          });
         },
-      ];
-    } else {
-      this.platforms = this.platforms.map((platform) =>
-        platform.id === this.editingPlatformId
-          ? {
-              ...platform,
-              name: value.name,
-              price: value.price,
-              currency: value.currency,
-              url: value.url,
-              serviceType: value.serviceType,
-              totalSlots: value.totalSlots,
-              availableSlots,
-              billingCycle: value.billingCycle,
-              billingDay,
-            }
-          : platform,
-      );
+        error: () => {
+          this.runInZone(() => {
+            this.editErrorMessage = 'Falha ao criar plataforma.';
+            this.changeDetectorRef.markForCheck();
+          });
+        },
+      });
+      return;
     }
 
-    this.editingPlatformId = null;
-    this.editErrorMessage = null;
-    this.placeholderMessage = isCreate
-      ? 'Plataforma criada com sucesso.'
-      : 'Plataforma atualizada com sucesso.';
+    const platformId = this.editingPlatformId;
+    this.platformsService.update(platformId, payload).subscribe({
+      next: (updatedPlatform) => {
+        this.runInZone(() => {
+          this.platforms = this.platforms.map((platform) =>
+            platform.id === platformId ? updatedPlatform : platform,
+          );
+          this.platformsPage = {
+            ...this.platformsPage,
+            content: this.platforms,
+          };
+          this.editingPlatformId = null;
+          this.editErrorMessage = null;
+          this.placeholderMessage = 'Plataforma atualizada com sucesso.';
+          this.changeDetectorRef.markForCheck();
+        });
+      },
+      error: () => {
+        this.runInZone(() => {
+          this.editErrorMessage = 'Falha ao atualizar plataforma.';
+          this.changeDetectorRef.markForCheck();
+        });
+      },
+    });
   }
 
   askDelete(platform: PlatformCard): void {
@@ -391,9 +372,29 @@ export class PlatformsComponent {
     }
 
     const deletedName = this.platformToDelete.name;
-    this.platforms = this.platforms.filter((platform) => platform.id !== this.platformToDelete?.id);
-    this.platformToDelete = null;
-    this.placeholderMessage = `${deletedName} excluída com sucesso.`;
+    const deletedId = this.platformToDelete.id;
+
+    this.platformsService.delete(deletedId).subscribe({
+      next: () => {
+        this.runInZone(() => {
+          this.platforms = this.platforms.filter((platform) => platform.id !== deletedId);
+          this.platformsPage = {
+            ...this.platformsPage,
+            content: this.platforms,
+            totalElements: Math.max(0, this.platformsPage.totalElements - 1),
+          };
+          this.platformToDelete = null;
+          this.placeholderMessage = `${deletedName} excluída com sucesso.`;
+          this.changeDetectorRef.markForCheck();
+        });
+      },
+      error: () => {
+        this.runInZone(() => {
+          this.placeholderMessage = `Falha ao excluir ${deletedName}.`;
+          this.changeDetectorRef.markForCheck();
+        });
+      },
+    });
   }
 
   closePlaceholderMessage(): void {
@@ -444,6 +445,70 @@ export class PlatformsComponent {
 
   serviceTypeLabel(type: string): string {
     return this.serviceTypeLabels[type as ServiceType] ?? type;
+  }
+
+  private loadPlatforms(page = 0, size = 20): void {
+    this.runInZone(() => {
+      this.isLoading = true;
+      this.changeDetectorRef.markForCheck();
+    });
+
+    this.platformsService
+      .list(page, size)
+      .pipe(
+        finalize(() => {
+          this.runInZone(() => {
+            this.isLoading = false;
+            this.changeDetectorRef.markForCheck();
+          });
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          this.runInZone(() => {
+            this.platformsPage = response;
+            this.platforms = response.content;
+            this.changeDetectorRef.markForCheck();
+          });
+        },
+        error: () => {
+          this.runInZone(() => {
+            this.placeholderMessage = 'Falha ao carregar plataformas.';
+            this.changeDetectorRef.markForCheck();
+          });
+        },
+      });
+  }
+
+  private runInZone(action: () => void): void {
+    this.ngZone.run(action);
+  }
+
+  private toPlatformRequest(
+    value: {
+      name: string;
+      price: number;
+      currency: string;
+      url: string;
+      serviceType: string;
+      totalSlots: number;
+      availableSlots: number;
+      billingCycle: string;
+      billingDateFull: string | null;
+    },
+    availableSlots: number,
+  ): PlatformRequest {
+    return {
+      name: value.name,
+      price: value.price,
+      currency: value.currency as PlatformCurrency,
+      url: value.url,
+      serviceType: value.serviceType as PlatformServiceType,
+      totalSlots: value.totalSlots,
+      availableSlots,
+      billingCycle: value.billingCycle as PlatformBillingCycle,
+      billingDay: null,
+    };
   }
 
   private applyBillingDayRules(cycle: string): void {

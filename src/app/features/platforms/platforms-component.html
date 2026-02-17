@@ -11,61 +11,68 @@
     </div>
   }
 
-  <div class="platforms-grid">
-    @for (platform of platforms; track platform.id) {
-      <article class="platform-card">
-        <div class="platform-top">
-          <div class="platform-logo">
-            <lucide-angular [img]="cloudIcon" [size]="24"></lucide-angular>
+  @if (isLoading) {
+    <section class="loading-state" aria-live="polite" aria-busy="true">
+      <div class="spinner" role="status" aria-label="Carregando plataformas"></div>
+      <p>Carregando plataformas...</p>
+    </section>
+  } @else {
+    <div class="platforms-grid">
+      @for (platform of platforms; track platform.id) {
+        <article class="platform-card">
+          <div class="platform-top">
+            <div class="platform-logo">
+              <lucide-angular [img]="cloudIcon" [size]="24"></lucide-angular>
+            </div>
+
+            <div class="platform-title">
+              <strong>{{ platform.name }}</strong>
+            </div>
+
+            <div class="context-area" (click)="$event.stopPropagation()">
+              <button
+                type="button"
+                class="context-trigger"
+                aria-label="Abrir menu"
+                (click)="toggleMenu(platform.id, $event)"
+              >
+                ...
+              </button>
+
+              @if (openMenuPlatformId === platform.id) {
+                <div class="context-menu">
+                  <button type="button" (click)="openDetails(platform)">Detalhes</button>
+                  <button type="button" (click)="openEdit(platform)">Editar</button>
+                  <button type="button" class="danger" (click)="askDelete(platform)">Excluir</button>
+                </div>
+              }
+            </div>
           </div>
 
-          <div class="platform-title">
-            <strong>{{ platform.name }}</strong>
-          </div>
+          <dl class="platform-details">
+            <div>
+              <dt>Preço total</dt>
+              <dd>{{ platform.price | currency: platform.currency }}</dd>
+            </div>
+            <div>
+              <dt>Total de vagas</dt>
+              <dd>{{ platform.totalSlots }}</dd>
+            </div>
+            <div>
+              <dt>Disponíveis</dt>
+              <dd>{{ platform.availableSlots }}</dd>
+            </div>
+          </dl>
+        </article>
+      }
 
-          <div class="context-area" (click)="$event.stopPropagation()">
-            <button
-              type="button"
-              class="context-trigger"
-              aria-label="Abrir menu"
-              (click)="toggleMenu(platform.id, $event)"
-            >
-              ...
-            </button>
-
-            @if (openMenuPlatformId === platform.id) {
-              <div class="context-menu">
-                <button type="button" (click)="openDetails(platform)">Detalhes</button>
-                <button type="button" (click)="openEdit(platform)">Editar</button>
-                <button type="button" class="danger" (click)="askDelete(platform)">Excluir</button>
-              </div>
-            }
-          </div>
-        </div>
-
-        <dl class="platform-details">
-          <div>
-            <dt>Preço total</dt>
-            <dd>{{ platform.price | currency: platform.currency }}</dd>
-          </div>
-          <div>
-            <dt>Total de vagas</dt>
-            <dd>{{ platform.totalSlots }}</dd>
-          </div>
-          <div>
-            <dt>Disponíveis</dt>
-            <dd>{{ platform.availableSlots }}</dd>
-          </div>
-        </dl>
-      </article>
-    }
-
-    @if (platforms.length === 0) {
-      <article class="empty-card">
-        <strong>Nenhuma plataforma cadastrada.</strong>
-      </article>
-    }
-  </div>
+      @if (platforms.length === 0) {
+        <article class="empty-card">
+          <strong>Nenhuma plataforma cadastrada.</strong>
+        </article>
+      }
+    </div>
+  }
 
   <button type="button" class="floating-create-button" (click)="openCreate()">
     + Nova plataforma
