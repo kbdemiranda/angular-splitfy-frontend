@@ -1,4 +1,5 @@
 @use 'tailwindcss';
+@plugin '@tailwindcss/forms';
 
 @layer base {
   * {

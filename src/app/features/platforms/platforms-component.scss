@@ -181,6 +181,10 @@
   padding: 18px;
 }
 
+.edit-modal {
+  width: min(820px, 100%);
+}
+
 .modal h2 {
   margin: 0;
   font-size: 1.05rem;
@@ -189,6 +193,10 @@
 .modal p {
   margin: 10px 0 0;
   color: #cbd5e1;
+}
+
+.modal code {
+  color: #7dd3fc;
 }
 
 .modal-actions {
@@ -214,4 +222,17 @@
 .modal-actions .danger {
   background: #b91c1c;
   color: white;
+}
+
+.modal-actions .primary {
+  background: #0284c7;
+  color: white;
+}
+
+.calendar-native-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }

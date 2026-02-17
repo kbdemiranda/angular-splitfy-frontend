@@ -46,7 +46,7 @@
         <dl class="platform-details">
           <div>
             <dt>Preço total</dt>
-            <dd>{{ platform.totalPrice | currency: 'BRL' }}</dd>
+            <dd>{{ platform.price | currency: platform.currency }}</dd>
           </div>
           <div>
             <dt>Total de vagas</dt>
@@ -67,6 +67,151 @@
     }
   </div>
 </section>
+
+@if (editingPlatformId !== null) {
+  <div class="modal-overlay" (click)="cancelEdit()">
+    <section class="modal edit-modal" (click)="$event.stopPropagation()">
+      <h2>Editar plataforma</h2>
+      <p>Campos baseados no schema <code>PlatformRequest</code> do OpenAPI.</p>
+
+      <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <label class="block text-sm text-slate-200 sm:col-span-2">
+          Nome
+          <input
+            formControlName="name"
+            type="text"
+            class="mt-1 w-full rounded-md border-slate-600 bg-slate-900 text-slate-100 placeholder-slate-400 focus:border-cyan-500 focus:ring-cyan-500"
+            placeholder="Ex.: Netflix"
+          />
+        </label>
+
+        <label class="block text-sm text-slate-200">
+          Preço
+          <input
+            formControlName="price"
+            type="number"
+            step="0.01"
+            class="mt-1 w-full rounded-md border-slate-600 bg-slate-900 text-slate-100 placeholder-slate-400 focus:border-cyan-500 focus:ring-cyan-500"
+            placeholder="19.90"
+          />
+        </label>
+
+        <label class="block text-sm text-slate-200">
+          Moeda
+          <select
+            formControlName="currency"
+            class="mt-1 w-full rounded-md border-slate-600 bg-slate-900 text-slate-100 focus:border-cyan-500 focus:ring-cyan-500"
+          >
+            @for (option of currencyOptions; track option) {
+              <option [value]="option">{{ option }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="block text-sm text-slate-200 sm:col-span-2">
+          URL
+          <input
+            formControlName="url"
+            type="url"
+            class="mt-1 w-full rounded-md border-slate-600 bg-slate-900 text-slate-100 placeholder-slate-400 focus:border-cyan-500 focus:ring-cyan-500"
+            placeholder="https://www.netflix.com"
+          />
+        </label>
+
+        <label class="block text-sm text-slate-200">
+          Tipo de serviço
+          <select
+            formControlName="serviceType"
+            class="mt-1 w-full rounded-md border-slate-600 bg-slate-900 text-slate-100 focus:border-cyan-500 focus:ring-cyan-500"
+          >
+            @for (option of serviceTypeOptions; track option) {
+              <option [value]="option">{{ option }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="block text-sm text-slate-200">
+          Ciclo de cobrança
+          <select
+            formControlName="billingCycle"
+            class="mt-1 w-full rounded-md border-slate-600 bg-slate-900 text-slate-100 focus:border-cyan-500 focus:ring-cyan-500"
+          >
+            @for (option of billingCycleOptions; track option) {
+              <option [value]="option">{{ option }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="block text-sm text-slate-200">
+          Total de vagas
+          <input
+            formControlName="totalSlots"
+            type="number"
+            min="1"
+            class="mt-1 w-full rounded-md border-slate-600 bg-slate-900 text-slate-100 focus:border-cyan-500 focus:ring-cyan-500"
+          />
+        </label>
+
+        <label class="block text-sm text-slate-200">
+          Vagas disponíveis
+          <input
+            formControlName="availableSlots"
+            type="number"
+            min="0"
+            class="mt-1 w-full rounded-md border-slate-600 bg-slate-900 text-slate-100 focus:border-cyan-500 focus:ring-cyan-500"
+          />
+        </label>
+
+        <fieldset class="sm:col-span-2">
+          <legend class="text-sm text-slate-200">Dia da cobrança (MM-DD sem ano)</legend>
+          <div class="relative mt-1 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
+            <div>
+              <label class="block text-sm text-slate-200">Selecionar no calendário</label>
+              <div class="mt-1 flex items-center gap-2">
+                <input
+                  type="text"
+                  [value]="billingDayPreview"
+                  readonly
+                  class="w-full rounded-md border-slate-600 bg-slate-900 text-slate-100 focus:border-cyan-500 focus:ring-cyan-500"
+                  placeholder="DD/MM"
+                />
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  [disabled]="!isAnnualBilling"
+                  (click)="openBillingDatePicker(billingDateInput)"
+                >
+                  Calendário
+                </button>
+              </div>
+              <input
+                #billingDateInput
+                formControlName="billingDateFull"
+                type="date"
+                [min]="calendarMinDate"
+                [max]="calendarMaxDate"
+                [disabled]="!isAnnualBilling"
+                class="calendar-native-input"
+              />
+            </div>
+
+          </div>
+        </fieldset>
+
+        @if (editErrorMessage) {
+          <p class="sm:col-span-2 rounded-md border border-rose-700 bg-rose-950 px-3 py-2 text-sm text-rose-200">
+            {{ editErrorMessage }}
+          </p>
+        }
+
+        <div class="modal-actions sm:col-span-2">
+          <button type="button" class="secondary" (click)="cancelEdit()">Cancelar</button>
+          <button type="submit" class="primary">Salvar alterações</button>
+        </div>
+      </form>
+    </section>
+  </div>
+}
 
 @if (platformToDelete) {
   <div class="modal-overlay" (click)="cancelDelete()">
