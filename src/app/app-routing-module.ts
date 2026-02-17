@@ -3,7 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
 import { DashboardComponent } from './features/dashboard/dashboard-component';
 import { LoginComponent } from './features/auth/login/login-component';
-import { ComingSoonComponent } from './features/common/coming-soon/coming-soon-component';
+import { SettingsComponent } from './features/settings/settings-component';
 import { PlatformsComponent } from './features/platforms/platforms-component';
 import { SubscribersComponent } from './features/subscribers/subscribers-component';
 import { SubscriberSubscriptionsComponent } from './features/subscribers/subscriber-subscriptions-component';
@@ -38,7 +38,7 @@ const routes: Routes = [
   },
   {
     path: 'settings',
-    component: ComingSoonComponent,
+    component: SettingsComponent,
     canActivate: [AuthGuard],
     data: { title: 'Configurações' },
   },

@@ -1,0 +1,129 @@
+<section class="settings-page">
+  <header class="settings-header">
+    <h1>Configurações</h1>
+    <p>Centralize as configurações administrativas da plataforma.</p>
+  </header>
+
+  <div class="settings-layout">
+    <aside class="settings-sidebar" aria-label="Menu de configurações">
+      <nav>
+        <ul>
+          @for (section of sections; track section.key) {
+            <li>
+              <button
+                type="button"
+                [class.active]="isSectionActive(section.key)"
+                (click)="selectSection(section.key)"
+              >
+                <strong>{{ section.label }}</strong>
+                <span>{{ section.description }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      </nav>
+    </aside>
+
+    <section class="settings-content" aria-live="polite">
+      @if (activeSection === 'users') {
+        <article class="content-card">
+          <div class="content-header">
+            <h2>Usuários</h2>
+            <button type="button">Novo usuário</button>
+          </div>
+          <p>Cadastro, edição, consulta e remoção de usuários da aplicação.</p>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Ana Ferreira</td>
+                  <td>ana.ferreira@splitfy.com</td>
+                  <td>Ativo</td>
+                  <td>
+                    <button type="button" class="link">Editar</button>
+                    <button type="button" class="link danger">Excluir</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Lucas Nunes</td>
+                  <td>lucas.nunes@splitfy.com</td>
+                  <td>Inativo</td>
+                  <td>
+                    <button type="button" class="link">Editar</button>
+                    <button type="button" class="link danger">Excluir</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      }
+
+      @if (activeSection === 'profiles') {
+        <article class="content-card">
+          <div class="content-header">
+            <h2>Profiles</h2>
+            <button type="button">Novo profile</button>
+          </div>
+          <p>Defina perfis com permissões e regras de acesso para cada tipo de usuário.</p>
+
+          <div class="chips">
+            <span>Administrador</span>
+            <span>Financeiro</span>
+            <span>Operação</span>
+            <span>Somente leitura</span>
+          </div>
+
+          <div class="actions-row">
+            <button type="button">Gerenciar permissões</button>
+            <button type="button" class="secondary">Duplicar profile</button>
+          </div>
+        </article>
+      }
+
+      @if (activeSection === 'system') {
+        <article class="content-card">
+          <div class="content-header">
+            <h2>Configurações do Sistema</h2>
+            <button type="button">Salvar alterações</button>
+          </div>
+          <p>Ajuste idioma, tema e preferências globais da aplicação.</p>
+
+          <form class="system-form">
+            <label>
+              Idioma padrão
+              <select>
+                <option>Português (Brasil)</option>
+                <option>English (US)</option>
+                <option>Español</option>
+              </select>
+            </label>
+
+            <label>
+              Tema
+              <select>
+                <option>Escuro</option>
+                <option>Claro</option>
+                <option>Automático</option>
+              </select>
+            </label>
+
+            <label class="toggle-field">
+              <input type="checkbox" checked />
+              <span>Habilitar notificações administrativas por email</span>
+            </label>
+          </form>
+        </article>
+      }
+    </section>
+  </div>
+</section>
