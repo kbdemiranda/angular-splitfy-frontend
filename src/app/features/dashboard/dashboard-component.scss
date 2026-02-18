@@ -78,7 +78,7 @@ p {
   margin-top: 18px;
   display: grid;
   gap: 12px;
-  grid-template-columns: minmax(300px, 380px) minmax(360px, 1fr);
+  grid-template-columns: minmax(300px, 650px) minmax(360px, 1fr);
   align-items: start;
 }
 
@@ -104,10 +104,11 @@ p {
 }
 
 .status-content {
-  margin-top: 10px;
+  margin-top: 20px;
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
+  justify-content: space-around;
   gap: 14px;
 }
 

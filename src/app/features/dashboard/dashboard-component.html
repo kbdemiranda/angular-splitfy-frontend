@@ -68,31 +68,6 @@
           </ul>
         </div>
       </article>
-
-      <article class="platforms-table-card">
-        <h2>Pendências por usuários</h2>
-
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Usuário</th>
-                <th>Valor pendente</th>
-                <th>Valor total</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (item of pendingByUsers; track item.userName) {
-                <tr>
-                  <td>{{ item.userName }}</td>
-                  <td>{{ item.pendingAmount | currency: kpis.currency }}</td>
-                  <td>{{ item.totalAmount | currency: kpis.currency }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </article>
     </section>
   } @else {
     <section class="empty-state">
