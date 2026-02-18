@@ -6,6 +6,7 @@ import { SubscriberBillingService } from '../../core/services/subscriber-billing
 import { SubscriberBillingItem, SubscriberBillingResponse } from '../../shared/models/subscriber-billing.model';
 import {
   SubscriberPageResponse,
+  SubscriberRequest,
   SubscriberResponse,
 } from '../../shared/models/subscribers.model';
 import { SubscribersService } from '../../core/services/subscribers.service';
@@ -17,6 +18,7 @@ import { SubscribersService } from '../../core/services/subscribers.service';
   standalone: false,
 })
 export class SubscribersComponent implements OnInit {
+  private readonly createSentinelId = -1;
   subscribers: SubscriberResponse[] = [];
   subscribersPage: SubscriberPageResponse = {
     content: [],
@@ -38,6 +40,8 @@ export class SubscribersComponent implements OnInit {
   subscriberToDelete: SubscriberResponse | null = null;
   editOptionsSubscriber: SubscriberResponse | null = null;
   editingSubscriberId: number | null = null;
+  editErrorMessage: string | null = null;
+  placeholderMessage: string | null = null;
   readonly editProfileForm: FormGroup<{
     name: FormControl<string>;
     email: FormControl<string>;
@@ -64,6 +68,10 @@ export class SubscribersComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadSubscribers();
+  }
+
+  get isCreateMode(): boolean {
+    return this.editingSubscriberId === this.createSentinelId;
   }
 
   trackById(_: number, subscriber: SubscriberResponse): number {
@@ -137,14 +145,25 @@ export class SubscribersComponent implements OnInit {
     }
 
     this.editingSubscriberId = subscriber.id;
+    this.editErrorMessage = null;
     this.editProfileForm.setValue({
       name: subscriber.name,
       email: subscriber.email,
     });
   }
 
+  openCreate(): void {
+    this.editingSubscriberId = this.createSentinelId;
+    this.editErrorMessage = null;
+    this.editProfileForm.reset({
+      name: '',
+      email: '',
+    });
+  }
+
   cancelEdit(): void {
     this.editingSubscriberId = null;
+    this.editErrorMessage = null;
     this.editProfileForm.reset({
       name: '',
       email: '',
@@ -162,27 +181,59 @@ export class SubscribersComponent implements OnInit {
     }
 
     const { name, email } = this.editProfileForm.getRawValue();
-    const editingId = this.editingSubscriberId;
-    this.subscribersService
-      .updateProfile(editingId, { name: name.trim(), email: email.trim() })
-      .subscribe({
-        next: (updatedSubscriber) => {
+    const payload: SubscriberRequest = { name: name.trim(), email: email.trim() };
+
+    if (this.isCreateMode) {
+      this.subscribersService.create(payload).subscribe({
+        next: (createdSubscriber) => {
           this.runInZone(() => {
-            this.subscribers = this.subscribers.map((subscriber) =>
-              subscriber.id === editingId ? updatedSubscriber : subscriber,
-            );
+            this.subscribers = [...this.subscribers, createdSubscriber];
             this.subscribersPage = {
               ...this.subscribersPage,
               content: this.subscribers,
+              totalElements: this.subscribersPage.totalElements + 1,
             };
-            if (this.selectedSubscriber?.id === editingId) {
-              this.selectedSubscriber = updatedSubscriber;
-            }
             this.cancelEdit();
+            this.placeholderMessage = 'Assinante criado com sucesso.';
+            this.syncView();
+          });
+        },
+        error: () => {
+          this.runInZone(() => {
+            this.editErrorMessage = 'Falha ao criar assinante.';
             this.syncView();
           });
         },
       });
+      return;
+    }
+
+    const editingId = this.editingSubscriberId;
+    this.subscribersService.updateProfile(editingId, payload).subscribe({
+      next: (updatedSubscriber) => {
+        this.runInZone(() => {
+          this.subscribers = this.subscribers.map((subscriber) =>
+            subscriber.id === editingId ? updatedSubscriber : subscriber,
+          );
+          this.subscribersPage = {
+            ...this.subscribersPage,
+            content: this.subscribers,
+          };
+          if (this.selectedSubscriber?.id === editingId) {
+            this.selectedSubscriber = updatedSubscriber;
+          }
+          this.cancelEdit();
+          this.placeholderMessage = 'Assinante atualizado com sucesso.';
+          this.syncView();
+        });
+      },
+      error: () => {
+        this.runInZone(() => {
+          this.editErrorMessage = 'Falha ao atualizar assinante.';
+          this.syncView();
+        });
+      },
+    });
   }
 
   chooseEditSubscriptions(): void {
@@ -228,10 +279,21 @@ export class SubscribersComponent implements OnInit {
           if (this.selectedSubscriber?.id === deletedId) {
             this.closeDetails();
           }
+          this.placeholderMessage = 'Assinante excluído com sucesso.';
+          this.syncView();
+        });
+      },
+      error: () => {
+        this.runInZone(() => {
+          this.placeholderMessage = 'Falha ao excluir assinante.';
           this.syncView();
         });
       },
     });
+  }
+
+  closePlaceholderMessage(): void {
+    this.placeholderMessage = null;
   }
 
   initials(name: string): string {

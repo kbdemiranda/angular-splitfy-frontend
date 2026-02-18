@@ -4,6 +4,7 @@ import { map, Observable } from 'rxjs';
 import { API_ROUTES } from '../constants/api-routes';
 import {
   SubscriberPageResponse,
+  SubscriberRequest,
   SubscriberResponse,
   SubscriberUpdateRequest,
 } from '../../shared/models/subscribers.model';
@@ -17,6 +18,10 @@ export class SubscribersService {
     return this.http
       .get<unknown>(API_ROUTES.subscribers, { params })
       .pipe(map((response) => this.normalizePageResponse(response, page, size)));
+  }
+
+  create(payload: SubscriberRequest): Observable<SubscriberResponse> {
+    return this.http.post<SubscriberResponse>(API_ROUTES.subscribers, payload);
   }
 
   updateProfile(id: number, payload: SubscriberUpdateRequest): Observable<SubscriberResponse> {

@@ -16,6 +16,13 @@
       <p>Acompanhe os participantes ativos das suas plataformas.</p>
     </header>
 
+    @if (placeholderMessage) {
+      <div class="feedback" role="status" aria-live="polite">
+        <span>{{ placeholderMessage }}</span>
+        <button type="button" (click)="closePlaceholderMessage()">Fechar</button>
+      </div>
+    }
+
     <ul
       role="list"
       class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3"
@@ -54,6 +61,10 @@
         <li class="empty-card">Nenhum assinante cadastrado.</li>
       }
     </ul>
+
+    <button type="button" class="floating-create-button" (click)="openCreate()">
+      + Novo assinante
+    </button>
   </section>
 }
 
@@ -151,8 +162,15 @@
 @if (editingSubscriberId !== null) {
   <div class="modal-overlay" (click)="cancelEdit()">
     <section class="modal edit-modal" (click)="$event.stopPropagation()">
-      <h2>Editar assinante</h2>
-      <p>Atualize os dados básicos do assinante.</p>
+      <h2>{{ isCreateMode ? 'Novo assinante' : 'Editar assinante' }}</h2>
+      <p>
+        {{
+          isCreateMode
+            ? 'Preencha os dados conforme o schema'
+            : 'Atualize os dados básicos conforme o schema'
+        }}
+        <code>SubscriberRequest</code> do OpenAPI.
+      </p>
 
       <form [formGroup]="editProfileForm" (ngSubmit)="saveEdit()" class="edit-form">
         <label>
@@ -179,9 +197,13 @@
           }
         </label>
 
+        @if (editErrorMessage) {
+          <small class="field-error">{{ editErrorMessage }}</small>
+        }
+
         <div class="modal-actions">
           <button type="button" class="secondary" (click)="cancelEdit()">Cancelar</button>
-          <button type="submit" class="primary">Salvar</button>
+          <button type="submit" class="primary">{{ isCreateMode ? 'Criar' : 'Salvar' }}</button>
         </div>
       </form>
     </section>

@@ -13,10 +13,12 @@ export interface SubscriberResponse {
   associatedPlatforms: SubscriberPlatform[];
 }
 
-export interface SubscriberUpdateRequest {
+export interface SubscriberRequest {
   name: string;
   email: string;
 }
+
+export type SubscriberUpdateRequest = SubscriberRequest;
 
 export interface SubscriberPageResponse {
   content: SubscriberResponse[];
