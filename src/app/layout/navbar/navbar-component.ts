@@ -40,7 +40,7 @@ export class NavbarComponent {
       icon: LayoutDashboard,
     },
     {
-      path: '/users',
+      path: '/subscriber',
       label: 'Assinantes',
       icon: Users,
     },

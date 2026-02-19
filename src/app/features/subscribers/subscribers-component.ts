@@ -244,7 +244,7 @@ export class SubscribersComponent implements OnInit {
       return;
     }
 
-    void this.router.navigate(['/users', subscriber.id, 'subscriptions']);
+    void this.router.navigate(['/subscriber', subscriber.id, 'subscriptions']);
   }
 
   askDelete(subscriber: SubscriberResponse | null): void {

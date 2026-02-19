@@ -24,6 +24,14 @@ export class SubscribersService {
     return this.http.post<SubscriberResponse>(API_ROUTES.subscribers, payload);
   }
 
+  details(id: number): Observable<SubscriberResponse> {
+    return this.http.get<SubscriberResponse>(API_ROUTES.subscriberById(id));
+  }
+
+  subscriptions(id: number): Observable<unknown> {
+    return this.http.get<unknown>(API_ROUTES.subscriberSubscriptions(id));
+  }
+
   updateProfile(id: number, payload: SubscriberUpdateRequest): Observable<SubscriberResponse> {
     return this.http.put<SubscriberResponse>(API_ROUTES.subscriberById(id), payload);
   }

@@ -20,13 +20,13 @@ const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'users/:id/subscriptions',
+    path: 'subscriber/:id/subscriptions',
     component: SubscriberSubscriptionsComponent,
     canActivate: [AuthGuard],
     data: { title: 'Editar assinaturas' },
   },
   {
-    path: 'users',
+    path: 'subscriber',
     component: SubscribersComponent,
     canActivate: [AuthGuard],
     data: { title: 'Assinantes' },

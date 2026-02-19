@@ -1,17 +1,25 @@
-<section class="subscriptions-editor-page">
-  <header class="editor-header">
-    <button type="button" class="back-button" (click)="backToSubscribers()">Voltar</button>
-    <div>
-      <h1>Editar assinaturas</h1>
-      <p>Gerencie associações de plataformas do assinante.</p>
-    </div>
-  </header>
+@if (isLoadingSubscriber) {
+  <section class="subscriptions-editor-page">
+    <div class="feedback" role="status" aria-live="polite">Carregando assinante...</div>
+  </section>
+} @else if (subscriberError) {
+  <section class="subscriptions-editor-page">
+    <div class="feedback" role="alert">{{ subscriberError }}</div>
+  </section>
+} @else if (hasLoadedSubscriptionsData && subscriber) {
+  <section class="subscriptions-editor-page">
+    <header class="editor-header">
+      <button type="button" class="back-button" (click)="backToSubscribers()">Voltar</button>
+      <div>
+        <h1>Editar assinaturas</h1>
+        <p>Gerencie associações de plataformas do assinante.</p>
+      </div>
+    </header>
 
-  @if (infoMessage) {
-    <div class="feedback" role="status" aria-live="polite">{{ infoMessage }}</div>
-  }
+    @if (infoMessage) {
+      <div class="feedback" role="status" aria-live="polite">{{ infoMessage }}</div>
+    }
 
-  @if (subscriber) {
     <article class="subscriber-card">
       <div>
         <h2>{{ subscriber.name }}</h2>
@@ -66,5 +74,5 @@
         </div>
       </section>
     </div>
-  }
-</section>
+  </section>
+}
