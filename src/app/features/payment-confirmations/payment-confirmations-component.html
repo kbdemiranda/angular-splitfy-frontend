@@ -12,8 +12,11 @@
 } @else {
   <section class="billing-page">
     <header class="page-header">
-      <h1>Cobranças</h1>
-      <p>Selecione um assinante para visualizar as plataformas pendentes por mês de referência.</p>
+      <div>
+        <h1>Cobranças</h1>
+        <p>Selecione um assinante para visualizar as plataformas pendentes por mês de referência.</p>
+      </div>
+      <button type="button" class="bulk-charge-trigger" (click)="openBulkChargeModal()">Cobrar usuários</button>
     </header>
 
     <ul role="list" class="subscribers-grid">
@@ -43,6 +46,71 @@
       }
     </ul>
   </section>
+}
+
+@if (bulkChargeModalOpen) {
+  <div class="modal-overlay" (click)="closeBulkChargeModal()">
+    <section class="modal bulk-charge-modal" (click)="$event.stopPropagation()">
+      <div class="detail-header">
+        <h2>Cobrança em lote</h2>
+        <button type="button" class="close-icon" (click)="closeBulkChargeModal()">Fechar</button>
+      </div>
+
+      @if (bulkChargeFeedback) {
+        <article class="state" [ngClass]="{ error: bulkChargeFeedback.type === 'error', success: bulkChargeFeedback.type === 'success' }">
+          {{ bulkChargeFeedback.message }}
+        </article>
+      }
+
+      <div class="bulk-form">
+        <label>
+          Mês de referência
+          <input
+            type="month"
+            [(ngModel)]="bulkChargeReferenceMonth"
+            name="bulkChargeReferenceMonth"
+          />
+        </label>
+
+        <label>
+          E-mails de destino
+          <input
+            type="text"
+            [(ngModel)]="bulkChargeDestinationEmails"
+            name="bulkChargeDestinationEmails"
+            placeholder="finance@example.com, admin@example.com"
+          />
+          <small>Se precisar, separe múltiplos e-mails por vírgula.</small>
+        </label>
+      </div>
+
+      <section class="bulk-subscribers">
+        <h3>Assinantes para cobrar</h3>
+        <ul class="bulk-subscriber-list">
+          @for (subscriber of subscribers; track trackById($index, subscriber)) {
+            <li>
+              <label class="bulk-subscriber-item">
+                <input
+                  type="checkbox"
+                  [checked]="hasBulkSubscriberSelected(subscriber.id)"
+                  (change)="toggleBulkSubscriber(subscriber.id, $any($event.target).checked)"
+                />
+                <span>{{ subscriber.name }}</span>
+                <small>{{ subscriber.email }}</small>
+              </label>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <div class="modal-actions">
+        <button type="button" class="close-icon" (click)="closeBulkChargeModal()">Cancelar</button>
+        <button type="button" class="charge-btn" [disabled]="bulkCharging" (click)="submitBulkCharge()">
+          {{ bulkCharging ? 'Enviando...' : 'Enviar cobrança' }}
+        </button>
+      </div>
+    </section>
+  </div>
 }
 
 @if (selectedSubscriber) {

@@ -34,6 +34,12 @@ export class PaymentConfirmationsComponent implements OnInit {
   openingDetailsSubscriberId: number | null = null;
   charging = false;
   chargeFeedback: { type: 'success' | 'error'; message: string } | null = null;
+  bulkChargeModalOpen = false;
+  bulkChargeReferenceMonth = this.currentReferenceMonth();
+  bulkChargeDestinationEmails = '';
+  bulkChargeSelectedSubscriberIds = new Set<number>();
+  bulkCharging = false;
+  bulkChargeFeedback: { type: 'success' | 'error'; message: string } | null = null;
 
   readonly billingStatusIcons: Record<string, LucideIconData> = {
     PAID: CircleCheck,
@@ -231,6 +237,93 @@ export class PaymentConfirmationsComponent implements OnInit {
             this.chargeFeedback = {
               type: 'error',
               message: 'Não foi possível enviar o e-mail de cobrança.',
+            };
+            this.syncView();
+          });
+        },
+      });
+  }
+
+  openBulkChargeModal(): void {
+    this.bulkChargeModalOpen = true;
+    this.bulkChargeReferenceMonth = this.billingReferenceMonth;
+    this.bulkChargeDestinationEmails = '';
+    this.bulkChargeSelectedSubscriberIds = new Set<number>();
+    this.bulkChargeFeedback = null;
+  }
+
+  closeBulkChargeModal(): void {
+    this.bulkChargeModalOpen = false;
+    this.bulkCharging = false;
+    this.bulkChargeFeedback = null;
+  }
+
+  hasBulkSubscriberSelected(subscriberId: number): boolean {
+    return this.bulkChargeSelectedSubscriberIds.has(subscriberId);
+  }
+
+  toggleBulkSubscriber(subscriberId: number, checked: boolean): void {
+    if (checked) {
+      this.bulkChargeSelectedSubscriberIds.add(subscriberId);
+      return;
+    }
+
+    this.bulkChargeSelectedSubscriberIds.delete(subscriberId);
+  }
+
+  submitBulkCharge(): void {
+    if (this.bulkCharging) {
+      return;
+    }
+
+    const subscriberIds = Array.from(this.bulkChargeSelectedSubscriberIds);
+    const emails = this.bulkChargeDestinationEmails
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0);
+
+    if (subscriberIds.length === 0) {
+      this.bulkChargeFeedback = { type: 'error', message: 'Selecione ao menos um assinante.' };
+      return;
+    }
+
+    if (emails.length === 0) {
+      this.bulkChargeFeedback = { type: 'error', message: 'Informe ao menos um e-mail de destino.' };
+      return;
+    }
+
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(this.bulkChargeReferenceMonth)) {
+      this.bulkChargeFeedback = { type: 'error', message: 'Informe o mês de referência no formato YYYY-MM.' };
+      return;
+    }
+
+    this.bulkCharging = true;
+    this.bulkChargeFeedback = null;
+    this.syncView();
+
+    this.paymentConfirmationsService
+      .sendBillingSummaryEmail({
+        subscriberIds,
+        emails,
+        referenceMonth: this.bulkChargeReferenceMonth,
+      })
+      .subscribe({
+        next: () => {
+          this.runInZone(() => {
+            this.bulkCharging = false;
+            this.bulkChargeFeedback = {
+              type: 'success',
+              message: `Cobrança enviada`,
+            };
+            this.syncView();
+          });
+        },
+        error: () => {
+          this.runInZone(() => {
+            this.bulkCharging = false;
+            this.bulkChargeFeedback = {
+              type: 'error',
+              message: 'Não foi possível enviar a cobrança em lote.',
             };
             this.syncView();
           });
