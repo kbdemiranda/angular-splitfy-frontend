@@ -1,99 +1,155 @@
-<section class="payment-confirmations-page">
-  <header class="page-header">
-    <h1>Gestão de pagamentos</h1>
-    <p>Registre confirmações e aprove pendências por mês de referência.</p>
-  </header>
+@if (isLoadingSubscribers && !hasLoadedSubscribers) {
+  <section class="billing-page">
+    <section class="loading-state" aria-live="polite" aria-busy="true">
+      <div class="spinner" role="status" aria-label="Carregando assinantes"></div>
+      <p>Carregando assinantes...</p>
+    </section>
+  </section>
+} @else if (subscribersError && !hasLoadedSubscribers) {
+  <section class="billing-page">
+    <article class="state error">{{ subscribersError }}</article>
+  </section>
+} @else {
+  <section class="billing-page">
+    <header class="page-header">
+      <h1>Cobranças</h1>
+      <p>Selecione um assinante para visualizar as plataformas pendentes por mês de referência.</p>
+    </header>
 
-  <div class="feedback">
-    @if (successMessage) {
-      <p class="message success">{{ successMessage }}</p>
-    }
-    @if (errorMessage) {
-      <p class="message error">{{ errorMessage }}</p>
-    }
-  </div>
+    <ul role="list" class="subscribers-grid">
+      @for (subscriber of subscribers; track trackById($index, subscriber)) {
+        <li class="subscriber-card">
+          <div class="card-body">
+            <div>
+              <h3>{{ subscriber.name }}</h3>
+              <p>{{ subscriber.email }}</p>
+            </div>
+            <div class="avatar">{{ initials(subscriber.name) }}</div>
+          </div>
 
-  <div class="content-grid">
-    <article class="panel">
-      <h2>Registrar pagamento</h2>
-      <form [formGroup]="registerForm" (ngSubmit)="submitRegister()" class="register-form">
-        <label>
-          Referência
-          <input type="month" formControlName="referenceMonth" />
-        </label>
+          <button
+            type="button"
+            class="card-action"
+            [disabled]="openingDetailsSubscriberId === subscriber.id"
+            (click)="openDetails(subscriber)"
+          >
+            {{ openingDetailsSubscriberId === subscriber.id ? 'Carregando...' : 'Detalhes' }}
+          </button>
+        </li>
+      }
 
-        <label>
-          Assinante
-          <select formControlName="subscriberId" (change)="onSubscriberChange()">
-            <option value="">Selecione um assinante</option>
-            @for (subscriber of subscribers; track subscriber.id) {
-              <option [value]="subscriber.id">{{ subscriber.name }}</option>
-            }
-          </select>
-        </label>
+      @if (subscribers.length === 0) {
+        <li class="state">Nenhum assinante encontrado.</li>
+      }
+    </ul>
+  </section>
+}
 
-        @if (selectedSubscriber) {
-          <fieldset class="platform-list">
-            <legend>Plataformas para confirmar</legend>
-            @for (platform of selectedSubscriber.associatedPlatforms; track platform.id) {
-              <label class="platform-item">
-                <input
-                  type="checkbox"
-                  [checked]="hasPlatformSelected(platform.id)"
-                  (change)="togglePlatform(platform.id, $any($event.target).checked)"
-                />
-                <span>{{ platform.name }}</span>
-                <small>{{ formatCurrency(platform.individualPrice, platform.currency) }}</small>
-              </label>
-            }
-          </fieldset>
-        }
+@if (selectedSubscriber) {
+  <div class="modal-overlay" (click)="closeDetails()">
+    <section class="modal detail-modal" (click)="$event.stopPropagation()">
+      <div class="detail-header">
+        <h2>Detalhes da cobrança</h2>
+        <button type="button" class="close-icon" (click)="closeDetails()">Fechar</button>
+      </div>
 
-        <button type="submit" class="primary" [disabled]="registering">
-          {{ registering ? 'Registrando...' : 'Registrar confirmação' }}
-        </button>
-      </form>
-    </article>
-
-    <article class="panel">
-      <div class="panel-header">
-        <h2>Pendências para aprovação</h2>
-        <div class="pending-filters">
-          <label>
-            Referência
-            <input type="month" [(ngModel)]="pendingReferenceMonth" name="pendingReferenceMonth" />
-          </label>
-          <button type="button" class="secondary" (click)="loadPending()">Atualizar</button>
+      <div class="subscriber-identification">
+        <div class="avatar large">{{ initials(selectedSubscriber.name) }}</div>
+        <div>
+          <strong>{{ selectedSubscriber.name }}</strong>
+          <p>{{ selectedSubscriber.email }}</p>
+          @if (selectedSubscriberBilling) {
+            <small>Referência: {{ selectedSubscriberBilling.referenceMonth }}</small>
+          }
         </div>
       </div>
 
-      @if (loadingPending) {
-        <p class="empty-state">Carregando pendências...</p>
-      } @else if (pendingConfirmations.length === 0) {
-        <p class="empty-state">Nenhuma confirmação pendente para esse mês.</p>
-      } @else {
-        <ul class="pending-list">
-          @for (item of pendingConfirmations; track trackByPendingId($index, item)) {
-            <li class="pending-item">
-              <div class="pending-main">
-                <strong>#{{ item.confirmationId }} • {{ item.subscriber.name }}</strong>
-                <p>{{ item.platform.name }} • {{ formatCurrency(item.platform.price, item.platform.currency) }}</p>
-                <p class="meta">
-                  Solicitado por {{ item.requestedByEmail }} em {{ formatDateTime(item.requestedAt) }}
-                </p>
-              </div>
-              <button
-                type="button"
-                class="approve"
-                [disabled]="isApproving(item.confirmationId)"
-                (click)="approve(item.confirmationId)"
-              >
-                {{ isApproving(item.confirmationId) ? 'Aprovando...' : 'Aprovar' }}
-              </button>
-            </li>
-          }
-        </ul>
-      }
-    </article>
+      <section class="billing-section">
+        <div class="billing-header">
+          <h3>Plataformas do mês</h3>
+          <label>
+            Referência
+            <input #monthInput type="month" [value]="billingReferenceMonth" (change)="changeBillingMonth(monthInput.value)" />
+          </label>
+        </div>
+
+        @if (billingLoading) {
+          <article class="state">Carregando cobrança...</article>
+        } @else if (billingError) {
+          <article class="state error">{{ billingError }}</article>
+        } @else if (selectedSubscriberBilling) {
+          <div class="totals">
+            <strong>Total do mês:</strong>
+            <span>{{ formatCurrency(selectedSubscriberBilling.totalMonthlyDue, selectedSubscriberBilling.currency) }}</span>
+          </div>
+
+          <div class="billing-items-grid">
+            @for (item of pendingBillingItems; track trackBillingItem($index, item)) {
+              <article class="billing-item-card">
+                <div class="billing-item-header">
+                  <strong>{{ item.serviceName }}</strong>
+                  <span
+                    class="status-icon"
+                    [ngClass]="paymentStatusClass(item.paymentStatus)"
+                    [attr.aria-label]="paymentStatusLabel(item.paymentStatus)"
+                    [title]="paymentStatusLabel(item.paymentStatus)"
+                    role="img"
+                  >
+                    <lucide-angular [img]="paymentStatusIcon(item.paymentStatus)" [size]="18"></lucide-angular>
+                  </span>
+                </div>
+
+                <dl class="item-details">
+                  <div>
+                    <dt>Ciclo</dt>
+                    <dd>{{ billingCycleLabel(item.billingCycle) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>{{ paymentStatusLabel(item.paymentStatus) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Participantes</dt>
+                    <dd>{{ item.participantsCount }}</dd>
+                  </div>
+                  <div>
+                    <dt>Moeda</dt>
+                    <dd>{{ item.serviceCurrency }}</dd>
+                  </div>
+                  <div>
+                    <dt>Valor mensal plataforma</dt>
+                    <dd>{{ formatCurrency(item.serviceMonthlyAmount, item.serviceCurrency) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Sua parte mensal</dt>
+                    <dd>{{ formatCurrency(item.userMonthlyShare, selectedSubscriberBilling.currency) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Valor original plataforma</dt>
+                    <dd>{{ formatNullableCurrency(item.serviceMonthlyAmountOriginal, item.serviceCurrency) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Sua parte original</dt>
+                    <dd>{{ formatNullableCurrency(item.userMonthlyShareOriginal, selectedSubscriberBilling.currency) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Câmbio para BRL</dt>
+                    <dd>{{ formatNullableNumber(item.exchangeRateToBrl) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Data do câmbio</dt>
+                    <dd>{{ formatNullableDate(item.exchangeRateDate) }}</dd>
+                  </div>
+                </dl>
+              </article>
+            }
+
+            @if (pendingBillingItems.length === 0) {
+              <article class="state">Nenhuma plataforma pendente para este mês.</article>
+            }
+          </div>
+        }
+      </section>
+    </section>
   </div>
-</section>
+}

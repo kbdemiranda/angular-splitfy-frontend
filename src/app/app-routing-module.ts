@@ -41,7 +41,7 @@ const routes: Routes = [
     path: 'payment-confirmations',
     component: PaymentConfirmationsComponent,
     canActivate: [AuthGuard],
-    data: { title: 'Confirmações de pagamento' },
+    data: { title: 'Cobranças' },
   },
   {
     path: 'settings',

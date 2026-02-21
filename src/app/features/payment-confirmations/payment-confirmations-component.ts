@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { SubscribersStateService } from '../subscribers/subscribers-state.service';
-import { SubscriberCard } from '../subscribers/subscribers-data';
-import { PaymentConfirmationsService } from '../../core/services/payment-confirmations.service';
-import { PendingPaymentApprovalResponse } from '../../shared/models/payment-confirmations.model';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
+import { CircleCheck, CircleX, Clock3, LucideIconData } from 'lucide-angular';
+import { SubscribersService } from '../../core/services/subscribers.service';
+import { SubscriberBillingService } from '../../core/services/subscriber-billing.service';
+import { SubscriberBillingItem, SubscriberBillingResponse } from '../../shared/models/subscriber-billing.model';
+import { SubscriberPageResponse, SubscriberResponse } from '../../shared/models/subscribers.model';
 
 @Component({
   selector: 'app-payment-confirmations',
@@ -12,158 +12,246 @@ import { PendingPaymentApprovalResponse } from '../../shared/models/payment-conf
   standalone: false,
 })
 export class PaymentConfirmationsComponent implements OnInit {
-  subscribers: SubscriberCard[] = [];
-  pendingConfirmations: PendingPaymentApprovalResponse[] = [];
+  subscribers: SubscriberResponse[] = [];
+  subscribersPage: SubscriberPageResponse = {
+    content: [],
+    page: 0,
+    size: 20,
+    totalElements: 0,
+    totalPages: 0,
+  };
 
-  loadingPending = false;
-  registering = false;
-  approvingIds = new Set<number>();
-  errorMessage: string | null = null;
-  successMessage: string | null = null;
+  isLoadingSubscribers = false;
+  hasLoadedSubscribers = false;
+  subscribersError: string | null = null;
 
-  readonly registerForm: FormGroup<{
-    referenceMonth: FormControl<string>;
-    subscriberId: FormControl<string>;
-  }>;
+  selectedSubscriber: SubscriberResponse | null = null;
+  selectedSubscriberBilling: SubscriberBillingResponse | null = null;
+  billingReferenceMonth = this.currentReferenceMonth();
+  billingLoading = false;
+  billingError: string | null = null;
+  openingDetailsSubscriberId: number | null = null;
 
-  selectedPlatformIds = new Set<number>();
-  pendingReferenceMonth = this.currentReferenceMonth();
+  readonly billingStatusIcons: Record<string, LucideIconData> = {
+    PAID: CircleCheck,
+    PENDING: Clock3,
+    UNPAID: CircleX,
+  };
 
   constructor(
-    private readonly formBuilder: FormBuilder,
-    private readonly subscribersState: SubscribersStateService,
-    private readonly paymentConfirmationsService: PaymentConfirmationsService,
-  ) {
-    this.registerForm = this.formBuilder.group({
-      referenceMonth: this.formBuilder.nonNullable.control(this.currentReferenceMonth(), [Validators.required]),
-      subscriberId: this.formBuilder.nonNullable.control('', [Validators.required]),
-    });
-  }
+    private readonly subscribersService: SubscribersService,
+    private readonly subscriberBillingService: SubscriberBillingService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
+    private readonly ngZone: NgZone,
+  ) {}
 
   ngOnInit(): void {
-    this.subscribers = this.subscribersState.getSubscribers();
-    this.loadPending();
+    this.loadSubscribers();
   }
 
-  get selectedSubscriber(): SubscriberCard | null {
-    const id = Number(this.registerForm.controls.subscriberId.value);
-    if (!id) {
-      return null;
+  trackById(_: number, subscriber: SubscriberResponse): number {
+    return subscriber.id;
+  }
+
+  trackBillingItem(_: number, item: SubscriberBillingItem): number {
+    return item.serviceId;
+  }
+
+  get pendingBillingItems(): SubscriberBillingItem[] {
+    if (!this.selectedSubscriberBilling) {
+      return [];
     }
 
-    return this.subscribers.find((subscriber) => subscriber.id === id) ?? null;
+    return this.selectedSubscriberBilling.items.filter(
+      (item) => item.paymentStatus === 'PENDING' || item.paymentStatus === 'UNPAID',
+    );
   }
 
-  hasPlatformSelected(platformId: number): boolean {
-    return this.selectedPlatformIds.has(platformId);
-  }
-
-  togglePlatform(platformId: number, checked: boolean): void {
-    if (checked) {
-      this.selectedPlatformIds.add(platformId);
+  openDetails(subscriber: SubscriberResponse): void {
+    if (this.openingDetailsSubscriberId !== null) {
       return;
     }
 
-    this.selectedPlatformIds.delete(platformId);
+    this.runInZone(() => {
+      this.selectedSubscriber = { ...subscriber };
+      this.selectedSubscriberBilling = null;
+      this.billingError = null;
+      this.billingLoading = true;
+      this.openingDetailsSubscriberId = subscriber.id;
+      this.syncView();
+    });
+
+    this.loadBilling(subscriber.id, this.billingReferenceMonth);
   }
 
-  onSubscriberChange(): void {
-    this.selectedPlatformIds.clear();
-    this.clearMessages();
+  closeDetails(): void {
+    this.selectedSubscriber = null;
+    this.selectedSubscriberBilling = null;
+    this.billingLoading = false;
+    this.billingError = null;
+    this.openingDetailsSubscriberId = null;
   }
 
-  submitRegister(): void {
-    this.clearMessages();
-
-    if (this.registerForm.invalid) {
-      this.registerForm.markAllAsTouched();
-      this.errorMessage = 'Preencha os campos obrigatórios do registro.';
+  changeBillingMonth(referenceMonth: string): void {
+    if (!referenceMonth || !this.selectedSubscriber) {
       return;
     }
 
-    const subscriberId = Number(this.registerForm.controls.subscriberId.value);
-    const platformIds = Array.from(this.selectedPlatformIds);
-
-    if (!subscriberId || platformIds.length === 0) {
-      this.errorMessage = 'Selecione ao menos uma plataforma para confirmar o pagamento.';
-      return;
-    }
-
-    this.registering = true;
-    this.paymentConfirmationsService
-      .register({
-        referenceMonth: this.registerForm.controls.referenceMonth.value,
-        confirmations: [
-          {
-            subscriberId,
-            platformIds,
-          },
-        ],
-      })
-      .subscribe({
-        next: (response) => {
-          this.successMessage = `${response.length} confirmação(ões) registrada(s) com sucesso.`;
-          this.registering = false;
-          this.selectedPlatformIds.clear();
-          this.loadPending();
-        },
-        error: () => {
-          this.errorMessage = 'Falha ao registrar pagamentos.';
-          this.registering = false;
-        },
-      });
+    this.billingReferenceMonth = referenceMonth;
+    this.loadBilling(this.selectedSubscriber.id, referenceMonth);
   }
 
-  loadPending(): void {
-    this.loadingPending = true;
-    this.clearMessages();
+  initials(name: string): string {
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? '')
+      .join('');
+  }
 
-    this.paymentConfirmationsService.listPending(this.pendingReferenceMonth).subscribe({
+  formatCurrency(value: number | null | undefined, currency = 'BRL'): string {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(value ?? 0);
+  }
+
+  formatNullableCurrency(value: number | null | undefined, currency = 'BRL'): string {
+    if (value === null || value === undefined) {
+      return '-';
+    }
+
+    return this.formatCurrency(value, currency);
+  }
+
+  formatNullableNumber(value: number | null | undefined): string {
+    if (value === null || value === undefined) {
+      return '-';
+    }
+
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 6,
+    }).format(value);
+  }
+
+  formatNullableDate(value: string | null): string {
+    if (!value) {
+      return '-';
+    }
+
+    return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(new Date(value));
+  }
+
+  billingCycleLabel(cycle: string): string {
+    if (cycle === 'MONTHLY') {
+      return 'Mensal';
+    }
+
+    if (cycle === 'SEMI_ANNUAL') {
+      return 'Semestral';
+    }
+
+    if (cycle === 'ANNUAL') {
+      return 'Anual';
+    }
+
+    return cycle;
+  }
+
+  paymentStatusLabel(status: string): string {
+    if (status === 'PAID') {
+      return 'Pago';
+    }
+
+    if (status === 'PENDING') {
+      return 'Pendente';
+    }
+
+    if (status === 'UNPAID') {
+      return 'Não pago';
+    }
+
+    return status;
+  }
+
+  paymentStatusClass(status: string): string {
+    if (status === 'PAID') {
+      return 'paid';
+    }
+
+    if (status === 'PENDING') {
+      return 'pending';
+    }
+
+    if (status === 'UNPAID') {
+      return 'unpaid';
+    }
+
+    return 'neutral';
+  }
+
+  paymentStatusIcon(status: string): LucideIconData {
+    return this.billingStatusIcons[status] ?? CircleX;
+  }
+
+  private loadSubscribers(page = 0, size = 20): void {
+    this.runInZone(() => {
+      this.isLoadingSubscribers = true;
+      this.hasLoadedSubscribers = false;
+      this.subscribersError = null;
+      this.syncView();
+    });
+
+    this.subscribersService.list(page, size).subscribe({
       next: (response) => {
-        this.pendingConfirmations = response;
-        this.loadingPending = false;
+        this.runInZone(() => {
+          const list = [...response.content];
+          this.subscribersPage = { ...response, content: list };
+          this.subscribers = list;
+          this.isLoadingSubscribers = false;
+          this.hasLoadedSubscribers = true;
+          this.subscribersError = null;
+          this.syncView();
+        });
       },
       error: () => {
-        this.errorMessage = 'Falha ao carregar confirmações pendentes.';
-        this.loadingPending = false;
+        this.runInZone(() => {
+          this.isLoadingSubscribers = false;
+          this.hasLoadedSubscribers = false;
+          this.subscribersError = 'Não foi possível carregar os assinantes.';
+          this.syncView();
+        });
       },
     });
   }
 
-  approve(confirmationId: number): void {
-    this.approvingIds.add(confirmationId);
-    this.clearMessages();
+  private loadBilling(subscriberId: number, referenceMonth: string): void {
+    this.runInZone(() => {
+      this.billingLoading = true;
+      this.billingError = null;
+      this.syncView();
+    });
 
-    this.paymentConfirmationsService.approve(confirmationId).subscribe({
-      next: () => {
-        this.successMessage = `Confirmação #${confirmationId} aprovada.`;
-        this.approvingIds.delete(confirmationId);
-        this.loadPending();
+    this.subscriberBillingService.getBilling(subscriberId, referenceMonth).subscribe({
+      next: (response) => {
+        this.runInZone(() => {
+          this.selectedSubscriberBilling = {
+            ...response,
+            items: [...response.items],
+          };
+          this.billingLoading = false;
+          this.openingDetailsSubscriberId = null;
+          this.syncView();
+        });
       },
       error: () => {
-        this.errorMessage = `Falha ao aprovar confirmação #${confirmationId}.`;
-        this.approvingIds.delete(confirmationId);
+        this.runInZone(() => {
+          this.billingError = 'Não foi possível carregar a cobrança deste assinante.';
+          this.billingLoading = false;
+          this.openingDetailsSubscriberId = null;
+          this.syncView();
+        });
       },
     });
-  }
-
-  isApproving(confirmationId: number): boolean {
-    return this.approvingIds.has(confirmationId);
-  }
-
-  formatCurrency(value: number, currency = 'BRL'): string {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(value);
-  }
-
-  formatDateTime(value: string): string {
-    return new Intl.DateTimeFormat('pt-BR', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    }).format(new Date(value));
-  }
-
-  trackByPendingId(_: number, item: PendingPaymentApprovalResponse): number {
-    return item.confirmationId;
   }
 
   private currentReferenceMonth(): string {
@@ -171,8 +259,12 @@ export class PaymentConfirmationsComponent implements OnInit {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   }
 
-  private clearMessages(): void {
-    this.errorMessage = null;
-    this.successMessage = null;
+  private runInZone(action: () => void): void {
+    this.ngZone.run(action);
+  }
+
+  private syncView(): void {
+    this.changeDetectorRef.markForCheck();
+    this.changeDetectorRef.detectChanges();
   }
 }

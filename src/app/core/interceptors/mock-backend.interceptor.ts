@@ -131,7 +131,7 @@ export class MockBackendInterceptor implements HttpInterceptor {
       return this.handleDashboardKpis(request);
     }
 
-    if (request.method === 'GET' && /^\/subscribers\/\d+\/billing$/.test(path)) {
+    if (request.method === 'GET' && (/^\/billing\/\d+$/.test(path) || /^\/subscribers\/\d+\/billing$/.test(path))) {
       return this.handleSubscriberBilling(request, path);
     }
 
@@ -209,7 +209,7 @@ export class MockBackendInterceptor implements HttpInterceptor {
   }
 
   private handleSubscriberBilling(request: HttpRequest<unknown>, path: string): Observable<HttpEvent<unknown>> {
-    const idMatch = path.match(/^\/subscribers\/(\d+)\/billing$/);
+    const idMatch = path.match(/^\/billing\/(\d+)$/) ?? path.match(/^\/subscribers\/(\d+)\/billing$/);
     const subscriberId = Number(idMatch?.[1]);
 
     if (!idMatch || Number.isNaN(subscriberId) || subscriberId <= 0) {

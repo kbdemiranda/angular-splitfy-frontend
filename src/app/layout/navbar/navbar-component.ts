@@ -51,7 +51,7 @@ export class NavbarComponent {
     },
     {
       path: '/payment-confirmations',
-      label: 'Pagamentos',
+      label: 'Cobranças',
       icon: CircleCheck,
     },
     {
