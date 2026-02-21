@@ -2,7 +2,17 @@
   <header>
     <div>
       <h1>Dashboard</h1>
-      <p>Painel inicial com dados mockados alinhados ao OpenAPI.</p>
+      <p>Visão geral por competência: {{ referenceMonthLabel }}</p>
+    </div>
+    <div class="month-controls">
+      <button type="button" (click)="loadPreviousMonth()" aria-label="Mês anterior">Anterior</button>
+      <input
+        type="month"
+        [value]="selectedReferenceMonth"
+        (change)="onReferenceMonthChange($any($event.target).value)"
+        aria-label="Selecionar mês de referência"
+      />
+      <button type="button" (click)="loadNextMonth()" aria-label="Próximo mês">Próximo</button>
     </div>
   </header>
 
@@ -67,6 +77,43 @@
             </li>
           </ul>
         </div>
+      </article>
+
+      <article class="debtors-card">
+        <h2>Quem está devendo</h2>
+
+        @if (!debtorCount) {
+          <p class="empty-hint">Nenhum devedor neste mês.</p>
+        } @else {
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>E-mail</th>
+                  <th>Dívida total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (debtor of debtorsPageItems; track debtor.subscriberId) {
+                  <tr>
+                    <td>{{ debtor.subscriberName }}</td>
+                    <td>{{ debtor.subscriberEmail }}</td>
+                    <td>{{ debtor.totalDebt | currency: kpis.currency }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          @if (debtorCount > debtorPageSize) {
+            <footer class="pagination">
+              <button type="button" (click)="goToPreviousDebtorsPage()" [disabled]="currentDebtorPage === 1">Anterior</button>
+              <small>Página {{ currentDebtorPage }} de {{ totalDebtorPages }}</small>
+              <button type="button" (click)="goToNextDebtorsPage()" [disabled]="currentDebtorPage === totalDebtorPages">Próxima</button>
+            </footer>
+          }
+        }
       </article>
     </section>
   } @else {

@@ -12,6 +12,36 @@ header {
   margin-bottom: 20px;
 }
 
+.month-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.month-controls button,
+.pagination button {
+  border: 1px solid #334155;
+  background: #0b1830;
+  color: #e2e8f0;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.month-controls button:disabled,
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.month-controls input[type='month'] {
+  border: 1px solid #334155;
+  background: #0b1830;
+  color: #e2e8f0;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
 h1 {
   margin: 0;
   color: #f8fafc;
@@ -83,7 +113,8 @@ p {
 }
 
 .status-card,
-.platforms-table-card {
+.platforms-table-card,
+.debtors-card {
   background: #0b1830;
   border: 1px solid #24324a;
   border-radius: 12px;
@@ -91,7 +122,8 @@ p {
 }
 
 .status-card h2,
-.platforms-table-card h2 {
+.platforms-table-card h2,
+.debtors-card h2 {
   margin: 0;
   font-size: 1rem;
   color: #f8fafc;
@@ -191,6 +223,24 @@ p {
   overflow: auto;
 }
 
+.empty-hint {
+  margin-top: 12px;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.pagination {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+.pagination small {
+  color: #94a3b8;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -224,6 +274,11 @@ tbody tr:last-child td {
 
   .status-content {
     flex-wrap: wrap;
+  }
+
+  header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 

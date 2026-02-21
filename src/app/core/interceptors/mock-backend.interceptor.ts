@@ -208,6 +208,56 @@ export class MockBackendInterceptor implements HttpInterceptor {
           pendingAmount: 42.5,
         },
       ],
+      debtors: [
+        {
+          subscriberId: 5,
+          subscriberName: 'Gabriela Duarte',
+          subscriberEmail: 'gabriela@example.com',
+          pendingAmount: 0,
+          unpaidAmount: 83.17,
+          totalDebt: 83.17,
+        },
+        {
+          subscriberId: 7,
+          subscriberName: 'Lucas Ferreira',
+          subscriberEmail: 'lucas@example.com',
+          pendingAmount: 12.5,
+          unpaidAmount: 15,
+          totalDebt: 27.5,
+        },
+        {
+          subscriberId: 11,
+          subscriberName: 'Patricia Gomes',
+          subscriberEmail: 'patricia@example.com',
+          pendingAmount: 0,
+          unpaidAmount: 35,
+          totalDebt: 35,
+        },
+        {
+          subscriberId: 14,
+          subscriberName: 'Rafael Lima',
+          subscriberEmail: 'rafael@example.com',
+          pendingAmount: 0,
+          unpaidAmount: 19.9,
+          totalDebt: 19.9,
+        },
+        {
+          subscriberId: 21,
+          subscriberName: 'Bruna Souza',
+          subscriberEmail: 'bruna@example.com',
+          pendingAmount: 0,
+          unpaidAmount: 28.6,
+          totalDebt: 28.6,
+        },
+        {
+          subscriberId: 22,
+          subscriberName: 'Marcos Silva',
+          subscriberEmail: 'marcos@example.com',
+          pendingAmount: 14.5,
+          unpaidAmount: 22,
+          totalDebt: 36.5,
+        },
+      ],
     };
 
     return of(new HttpResponse({ status: 200, body: response }));

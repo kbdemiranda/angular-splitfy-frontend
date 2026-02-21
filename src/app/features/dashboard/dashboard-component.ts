@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { DashboardService } from '../../core/services/dashboard.service';
-import { DashboardKpiResponse } from '../../shared/models/dashboard.model';
+import { DashboardDebtorItem, DashboardKpiResponse } from '../../shared/models/dashboard.model';
 import { finalize } from 'rxjs';
 
 @Component({
@@ -12,6 +12,9 @@ import { finalize } from 'rxjs';
 export class DashboardComponent implements OnInit {
   kpis: DashboardKpiResponse | null = null;
   isLoading = false;
+  selectedReferenceMonth = this.getCurrentMonth();
+  debtorPageSize = 5;
+  currentDebtorPage = 1;
 
   constructor(
     private readonly dashboardService: DashboardService,
@@ -19,14 +22,49 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadKpis();
+    this.loadKpis(this.selectedReferenceMonth);
   }
 
-  private loadKpis(): void {
+  loadPreviousMonth(): void {
+    this.selectedReferenceMonth = this.shiftMonth(this.selectedReferenceMonth, -1);
+    this.loadKpis(this.selectedReferenceMonth);
+  }
+
+  loadNextMonth(): void {
+    this.selectedReferenceMonth = this.shiftMonth(this.selectedReferenceMonth, 1);
+    this.loadKpis(this.selectedReferenceMonth);
+  }
+
+  onReferenceMonthChange(referenceMonth: string): void {
+    if (!referenceMonth) {
+      return;
+    }
+
+    this.selectedReferenceMonth = referenceMonth;
+    this.loadKpis(referenceMonth);
+  }
+
+  goToPreviousDebtorsPage(): void {
+    if (this.currentDebtorPage <= 1) {
+      return;
+    }
+
+    this.currentDebtorPage -= 1;
+  }
+
+  goToNextDebtorsPage(): void {
+    if (this.currentDebtorPage >= this.totalDebtorPages) {
+      return;
+    }
+
+    this.currentDebtorPage += 1;
+  }
+
+  private loadKpis(referenceMonth: string): void {
     this.isLoading = true;
 
     this.dashboardService
-      .getKpis()
+      .getKpis(referenceMonth)
       .pipe(
         finalize(() => {
           this.isLoading = false;
@@ -35,10 +73,25 @@ export class DashboardComponent implements OnInit {
       )
       .subscribe({
         next: (kpis) => {
-          this.kpis = kpis;
+          this.kpis = {
+            ...kpis,
+            debtors: kpis.debtors ?? [],
+          };
+          this.selectedReferenceMonth = kpis.referenceMonth || this.selectedReferenceMonth;
+          this.currentDebtorPage = 1;
           this.changeDetectorRef.markForCheck();
         },
       });
+  }
+
+  get referenceMonthLabel(): string {
+    const [year, month] = this.selectedReferenceMonth.split('-').map(Number);
+
+    if (!year || !month) {
+      return this.selectedReferenceMonth;
+    }
+
+    return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date(year, month - 1, 1));
   }
 
   get totalStatusAmount(): number {
@@ -86,11 +139,37 @@ export class DashboardComponent implements OnInit {
     return `conic-gradient(#16a34a 0deg ${paidAngle}deg, #f59e0b ${pendingStart}deg ${pendingEnd}deg, #ef4444 ${pendingEnd}deg 360deg)`;
   }
 
-  get pendingByUsers(): Array<{ userName: string; pendingAmount: number; totalAmount: number }> {
-    return [
-      { userName: 'Ana', pendingAmount: 100, totalAmount: 100 },
-      { userName: 'Alex', pendingAmount: 20.1, totalAmount: 20.1 },
-      { userName: 'Carlos', pendingAmount: 20.1, totalAmount: 10.1 },
-    ];
+  get totalDebtorPages(): number {
+    if (!this.kpis?.debtors?.length) {
+      return 1;
+    }
+
+    return Math.ceil(this.kpis.debtors.length / this.debtorPageSize);
+  }
+
+  get debtorCount(): number {
+    return this.kpis?.debtors?.length ?? 0;
+  }
+
+  get debtorsPageItems(): DashboardDebtorItem[] {
+    if (!this.kpis?.debtors?.length) {
+      return [];
+    }
+
+    const startIndex = (this.currentDebtorPage - 1) * this.debtorPageSize;
+    return this.kpis.debtors.slice(startIndex, startIndex + this.debtorPageSize);
+  }
+
+  private getCurrentMonth(): string {
+    const now = new Date();
+    const month = `${now.getMonth() + 1}`.padStart(2, '0');
+    return `${now.getFullYear()}-${month}`;
+  }
+
+  private shiftMonth(referenceMonth: string, offset: number): string {
+    const [year, month] = referenceMonth.split('-').map(Number);
+    const date = new Date(year, month - 1 + offset, 1);
+    const shiftedMonth = `${date.getMonth() + 1}`.padStart(2, '0');
+    return `${date.getFullYear()}-${shiftedMonth}`;
   }
 }

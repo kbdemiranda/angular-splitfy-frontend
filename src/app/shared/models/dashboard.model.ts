@@ -5,6 +5,15 @@ export interface PendingByPlatformItem {
   pendingAmount: number;
 }
 
+export interface DashboardDebtorItem {
+  subscriberId: number;
+  subscriberName: string;
+  subscriberEmail: string;
+  pendingAmount: number;
+  unpaidAmount: number;
+  totalDebt: number;
+}
+
 export interface DashboardKpiResponse {
   referenceMonth: string;
   currency: string;
@@ -14,4 +23,5 @@ export interface DashboardKpiResponse {
   totalUnpaid: number;
   delinquencyRate: number;
   pendingByPlatform: PendingByPlatformItem[];
+  debtors: DashboardDebtorItem[];
 }
