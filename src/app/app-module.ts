@@ -12,7 +12,7 @@ import { PlatformsComponent } from './features/platforms/platforms-component';
 import { SubscribersComponent } from './features/subscribers/subscribers-component';
 import { SubscriberSubscriptionsComponent } from './features/subscribers/subscriber-subscriptions-component';
 import { SettingsComponent } from './features/settings/settings-component';
-import { PaymentConfirmationsComponent } from './features/payment-confirmations/payment-confirmations-component';
+import { BillingChargesComponent } from './features/billing-charges/billing-charges-component';
 import { ApiBaseUrlInterceptor } from './core/interceptors/api-base-url.interceptor';
 import { AuthTokenInterceptor } from './core/interceptors/auth-token.interceptor';
 import { ErrorInterceptor } from './core/interceptors/error.interceptor';
@@ -28,7 +28,7 @@ import { ErrorInterceptor } from './core/interceptors/error.interceptor';
     SubscribersComponent,
     SubscriberSubscriptionsComponent,
     SettingsComponent,
-    PaymentConfirmationsComponent,
+    BillingChargesComponent,
   ],
   imports: [BrowserModule, FormsModule, ReactiveFormsModule, AppRoutingModule, LUCIDE_ICONS],
   providers: [

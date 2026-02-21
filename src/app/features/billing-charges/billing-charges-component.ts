@@ -7,12 +7,12 @@ import { SubscriberBillingItem, SubscriberBillingResponse } from '../../shared/m
 import { SubscriberPageResponse, SubscriberResponse } from '../../shared/models/subscribers.model';
 
 @Component({
-  selector: 'app-payment-confirmations',
-  templateUrl: './payment-confirmations-component.html',
-  styleUrl: './payment-confirmations-component.scss',
+  selector: 'app-billing-charges',
+  templateUrl: './billing-charges-component.html',
+  styleUrl: './billing-charges-component.scss',
   standalone: false,
 })
-export class PaymentConfirmationsComponent implements OnInit {
+export class BillingChargesComponent implements OnInit {
   subscribers: SubscriberResponse[] = [];
   subscribersPage: SubscriberPageResponse = {
     content: [],

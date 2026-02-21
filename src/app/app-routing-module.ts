@@ -7,7 +7,7 @@ import { SettingsComponent } from './features/settings/settings-component';
 import { PlatformsComponent } from './features/platforms/platforms-component';
 import { SubscribersComponent } from './features/subscribers/subscribers-component';
 import { SubscriberSubscriptionsComponent } from './features/subscribers/subscriber-subscriptions-component';
-import { PaymentConfirmationsComponent } from './features/payment-confirmations/payment-confirmations-component';
+import { BillingChargesComponent } from './features/billing-charges/billing-charges-component';
 
 const routes: Routes = [
   {
@@ -38,10 +38,15 @@ const routes: Routes = [
     data: { title: 'Plataformas' },
   },
   {
-    path: 'payment-confirmations',
-    component: PaymentConfirmationsComponent,
+    path: 'billing-charges',
+    component: BillingChargesComponent,
     canActivate: [AuthGuard],
     data: { title: 'Cobranças' },
+  },
+  {
+    path: 'payment-confirmations',
+    pathMatch: 'full',
+    redirectTo: 'billing-charges',
   },
   {
     path: 'settings',
