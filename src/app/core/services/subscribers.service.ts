@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { API_ROUTES } from '../constants/api-routes';
 import {
   SubscriberPageResponse,
+  SubscriberPlatformsBatchPayloadItem,
   SubscriberRequest,
   SubscriberResponse,
   SubscriberUpdateRequest,
@@ -30,6 +31,18 @@ export class SubscribersService {
 
   subscriptions(id: number): Observable<unknown> {
     return this.http.get<unknown>(API_ROUTES.subscriberSubscriptions(id));
+  }
+
+  associatePlatforms(id: number, platformIds: number[]): Observable<void> {
+    const headers = new HttpHeaders().set('subscriberId', String(id)).set('subscriberID', String(id));
+    const payload: SubscriberPlatformsBatchPayloadItem[] = [{ platformIds }];
+    return this.http.post<void>(API_ROUTES.associateSubscriberPlatforms(id), payload, { headers });
+  }
+
+  disassociatePlatforms(id: number, platformIds: number[]): Observable<void> {
+    const headers = new HttpHeaders().set('subscriberId', String(id)).set('subscriberID', String(id));
+    const payload: SubscriberPlatformsBatchPayloadItem[] = [{ platformIds }];
+    return this.http.post<void>(API_ROUTES.disassociateSubscriberPlatforms(id), payload, { headers });
   }
 
   updateProfile(id: number, payload: SubscriberUpdateRequest): Observable<SubscriberResponse> {

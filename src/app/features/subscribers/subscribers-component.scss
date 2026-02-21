@@ -294,6 +294,13 @@
   background: #3f1017;
 }
 
+.billing-state.success {
+  border-style: solid;
+  border-color: #166534;
+  color: #bbf7d0;
+  background: #052e16;
+}
+
 .modal-actions {
   margin-top: 14px;
   display: flex;
@@ -364,6 +371,104 @@
 
 .edit-modal {
   width: min(520px, 100%);
+}
+
+.subscriptions-modal {
+  width: min(980px, 100%);
+  max-height: 90dvh;
+  overflow: auto;
+}
+
+.subscriber-identification.compact {
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.subscriptions-total {
+  display: grid;
+  text-align: right;
+  gap: 3px;
+}
+
+.subscriptions-total span {
+  font-size: 0.82rem;
+  color: #94a3b8;
+}
+
+.subscriptions-columns {
+  margin-top: 16px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.subscriptions-column h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.subscriptions-list {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.subscription-card {
+  border: 1px solid #334155;
+  border-radius: 10px;
+  background: #0f172a;
+  padding: 10px 12px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.subscription-card p {
+  margin: 3px 0 0;
+  font-size: 0.86rem;
+  color: #cbd5e1;
+}
+
+.subscription-card.associated {
+  border-color: #1e3a8a;
+}
+
+.subscription-card.available {
+  border-color: #14532d;
+}
+
+.action-button {
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.action-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.action-button.add {
+  background: #16a34a;
+  color: #f0fdf4;
+}
+
+.action-button.add:hover {
+  background: #15803d;
+}
+
+.action-button.remove {
+  background: #be123c;
+  color: #ffe4e6;
+}
+
+.action-button.remove:hover {
+  background: #9f1239;
 }
 
 .edit-form {

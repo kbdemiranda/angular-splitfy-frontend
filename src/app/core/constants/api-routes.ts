@@ -7,6 +7,8 @@ export const API_ROUTES = {
   subscribers: '/subscribers',
   subscriberById: (id: number | string) => `/subscribers/${id}`,
   subscriberSubscriptions: (id: number | string) => `/subscribers/${id}/subscriptions`,
+  associateSubscriberPlatforms: (id: number | string) => `/subscribers/${id}/associate`,
+  disassociateSubscriberPlatforms: (id: number | string) => `/subscribers/${id}/disassociate`,
   subscriberBilling: (id: number | string) => `/billing/${id}`,
   paymentConfirmations: '/subscribers/payments/confirmations',
   approvePaymentConfirmation: (id: number | string) => `/subscribers/payments/confirmations/${id}/approve`,

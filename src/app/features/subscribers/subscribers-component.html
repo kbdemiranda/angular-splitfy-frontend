@@ -210,6 +210,106 @@
   </div>
 }
 
+@if (editingSubscriptionsSubscriber) {
+  <div class="modal-overlay" (click)="closeSubscriptionsEditor()">
+    <section class="modal subscriptions-modal" (click)="$event.stopPropagation()">
+      <div class="detail-header">
+        <h2>Editar assinaturas</h2>
+        <button type="button" class="close-icon" (click)="closeSubscriptionsEditor()">Fechar</button>
+      </div>
+
+      <div class="subscriber-identification compact">
+        <div>
+          <strong>{{ editingSubscriptionsSubscriber.name }}</strong>
+          <p>{{ editingSubscriptionsSubscriber.email }}</p>
+        </div>
+        <div class="subscriptions-total">
+          <span>Total mensal (individual)</span>
+          <strong>{{ formatCurrency(subscriptionsTotalPerMonth()) }}</strong>
+        </div>
+      </div>
+
+      @if (subscriptionsInfoMessage) {
+        <article class="billing-state success">{{ subscriptionsInfoMessage }}</article>
+      }
+
+      @if (isLoadingSubscriptionsEditor) {
+        <article class="billing-state">Carregando assinaturas...</article>
+      } @else if (subscriptionsEditorError) {
+        <article class="billing-state error">{{ subscriptionsEditorError }}</article>
+      } @else {
+        <div class="subscriptions-columns">
+          <section class="subscriptions-column">
+            <h3>Plataformas já associadas</h3>
+            <div class="subscriptions-list">
+              @for (platform of subscriptionsAssociatedPlatforms; track trackPlatformId($index, platform)) {
+                <article class="subscription-card associated">
+                  <div>
+                    <strong>{{ platform.name }}</strong>
+                    <p>Mensal: {{ formatCurrency(platform.monthlyPrice, platform.currency) }}</p>
+                    <p>Individual: {{ formatCurrency(platform.individualPrice, platform.currency) }}</p>
+                  </div>
+                  <button
+                    type="button"
+                    class="action-button remove"
+                    [disabled]="savingSubscriptionsChanges"
+                    (click)="removePlatform(platform)"
+                  >
+                    Desassociar
+                  </button>
+                </article>
+              }
+
+              @if (subscriptionsAssociatedPlatforms.length === 0) {
+                <article class="billing-state">Nenhuma plataforma associada.</article>
+              }
+            </div>
+          </section>
+
+          <section class="subscriptions-column">
+            <h3>Plataformas com vaga disponíveis</h3>
+            <div class="subscriptions-list">
+              @for (platform of subscriptionsAvailablePlatforms; track trackPlatformId($index, platform)) {
+                <article class="subscription-card available">
+                  <div>
+                    <strong>{{ platform.name }}</strong>
+                    <p>Mensal: {{ formatCurrency(platform.monthlyPrice, platform.currency) }}</p>
+                    <p>Individual: {{ formatCurrency(platform.individualPrice, platform.currency) }}</p>
+                  </div>
+                  <button
+                    type="button"
+                    class="action-button add"
+                    [disabled]="savingSubscriptionsChanges"
+                    (click)="associatePlatform(platform)"
+                  >
+                    Associar
+                  </button>
+                </article>
+              }
+
+              @if (subscriptionsAvailablePlatforms.length === 0) {
+                <article class="billing-state">Sem plataformas disponíveis para associar.</article>
+              }
+            </div>
+          </section>
+        </div>
+      }
+
+      <div class="modal-actions">
+        <button
+          type="button"
+          class="primary"
+          [disabled]="savingSubscriptionsChanges || !hasPendingSubscriptionChanges"
+          (click)="saveSubscriptionsChanges()"
+        >
+          {{ savingSubscriptionsChanges ? 'Salvando...' : 'Salvar alterações' }}
+        </button>
+        <button type="button" class="secondary" (click)="closeSubscriptionsEditor()">Fechar</button>
+      </div>
+    </section>
+  </div>
+}
+
 @if (subscriberToDelete) {
   <div class="modal-overlay" (click)="cancelDelete()">
     <section class="modal confirm-modal" (click)="$event.stopPropagation()">

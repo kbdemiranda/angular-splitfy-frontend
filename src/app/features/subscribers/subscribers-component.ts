@@ -1,15 +1,22 @@
 import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
 import { CircleCheck, CircleX, Clock3, LucideIconData } from 'lucide-angular';
 import { SubscriberBillingService } from '../../core/services/subscriber-billing.service';
 import { SubscriberBillingItem, SubscriberBillingResponse } from '../../shared/models/subscriber-billing.model';
+import { PlatformResponse } from '../../shared/models/platforms.model';
 import {
+  SubscriberPlatform,
   SubscriberPageResponse,
   SubscriberRequest,
   SubscriberResponse,
 } from '../../shared/models/subscribers.model';
+import { PlatformsService } from '../../core/services/platforms.service';
 import { SubscribersService } from '../../core/services/subscribers.service';
+
+type PlatformCatalogItem = SubscriberPlatform & {
+  availableSlots: number;
+};
 
 @Component({
   selector: 'app-subscribers',
@@ -40,6 +47,17 @@ export class SubscribersComponent implements OnInit {
   subscriberToDelete: SubscriberResponse | null = null;
   editOptionsSubscriber: SubscriberResponse | null = null;
   editingSubscriberId: number | null = null;
+  editingSubscriptionsSubscriber: SubscriberResponse | null = null;
+  subscriptionsAssociatedPlatforms: SubscriberPlatform[] = [];
+  subscriptionsAvailablePlatforms: SubscriberPlatform[] = [];
+  subscriptionsCatalog: PlatformCatalogItem[] = [];
+  originalAssociatedPlatformIds = new Set<number>();
+  pendingAssociatePlatformIds = new Set<number>();
+  pendingDisassociatePlatformIds = new Set<number>();
+  savingSubscriptionsChanges = false;
+  isLoadingSubscriptionsEditor = false;
+  subscriptionsEditorError: string | null = null;
+  subscriptionsInfoMessage: string | null = null;
   editErrorMessage: string | null = null;
   placeholderMessage: string | null = null;
   readonly editProfileForm: FormGroup<{
@@ -54,8 +72,8 @@ export class SubscribersComponent implements OnInit {
 
   constructor(
     private readonly formBuilder: FormBuilder,
-    private readonly router: Router,
     private readonly subscribersService: SubscribersService,
+    private readonly platformsService: PlatformsService,
     private readonly subscriberBillingService: SubscriberBillingService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly ngZone: NgZone,
@@ -76,6 +94,10 @@ export class SubscribersComponent implements OnInit {
 
   trackById(_: number, subscriber: SubscriberResponse): number {
     return subscriber.id;
+  }
+
+  trackPlatformId(_: number, platform: SubscriberPlatform): number {
+    return platform.id;
   }
 
   openDetails(subscriber: SubscriberResponse): void {
@@ -244,7 +266,111 @@ export class SubscribersComponent implements OnInit {
       return;
     }
 
-    void this.router.navigate(['/subscriber', subscriber.id, 'subscriptions']);
+    this.openSubscriptionsEditor(subscriber.id);
+  }
+
+  closeSubscriptionsEditor(): void {
+    this.editingSubscriptionsSubscriber = null;
+    this.subscriptionsAssociatedPlatforms = [];
+    this.subscriptionsAvailablePlatforms = [];
+    this.subscriptionsCatalog = [];
+    this.originalAssociatedPlatformIds = new Set<number>();
+    this.pendingAssociatePlatformIds = new Set<number>();
+    this.pendingDisassociatePlatformIds = new Set<number>();
+    this.savingSubscriptionsChanges = false;
+    this.isLoadingSubscriptionsEditor = false;
+    this.subscriptionsEditorError = null;
+    this.subscriptionsInfoMessage = null;
+  }
+
+  get hasPendingSubscriptionChanges(): boolean {
+    return this.pendingAssociatePlatformIds.size > 0 || this.pendingDisassociatePlatformIds.size > 0;
+  }
+
+  subscriptionsTotalPerMonth(): number {
+    return this.subscriptionsAssociatedPlatforms.reduce((total, platform) => total + platform.individualPrice, 0);
+  }
+
+  associatePlatform(platform: SubscriberPlatform): void {
+    if (!this.editingSubscriptionsSubscriber || this.savingSubscriptionsChanges) {
+      return;
+    }
+
+    if (this.subscriptionsAssociatedPlatforms.some((item) => item.id === platform.id)) {
+      return;
+    }
+
+    this.subscriptionsAssociatedPlatforms = [...this.subscriptionsAssociatedPlatforms, { ...platform }];
+    this.updatePendingChangesForAssociation(platform.id);
+    this.recalculateSubscriptionLists();
+    this.syncEditedSubscriberPlatforms();
+    this.subscriptionsInfoMessage = `${platform.name} associada ao assinante.`;
+  }
+
+  removePlatform(platform: SubscriberPlatform): void {
+    if (!this.editingSubscriptionsSubscriber || this.savingSubscriptionsChanges) {
+      return;
+    }
+
+    if (!this.subscriptionsAssociatedPlatforms.some((item) => item.id === platform.id)) {
+      return;
+    }
+
+    this.subscriptionsAssociatedPlatforms = this.subscriptionsAssociatedPlatforms.filter(
+      (item) => item.id !== platform.id,
+    );
+    this.updatePendingChangesForDisassociation(platform.id);
+    this.recalculateSubscriptionLists();
+    this.syncEditedSubscriberPlatforms();
+    this.subscriptionsInfoMessage = `${platform.name} removida do assinante.`;
+  }
+
+  saveSubscriptionsChanges(): void {
+    const subscriber = this.editingSubscriptionsSubscriber;
+    if (!subscriber || this.savingSubscriptionsChanges) {
+      return;
+    }
+
+    const toAssociate = Array.from(this.pendingAssociatePlatformIds);
+    const toDisassociate = Array.from(this.pendingDisassociatePlatformIds);
+
+    if (toAssociate.length === 0 && toDisassociate.length === 0) {
+      this.subscriptionsInfoMessage = 'Nenhuma alteração pendente para salvar.';
+      return;
+    }
+
+    this.savingSubscriptionsChanges = true;
+    this.subscriptionsInfoMessage = null;
+    this.syncView();
+
+    const associateRequest =
+      toAssociate.length > 0
+        ? this.subscribersService.associatePlatforms(subscriber.id, toAssociate)
+        : of(void 0);
+    const disassociateRequest =
+      toDisassociate.length > 0
+        ? this.subscribersService.disassociatePlatforms(subscriber.id, toDisassociate)
+        : of(void 0);
+
+    forkJoin([associateRequest, disassociateRequest]).subscribe({
+      next: () => {
+        this.runInZone(() => {
+          this.originalAssociatedPlatformIds = new Set(this.subscriptionsAssociatedPlatforms.map((item) => item.id));
+          this.pendingAssociatePlatformIds = new Set<number>();
+          this.pendingDisassociatePlatformIds = new Set<number>();
+          this.savingSubscriptionsChanges = false;
+          this.subscriptionsInfoMessage = 'Assinaturas atualizadas com sucesso.';
+          this.syncView();
+        });
+      },
+      error: () => {
+        this.runInZone(() => {
+          this.savingSubscriptionsChanges = false;
+          this.subscriptionsInfoMessage = 'Não foi possível salvar as alterações de assinaturas.';
+          this.syncView();
+        });
+      },
+    });
   }
 
   askDelete(subscriber: SubscriberResponse | null): void {
@@ -376,6 +502,276 @@ export class SubscribersComponent implements OnInit {
     const now = new Date();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     return `${now.getFullYear()}-${month}`;
+  }
+
+  private openSubscriptionsEditor(subscriberId: number): void {
+    this.runInZone(() => {
+      this.editingSubscriptionsSubscriber =
+        this.subscribers.find((subscriber) => subscriber.id === subscriberId) ?? null;
+      this.subscriptionsAssociatedPlatforms = [];
+      this.subscriptionsAvailablePlatforms = [];
+      this.subscriptionsCatalog = [];
+      this.isLoadingSubscriptionsEditor = true;
+      this.subscriptionsEditorError = null;
+      this.subscriptionsInfoMessage = null;
+      this.syncView();
+    });
+
+    forkJoin({
+      subscriber: this.subscribersService.details(subscriberId),
+      subscriberSubscriptions: this.subscribersService.subscriptions(subscriberId),
+      platformsPage: this.platformsService.list(0, 500),
+    }).subscribe({
+      next: ({ subscriber, subscriberSubscriptions, platformsPage }) => {
+        this.runInZone(() => {
+          this.editingSubscriptionsSubscriber = subscriber;
+          this.subscriptionsCatalog = platformsPage.content.map((platform) =>
+            this.mapPlatformFromCatalog(platform),
+          );
+
+          const platformById = new Map(this.subscriptionsCatalog.map((platform) => [platform.id, platform]));
+          this.subscriptionsAssociatedPlatforms = this.normalizeAssociatedPlatforms(
+            subscriberSubscriptions,
+            platformById,
+          );
+          this.originalAssociatedPlatformIds = new Set(
+            this.subscriptionsAssociatedPlatforms.map((platform) => platform.id),
+          );
+          this.pendingAssociatePlatformIds = new Set<number>();
+          this.pendingDisassociatePlatformIds = new Set<number>();
+          this.savingSubscriptionsChanges = false;
+          this.recalculateSubscriptionLists();
+          this.syncEditedSubscriberPlatforms();
+          this.isLoadingSubscriptionsEditor = false;
+          this.subscriptionsEditorError = null;
+          this.syncView();
+        });
+      },
+      error: () => {
+        this.runInZone(() => {
+          this.isLoadingSubscriptionsEditor = false;
+          this.subscriptionsEditorError = 'Não foi possível carregar as assinaturas do assinante.';
+          this.syncView();
+        });
+      },
+    });
+  }
+
+  private recalculateSubscriptionLists(): void {
+    const associatedIds = new Set(this.subscriptionsAssociatedPlatforms.map((platform) => platform.id));
+    this.subscriptionsAvailablePlatforms = this.subscriptionsCatalog
+      .filter((platform) => platform.availableSlots > 0 && !associatedIds.has(platform.id))
+      .map((platform) => ({
+        id: platform.id,
+        name: platform.name,
+        monthlyPrice: platform.monthlyPrice,
+        individualPrice: platform.individualPrice,
+        currency: platform.currency,
+      }));
+
+    this.subscriptionsAssociatedPlatforms = [...this.subscriptionsAssociatedPlatforms].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+    this.subscriptionsAvailablePlatforms = [...this.subscriptionsAvailablePlatforms].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+  }
+
+  private updatePendingChangesForAssociation(platformId: number): void {
+    if (this.originalAssociatedPlatformIds.has(platformId)) {
+      this.pendingDisassociatePlatformIds.delete(platformId);
+      return;
+    }
+
+    this.pendingAssociatePlatformIds.add(platformId);
+    this.pendingDisassociatePlatformIds.delete(platformId);
+  }
+
+  private updatePendingChangesForDisassociation(platformId: number): void {
+    if (this.originalAssociatedPlatformIds.has(platformId)) {
+      this.pendingDisassociatePlatformIds.add(platformId);
+      this.pendingAssociatePlatformIds.delete(platformId);
+      return;
+    }
+
+    this.pendingAssociatePlatformIds.delete(platformId);
+    this.pendingDisassociatePlatformIds.delete(platformId);
+  }
+
+  private syncEditedSubscriberPlatforms(): void {
+    if (!this.editingSubscriptionsSubscriber) {
+      return;
+    }
+
+    const subscriberId = this.editingSubscriptionsSubscriber.id;
+    const updatedAssociatedPlatforms = this.subscriptionsAssociatedPlatforms.map((platform) => ({ ...platform }));
+
+    this.editingSubscriptionsSubscriber = {
+      ...this.editingSubscriptionsSubscriber,
+      associatedPlatforms: updatedAssociatedPlatforms,
+    };
+
+    this.subscribers = this.subscribers.map((subscriber) =>
+      subscriber.id === subscriberId
+        ? {
+            ...subscriber,
+            associatedPlatforms: updatedAssociatedPlatforms,
+          }
+        : subscriber,
+    );
+    this.subscribersPage = {
+      ...this.subscribersPage,
+      content: this.subscribers,
+    };
+
+    if (this.selectedSubscriber?.id === subscriberId) {
+      this.selectedSubscriber = {
+        ...this.selectedSubscriber,
+        associatedPlatforms: updatedAssociatedPlatforms,
+      };
+    }
+
+    if (this.editOptionsSubscriber?.id === subscriberId) {
+      this.editOptionsSubscriber = {
+        ...this.editOptionsSubscriber,
+        associatedPlatforms: updatedAssociatedPlatforms,
+      };
+    }
+  }
+
+  private mapPlatformFromCatalog(platform: PlatformResponse): PlatformCatalogItem {
+    const monthlyPrice = this.numberOrDefault(platform.price, 0);
+    return {
+      id: platform.id,
+      name: platform.name,
+      monthlyPrice,
+      individualPrice: monthlyPrice,
+      currency: platform.currency,
+      availableSlots: this.numberOrDefault(platform.availableSlots, 0),
+    };
+  }
+
+  private normalizeAssociatedPlatforms(
+    response: unknown,
+    catalogById: Map<number, PlatformCatalogItem>,
+  ): SubscriberPlatform[] {
+    const list = this.extractSubscriptionsList(response);
+    const associated: SubscriberPlatform[] = [];
+
+    for (const item of list) {
+      const source = this.asRecord(item);
+      const id = this.resolvePlatformId(item, source);
+      if (id === null) {
+        continue;
+      }
+
+      const fromCatalog = catalogById.get(id);
+      const monthlyPrice = this.numberOrDefault(
+        this.pickField(source, ['monthlyPrice', 'price', 'userMonthlyAmount']),
+        fromCatalog?.monthlyPrice ?? 0,
+      );
+      const individualPrice = this.numberOrDefault(
+        this.pickField(source, ['individualPrice', 'userMonthlyShare']),
+        fromCatalog?.individualPrice ?? monthlyPrice,
+      );
+      const nameFromPayload = this.stringOrNull(this.pickField(source, ['name', 'platformName', 'serviceName']));
+      const currencyFromPayload = this.stringOrNull(this.pickField(source, ['currency', 'serviceCurrency']));
+      const name = nameFromPayload ?? fromCatalog?.name ?? `Plataforma #${id}`;
+      const currency = currencyFromPayload ?? fromCatalog?.currency ?? 'BRL';
+
+      associated.push({
+        id,
+        name,
+        monthlyPrice,
+        individualPrice,
+        currency,
+      });
+    }
+
+    return associated;
+  }
+
+  private extractSubscriptionsList(response: unknown): unknown[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    const source = this.asRecord(response);
+    if (!source) {
+      return [];
+    }
+
+    const candidates = [source['content'], source['items'], source['data']];
+    const list = candidates.find((candidate) => Array.isArray(candidate));
+    return Array.isArray(list) ? list : [];
+  }
+
+  private resolvePlatformId(item: unknown, source: Record<string, unknown> | null): number | null {
+    if (typeof item === 'number' && Number.isFinite(item)) {
+      return item;
+    }
+
+    if (typeof item === 'string' && item.trim() !== '') {
+      const parsed = Number(item);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    const platform = this.asRecord(source?.['platform']);
+    const candidates: unknown[] = [
+      platform?.['id'],
+      platform?.['platformId'],
+      source?.['platformId'],
+      source?.['serviceId'],
+      source?.['subscriptionPlatformId'],
+      source?.['id'],
+    ];
+
+    for (const candidate of candidates) {
+      if (typeof candidate === 'number' && Number.isFinite(candidate)) {
+        return candidate;
+      }
+      if (typeof candidate === 'string' && candidate.trim() !== '') {
+        const parsed = Number(candidate);
+        if (Number.isFinite(parsed)) {
+          return parsed;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private pickField(source: Record<string, unknown> | null, fields: string[]): unknown {
+    if (!source) {
+      return null;
+    }
+
+    const platform = this.asRecord(source['platform']);
+    for (const field of fields) {
+      if (platform && platform[field] !== undefined && platform[field] !== null) {
+        return platform[field];
+      }
+      if (source[field] !== undefined && source[field] !== null) {
+        return source[field];
+      }
+    }
+
+    return null;
+  }
+
+  private stringOrNull(value: unknown): string | null {
+    return typeof value === 'string' && value.trim() !== '' ? value : null;
+  }
+
+  private asRecord(value: unknown): Record<string, unknown> | null {
+    if (!value || typeof value !== 'object') {
+      return null;
+    }
+    return value as Record<string, unknown>;
+  }
+
+  private numberOrDefault(value: unknown, fallback: number): number {
+    return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
   }
 
   private loadSubscriberBilling(subscriberId: number, referenceMonth?: string, keepCurrentData = false): void {

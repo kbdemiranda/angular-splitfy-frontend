@@ -27,3 +27,7 @@ export interface SubscriberPageResponse {
   totalElements: number;
   totalPages: number;
 }
+
+export interface SubscriberPlatformsBatchPayloadItem {
+  platformIds: number[];
+}
