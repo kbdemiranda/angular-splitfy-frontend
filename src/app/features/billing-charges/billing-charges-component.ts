@@ -40,6 +40,11 @@ export class BillingChargesComponent implements OnInit {
   bulkChargeSelectedSubscriberIds = new Set<number>();
   bulkCharging = false;
   bulkChargeFeedback: { type: 'success' | 'error'; message: string } | null = null;
+  registerPaymentModalOpen = false;
+  registerPaymentReferenceMonth = this.currentReferenceMonth();
+  registerPaymentSelectedPlatformIds = new Set<number>();
+  registeringPayment = false;
+  registerPaymentFeedback: { type: 'success' | 'error'; message: string } | null = null;
 
   readonly billingStatusIcons: Record<string, LucideIconData> = {
     PAID: CircleCheck,
@@ -77,6 +82,18 @@ export class BillingChargesComponent implements OnInit {
     );
   }
 
+  get registerPaymentPlatforms(): { id: number; name: string }[] {
+    const uniquePlatforms = new Map<number, string>();
+
+    for (const item of this.pendingBillingItems) {
+      if (!uniquePlatforms.has(item.serviceId)) {
+        uniquePlatforms.set(item.serviceId, item.serviceName);
+      }
+    }
+
+    return Array.from(uniquePlatforms.entries()).map(([id, name]) => ({ id, name }));
+  }
+
   openDetails(subscriber: SubscriberResponse): void {
     if (this.openingDetailsSubscriberId !== null) {
       return;
@@ -102,6 +119,7 @@ export class BillingChargesComponent implements OnInit {
     this.openingDetailsSubscriberId = null;
     this.charging = false;
     this.chargeFeedback = null;
+    this.closeRegisterPaymentModal();
   }
 
   changeBillingMonth(referenceMonth: string): void {
@@ -256,6 +274,89 @@ export class BillingChargesComponent implements OnInit {
     this.bulkChargeModalOpen = false;
     this.bulkCharging = false;
     this.bulkChargeFeedback = null;
+  }
+
+  openRegisterPaymentModal(): void {
+    if (!this.selectedSubscriber) {
+      return;
+    }
+
+    this.registerPaymentModalOpen = true;
+    this.registerPaymentReferenceMonth = this.billingReferenceMonth;
+    this.registerPaymentSelectedPlatformIds = new Set<number>();
+    this.registeringPayment = false;
+    this.registerPaymentFeedback = null;
+  }
+
+  closeRegisterPaymentModal(): void {
+    this.registerPaymentModalOpen = false;
+    this.registeringPayment = false;
+    this.registerPaymentFeedback = null;
+  }
+
+  hasRegisterPaymentPlatformSelected(platformId: number): boolean {
+    return this.registerPaymentSelectedPlatformIds.has(platformId);
+  }
+
+  toggleRegisterPaymentPlatform(platformId: number, checked: boolean): void {
+    if (checked) {
+      this.registerPaymentSelectedPlatformIds.add(platformId);
+      return;
+    }
+
+    this.registerPaymentSelectedPlatformIds.delete(platformId);
+  }
+
+  submitRegisterPayment(): void {
+    if (this.registeringPayment || !this.selectedSubscriber) {
+      return;
+    }
+
+    const subscriberId = this.selectedSubscriber.id;
+    const platformIds = Array.from(this.registerPaymentSelectedPlatformIds);
+
+    if (platformIds.length === 0) {
+      this.registerPaymentFeedback = { type: 'error', message: 'Selecione ao menos uma plataforma.' };
+      return;
+    }
+
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(this.registerPaymentReferenceMonth)) {
+      this.registerPaymentFeedback = { type: 'error', message: 'Informe o mês de referência no formato YYYY-MM.' };
+      return;
+    }
+
+    this.registeringPayment = true;
+    this.registerPaymentFeedback = null;
+    this.syncView();
+
+    this.paymentConfirmationsService
+      .registerSubscriberPayment(subscriberId, {
+        referenceMonth: this.registerPaymentReferenceMonth,
+        platformIds,
+      })
+      .subscribe({
+        next: () => {
+          this.runInZone(() => {
+            this.registeringPayment = false;
+            this.registerPaymentFeedback = {
+              type: 'success',
+              message: 'Pagamento registrado com sucesso.',
+            };
+            this.syncView();
+            this.loadBilling(subscriberId, this.billingReferenceMonth);
+          });
+        },
+        error: () => {
+          this.runInZone(() => {
+            this.registeringPayment = false;
+            this.registerPaymentFeedback = {
+              type: 'error',
+              message: 'Não foi possível registrar o pagamento.',
+            };
+            this.syncView();
+          });
+        },
+      });
   }
 
   hasBulkSubscriberSelected(subscriberId: number): boolean {

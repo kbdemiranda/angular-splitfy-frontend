@@ -49,3 +49,8 @@ export interface SubscriberBillingEmailRequest {
   emails: string[];
   referenceMonth?: string | null;
 }
+
+export interface RegisterSubscriberPaymentRequest {
+  referenceMonth: string;
+  platformIds: number[];
+}

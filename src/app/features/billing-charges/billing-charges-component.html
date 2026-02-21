@@ -122,6 +122,9 @@
           <button type="button" class="charge-btn" [disabled]="charging" (click)="sendChargeEmail()">
             {{ charging ? 'Cobrando...' : 'Cobrar' }}
           </button>
+          <button type="button" class="secondary-btn" [disabled]="billingLoading" (click)="openRegisterPaymentModal()">
+            Registrar pagamento
+          </button>
           <button type="button" class="close-icon" (click)="closeDetails()">Fechar</button>
         </div>
       </div>
@@ -231,4 +234,61 @@
       </section>
     </section>
   </div>
+
+  @if (registerPaymentModalOpen) {
+    <div class="modal-overlay nested-modal-overlay" (click)="closeRegisterPaymentModal()">
+      <section class="modal register-payment-modal" (click)="$event.stopPropagation()">
+        <div class="detail-header">
+          <h2>Registrar pagamento</h2>
+          <button type="button" class="close-icon" (click)="closeRegisterPaymentModal()">Fechar</button>
+        </div>
+
+        @if (registerPaymentFeedback) {
+          <article class="state" [ngClass]="{ error: registerPaymentFeedback.type === 'error', success: registerPaymentFeedback.type === 'success' }">
+            {{ registerPaymentFeedback.message }}
+          </article>
+        }
+
+        <div class="bulk-form compact">
+          <label>
+            Mês de referência
+            <input
+              type="month"
+              [(ngModel)]="registerPaymentReferenceMonth"
+              name="registerPaymentReferenceMonth"
+            />
+          </label>
+        </div>
+
+        <section class="bulk-subscribers">
+          <h3>Plataformas</h3>
+          <ul class="bulk-subscriber-list">
+            @for (platform of registerPaymentPlatforms; track platform.id) {
+              <li>
+                <label class="bulk-subscriber-item">
+                  <input
+                    type="checkbox"
+                    [checked]="hasRegisterPaymentPlatformSelected(platform.id)"
+                    (change)="toggleRegisterPaymentPlatform(platform.id, $any($event.target).checked)"
+                  />
+                  <span>{{ platform.name }}</span>
+                </label>
+              </li>
+            }
+          </ul>
+
+          @if (registerPaymentPlatforms.length === 0) {
+            <article class="state">Nenhuma plataforma pendente disponível para registrar pagamento.</article>
+          }
+        </section>
+
+        <div class="modal-actions">
+          <button type="button" class="close-icon" (click)="closeRegisterPaymentModal()">Cancelar</button>
+          <button type="button" class="charge-btn" [disabled]="registeringPayment" (click)="submitRegisterPayment()">
+            {{ registeringPayment ? 'Registrando...' : 'Registrar' }}
+          </button>
+        </div>
+      </section>
+    </div>
+  }
 }

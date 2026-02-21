@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_ROUTES } from '../constants/api-routes';
 import {
   PaymentConfirmationBatchRequest,
   PaymentConfirmationResponse,
   PendingPaymentApprovalResponse,
+  RegisterSubscriberPaymentRequest,
   SubscriberBillingEmailRequest,
 } from '../../shared/models/payment-confirmations.model';
 
@@ -36,5 +37,12 @@ export class PaymentConfirmationsService {
 
   sendBillingSummaryEmail(payload: SubscriberBillingEmailRequest): Observable<void> {
     return this.http.post<void>(API_ROUTES.sendSubscriberBillingEmail, payload);
+  }
+
+  registerSubscriberPayment(subscriberId: number, payload: RegisterSubscriberPaymentRequest): Observable<void> {
+    const headers = new HttpHeaders()
+      .set('subscriberId', String(subscriberId))
+      .set('subscriberID', String(subscriberId));
+    return this.http.post<void>(API_ROUTES.registerSubscriberPayments(subscriberId), payload, { headers });
   }
 }

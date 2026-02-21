@@ -196,6 +196,21 @@
   cursor: not-allowed;
 }
 
+.secondary-btn {
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #bfdbfe;
+  padding: 8px 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondary-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
 .close-icon {
   border: 0;
   border-radius: 8px;
@@ -353,6 +368,10 @@
   gap: 10px;
 }
 
+.bulk-form.compact {
+  max-width: 260px;
+}
+
 .bulk-form label {
   display: grid;
   gap: 6px;
@@ -415,4 +434,12 @@
   display: flex;
   justify-content: end;
   gap: 8px;
+}
+
+.nested-modal-overlay {
+  z-index: 90;
+}
+
+.register-payment-modal {
+  width: min(540px, 100%);
 }
