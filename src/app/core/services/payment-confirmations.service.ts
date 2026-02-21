@@ -6,6 +6,7 @@ import {
   PaymentConfirmationBatchRequest,
   PaymentConfirmationResponse,
   PendingPaymentApprovalResponse,
+  SubscriberBillingEmailRequest,
 } from '../../shared/models/payment-confirmations.model';
 
 @Injectable({ providedIn: 'root' })
@@ -31,5 +32,9 @@ export class PaymentConfirmationsService {
     return this.http.get<PendingPaymentApprovalResponse[]>(API_ROUTES.pendingPaymentConfirmations, {
       params,
     });
+  }
+
+  sendBillingSummaryEmail(payload: SubscriberBillingEmailRequest): Observable<void> {
+    return this.http.post<void>(API_ROUTES.sendSubscriberBillingEmail, payload);
   }
 }

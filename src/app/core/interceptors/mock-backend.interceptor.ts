@@ -17,6 +17,7 @@ import {
   PaymentConfirmationBatchRequest,
   PaymentConfirmationResponse,
   PendingPaymentApprovalResponse,
+  SubscriberBillingEmailRequest,
 } from '../../shared/models/payment-confirmations.model';
 
 interface MockUser {
@@ -148,6 +149,10 @@ export class MockBackendInterceptor implements HttpInterceptor {
 
     if (request.method === 'GET' && path === API_ROUTES.pendingPaymentConfirmations) {
       return this.handleListPendingPaymentConfirmations(request);
+    }
+
+    if (request.method === 'POST' && path === API_ROUTES.sendSubscriberBillingEmail) {
+      return this.handleSendBillingSummaryEmail(request);
     }
 
     return next.handle(request);
@@ -450,6 +455,20 @@ export class MockBackendInterceptor implements HttpInterceptor {
       .map((entry) => this.toPendingPaymentApprovalResponse(entry));
 
     return of(new HttpResponse({ status: 200, body: pending }));
+  }
+
+  private handleSendBillingSummaryEmail(request: HttpRequest<unknown>): Observable<HttpEvent<unknown>> {
+    const payload = request.body as SubscriberBillingEmailRequest | null;
+    const hasValidSubscribers = Array.isArray(payload?.subscriberIds) && payload.subscriberIds.length > 0;
+    const hasValidEmails = Array.isArray(payload?.emails) && payload.emails.length > 0;
+    const hasValidReferenceMonth =
+      !payload?.referenceMonth || this.isValidReferenceMonth(payload.referenceMonth);
+
+    if (!hasValidSubscribers || !hasValidEmails || !hasValidReferenceMonth) {
+      return this.mockError(400, 'Invalid request');
+    }
+
+    return of(new HttpResponse({ status: 200 }));
   }
 
   private extractPath(url: string): string {

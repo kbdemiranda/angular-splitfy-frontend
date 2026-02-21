@@ -118,6 +118,12 @@
   color: #fecaca;
 }
 
+.state.success {
+  border-color: #166534;
+  background: #14532d;
+  color: #bbf7d0;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -149,6 +155,27 @@
 
 .detail-header h2 {
   margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.charge-btn {
+  border: 0;
+  border-radius: 8px;
+  background: #0369a1;
+  color: #e0f2fe;
+  padding: 8px 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.charge-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
 }
 
 .close-icon {

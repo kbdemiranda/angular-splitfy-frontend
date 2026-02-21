@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { CircleCheck, CircleX, Clock3, LucideIconData } from 'lucide-angular';
 import { SubscribersService } from '../../core/services/subscribers.service';
 import { SubscriberBillingService } from '../../core/services/subscriber-billing.service';
+import { PaymentConfirmationsService } from '../../core/services/payment-confirmations.service';
 import { SubscriberBillingItem, SubscriberBillingResponse } from '../../shared/models/subscriber-billing.model';
 import { SubscriberPageResponse, SubscriberResponse } from '../../shared/models/subscribers.model';
 
@@ -31,6 +32,8 @@ export class PaymentConfirmationsComponent implements OnInit {
   billingLoading = false;
   billingError: string | null = null;
   openingDetailsSubscriberId: number | null = null;
+  charging = false;
+  chargeFeedback: { type: 'success' | 'error'; message: string } | null = null;
 
   readonly billingStatusIcons: Record<string, LucideIconData> = {
     PAID: CircleCheck,
@@ -41,6 +44,7 @@ export class PaymentConfirmationsComponent implements OnInit {
   constructor(
     private readonly subscribersService: SubscribersService,
     private readonly subscriberBillingService: SubscriberBillingService,
+    private readonly paymentConfirmationsService: PaymentConfirmationsService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly ngZone: NgZone,
   ) {}
@@ -90,6 +94,8 @@ export class PaymentConfirmationsComponent implements OnInit {
     this.billingLoading = false;
     this.billingError = null;
     this.openingDetailsSubscriberId = null;
+    this.charging = false;
+    this.chargeFeedback = null;
   }
 
   changeBillingMonth(referenceMonth: string): void {
@@ -191,6 +197,45 @@ export class PaymentConfirmationsComponent implements OnInit {
 
   paymentStatusIcon(status: string): LucideIconData {
     return this.billingStatusIcons[status] ?? CircleX;
+  }
+
+  sendChargeEmail(): void {
+    if (!this.selectedSubscriber || this.charging) {
+      return;
+    }
+
+    this.charging = true;
+    this.chargeFeedback = null;
+    this.syncView();
+
+    this.paymentConfirmationsService
+      .sendBillingSummaryEmail({
+        subscriberIds: [this.selectedSubscriber.id],
+        emails: [this.selectedSubscriber.email],
+        referenceMonth: this.billingReferenceMonth,
+      })
+      .subscribe({
+        next: () => {
+          this.runInZone(() => {
+            this.charging = false;
+            this.chargeFeedback = {
+              type: 'success',
+              message: `Cobrança enviada para o e-mail cadastrado.`,
+            };
+            this.syncView();
+          });
+        },
+        error: () => {
+          this.runInZone(() => {
+            this.charging = false;
+            this.chargeFeedback = {
+              type: 'error',
+              message: 'Não foi possível enviar o e-mail de cobrança.',
+            };
+            this.syncView();
+          });
+        },
+      });
   }
 
   private loadSubscribers(page = 0, size = 20): void {

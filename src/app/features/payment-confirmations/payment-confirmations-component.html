@@ -50,7 +50,12 @@
     <section class="modal detail-modal" (click)="$event.stopPropagation()">
       <div class="detail-header">
         <h2>Detalhes da cobrança</h2>
-        <button type="button" class="close-icon" (click)="closeDetails()">Fechar</button>
+        <div class="header-actions">
+          <button type="button" class="charge-btn" [disabled]="charging" (click)="sendChargeEmail()">
+            {{ charging ? 'Cobrando...' : 'Cobrar' }}
+          </button>
+          <button type="button" class="close-icon" (click)="closeDetails()">Fechar</button>
+        </div>
       </div>
 
       <div class="subscriber-identification">
@@ -65,6 +70,12 @@
       </div>
 
       <section class="billing-section">
+        @if (chargeFeedback) {
+          <article class="state" [ngClass]="{ error: chargeFeedback.type === 'error', success: chargeFeedback.type === 'success' }">
+            {{ chargeFeedback.message }}
+          </article>
+        }
+
         <div class="billing-header">
           <h3>Plataformas do mês</h3>
           <label>

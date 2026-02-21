@@ -11,4 +11,5 @@ export const API_ROUTES = {
   paymentConfirmations: '/subscribers/payments/confirmations',
   approvePaymentConfirmation: (id: number | string) => `/subscribers/payments/confirmations/${id}/approve`,
   pendingPaymentConfirmations: '/subscribers/payments/confirmations/pending',
+  sendSubscriberBillingEmail: '/subscribers/billing/email-summary',
 } as const;

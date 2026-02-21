@@ -43,3 +43,9 @@ export interface PendingPaymentApprovalResponse {
   subscriber: PendingPaymentSubscriber;
   platform: PendingPaymentPlatform;
 }
+
+export interface SubscriberBillingEmailRequest {
+  subscriberIds: number[];
+  emails: string[];
+  referenceMonth?: string | null;
+}
