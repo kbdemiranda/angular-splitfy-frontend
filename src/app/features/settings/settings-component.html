@@ -15,28 +15,8 @@
       <button type="button" (click)="retryLoadUsers()">Tentar novamente</button>
     </section>
   } @else if (initialUsersLoaded) {
-    <div class="settings-layout">
-      <aside class="settings-sidebar" [attr.aria-label]="'settings.menu' | t">
-        <nav>
-          <ul>
-            @for (section of sections; track section.key) {
-              <li>
-                <a
-                  [href]="'#' + section.anchor"
-                  [class.active]="isSectionActive(section.key)"
-                  (click)="goToSection($event, section)"
-                >
-                  <strong>{{ section.labelKey | t }}</strong>
-                  <span>{{ section.descriptionKey | t }}</span>
-                </a>
-              </li>
-            }
-          </ul>
-        </nav>
-      </aside>
-
-      <section class="settings-content" aria-live="polite">
-        <article id="usuarios" class="content-card section-card">
+    <section class="settings-content" aria-live="polite">
+      <article class="content-card">
           <div class="content-header">
             <div>
               <p class="section-kicker">Gerenciamento</p>
@@ -94,9 +74,9 @@
               </tbody>
             </table>
           </div>
-        </article>
+      </article>
 
-        <article id="sistema" class="content-card section-card">
+      <article class="content-card">
           <div class="content-header">
             <div>
               <p class="section-kicker">Preferências</p>
@@ -116,13 +96,53 @@
               </select>
             </label>
 
+            <div class="appearance-row">
+              <fieldset class="theme-mode-picker">
+                <legend>Tema</legend>
+                <div class="mode-group" role="radiogroup" aria-label="Tema">
+                  @for (modeOption of themeModeOptions; track modeOption.value) {
+                    <label class="mode-group-option" [class.active]="selectedThemeMode === modeOption.value">
+                      <input
+                        type="radio"
+                        [name]="'selectedThemeMode'"
+                        [value]="modeOption.value"
+                        [(ngModel)]="selectedThemeMode"
+                      />
+                      <span>{{ modeOption.label }}</span>
+                    </label>
+                  }
+                </div>
+              </fieldset>
+
+              <fieldset class="palette-picker">
+                <legend>Esquema de cores</legend>
+
+                <div class="palette-grid">
+                  @for (paletteOption of themePaletteOptions; track paletteOption.value) {
+                    <button
+                      type="button"
+                      class="palette-card"
+                      [class.active]="selectedThemePalette === paletteOption.value"
+                      (click)="selectPalette(paletteOption.value)"
+                    >
+                      <strong>{{ paletteOption.label }}</strong>
+                      <small class="palette-swatches">
+                        @for (previewColor of paletteOption.preview; track previewColor) {
+                          <i [style.background]="previewColor"></i>
+                        }
+                      </small>
+                    </button>
+                  }
+                </div>
+              </fieldset>
+            </div>
+
             @if (systemFeedback) {
-              <small>{{ systemFeedback | t }}</small>
+              <small>{{ systemFeedback }}</small>
             }
           </form>
-        </article>
-      </section>
-    </div>
+      </article>
+    </section>
   }
 </section>
 

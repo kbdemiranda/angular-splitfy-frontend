@@ -1,18 +1,22 @@
-import { ChangeDetectorRef, Component, HostListener, NgZone, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { finalize, timeout } from 'rxjs';
 import { UsersService } from '../../core/services/users.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { AppLanguage, LANGUAGE_OPTIONS, LanguageOption } from '../../core/i18n/translations';
 import { UserCreateRequest, UserResponse, UserUpdateRequest } from '../../shared/models/users.model';
+import { ThemeMode, ThemePalette, ThemeService } from '../../core/services/theme.service';
 
-type SettingsSectionKey = 'users' | 'system';
+interface ThemeModeOption {
+  readonly value: ThemeMode;
+  readonly label: string;
+}
 
-interface SettingsSection {
-  readonly key: SettingsSectionKey;
-  readonly anchor: string;
-  readonly labelKey: string;
-  readonly descriptionKey: string;
+interface ThemePaletteOption {
+  readonly value: ThemePalette;
+  readonly label: string;
+  readonly description: string;
+  readonly preview: readonly [string, string, string];
 }
 
 @Component({
@@ -22,24 +26,52 @@ interface SettingsSection {
   standalone: false,
 })
 export class SettingsComponent implements OnInit {
-  readonly sections: SettingsSection[] = [
+  readonly languageOptions: readonly LanguageOption[] = LANGUAGE_OPTIONS;
+  readonly themeModeOptions: readonly ThemeModeOption[] = [
+    { value: 'dark', label: 'Escuro' },
+    { value: 'light', label: 'Claro' },
+  ];
+  readonly themePaletteOptions: readonly ThemePaletteOption[] = [
     {
-      key: 'users',
-      anchor: 'usuarios',
-      labelKey: 'settings.section_users',
-      descriptionKey: 'settings.section_users_desc',
+      value: 'default',
+      label: 'Default',
+      description: 'Azul/ciano clássico do Splitfy.',
+      preview: ['#0ea5e9', '#22d3ee', '#0f172a'],
     },
     {
-      key: 'system',
-      anchor: 'sistema',
-      labelKey: 'settings.section_system',
-      descriptionKey: 'settings.section_system_desc',
+      value: 'dracula',
+      label: 'Dracula',
+      description: 'Violeta com contraste alto.',
+      preview: ['#bd93f9', '#ff79c6', '#282a36'],
+    },
+    {
+      value: 'indigo',
+      label: 'Indigo',
+      description: 'Indigo elegante com toque corporativo.',
+      preview: ['#6366f1', '#818cf8', '#1f2a44'],
+    },
+    {
+      value: 'emerald',
+      label: 'Emerald',
+      description: 'Verde moderno e limpo.',
+      preview: ['#10b981', '#34d399', '#112b24'],
+    },
+    {
+      value: 'sunset',
+      label: 'Sunset',
+      description: 'Laranja quente para destaque visual.',
+      preview: ['#f97316', '#fb923c', '#2b1810'],
+    },
+    {
+      value: 'graphite',
+      label: 'Graphite',
+      description: 'Cinza técnico com azul discreto.',
+      preview: ['#64748b', '#94a3b8', '#111827'],
     },
   ];
-
-  readonly languageOptions: readonly LanguageOption[] = LANGUAGE_OPTIONS;
-  activeSection: SettingsSectionKey = 'users';
   selectedLanguage: AppLanguage = 'pt-BR';
+  selectedThemeMode: ThemeMode = 'dark';
+  selectedThemePalette: ThemePalette = 'default';
   systemFeedback: string | null = null;
   users: UserResponse[] = [];
   usersLoading = false;
@@ -71,6 +103,7 @@ export class SettingsComponent implements OnInit {
     private readonly usersService: UsersService,
     private readonly formBuilder: FormBuilder,
     private readonly i18nService: I18nService,
+    private readonly themeService: ThemeService,
     private readonly ngZone: NgZone,
     private readonly cdr: ChangeDetectorRef,
   ) {
@@ -88,47 +121,23 @@ export class SettingsComponent implements OnInit {
 
   ngOnInit(): void {
     this.selectedLanguage = this.i18nService.currentLanguage;
+    const theme = this.themeService.current;
+    this.selectedThemeMode = theme.mode;
+    this.selectedThemePalette = theme.palette;
     this.loadUsers();
-  }
-
-  @HostListener('window:scroll')
-  onWindowScroll(): void {
-    if (!this.usersLoaded) {
-      return;
-    }
-
-    const threshold = 140;
-    const currentSection = this.sections
-      .filter((section) => {
-        const target = document.getElementById(section.anchor);
-        return !!target && target.getBoundingClientRect().top - threshold <= 0;
-      })
-      .at(-1);
-
-    if (currentSection) {
-      this.activeSection = currentSection.key;
-    }
-  }
-
-  isSectionActive(section: SettingsSectionKey): boolean {
-    return this.activeSection === section;
-  }
-
-  goToSection(event: Event, section: SettingsSection): void {
-    event.preventDefault();
-
-    const target = document.getElementById(section.anchor);
-    if (!target) {
-      return;
-    }
-
-    this.activeSection = section.key;
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   saveSystemSettings(): void {
     this.i18nService.setLanguage(this.selectedLanguage);
-    this.systemFeedback = 'settings.saved';
+    this.themeService.setTheme({
+      mode: this.selectedThemeMode,
+      palette: this.selectedThemePalette,
+    });
+    this.systemFeedback = 'Configurações visuais atualizadas com sucesso.';
+  }
+
+  selectPalette(palette: ThemePalette): void {
+    this.selectedThemePalette = palette;
   }
 
   openCreateUserModal(): void {
