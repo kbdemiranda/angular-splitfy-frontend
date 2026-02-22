@@ -1,17 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, NgZone, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { finalize } from 'rxjs';
-import { ProfilesService } from '../../core/services/profiles.service';
+import { finalize, timeout } from 'rxjs';
 import { UsersService } from '../../core/services/users.service';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { AppLanguage, LANGUAGE_OPTIONS, LanguageOption } from '../../core/i18n/translations';
-import { ProfileCreateRequest, ProfileResponse, ProfileUpdateRequest } from '../../shared/models/profiles.model';
 import { UserCreateRequest, UserResponse, UserUpdateRequest } from '../../shared/models/users.model';
 
-type SettingsSectionKey = 'users' | 'profiles' | 'system';
+type SettingsSectionKey = 'users' | 'system';
 
 interface SettingsSection {
   readonly key: SettingsSectionKey;
+  readonly anchor: string;
   readonly labelKey: string;
   readonly descriptionKey: string;
 }
@@ -26,16 +25,13 @@ export class SettingsComponent implements OnInit {
   readonly sections: SettingsSection[] = [
     {
       key: 'users',
+      anchor: 'usuarios',
       labelKey: 'settings.section_users',
       descriptionKey: 'settings.section_users_desc',
     },
     {
-      key: 'profiles',
-      labelKey: 'settings.section_profiles',
-      descriptionKey: 'settings.section_profiles_desc',
-    },
-    {
       key: 'system',
+      anchor: 'sistema',
       labelKey: 'settings.section_system',
       descriptionKey: 'settings.section_system_desc',
     },
@@ -48,72 +44,45 @@ export class SettingsComponent implements OnInit {
   users: UserResponse[] = [];
   usersLoading = false;
   usersLoaded = false;
+  initialUsersLoaded = false;
   usersError: string | null = null;
-  profiles: ProfileResponse[] = [];
-  loadingProfiles = false;
-  profilesLoaded = false;
-  profilesError: string | null = null;
-  profileLoadError: string | null = null;
+  private hasRetriedInitialLoad = false;
   isCreateModalOpen = false;
   isEditModalOpen = false;
-  isCreateProfileModalOpen = false;
-  isEditProfileModalOpen = false;
   creatingUser = false;
   editingUser = false;
   deletingUser = false;
-  creatingProfile = false;
-  editingProfile = false;
-  deletingProfile = false;
   createUserError: string | null = null;
   editUserError: string | null = null;
-  createProfileError: string | null = null;
-  editProfileError: string | null = null;
   selectedUserToEdit: UserResponse | null = null;
   selectedUserToDelete: UserResponse | null = null;
-  selectedProfileToEdit: ProfileResponse | null = null;
-  selectedProfileToDelete: ProfileResponse | null = null;
   readonly createUserForm: FormGroup<{
     name: FormControl<string>;
     email: FormControl<string>;
     password: FormControl<string>;
-    profileName: FormControl<string>;
   }>;
   readonly editUserForm: FormGroup<{
     name: FormControl<string>;
     email: FormControl<string>;
     password: FormControl<string>;
-    profileName: FormControl<string>;
-  }>;
-  readonly createProfileForm: FormGroup<{
-    name: FormControl<string>;
-  }>;
-  readonly editProfileForm: FormGroup<{
-    name: FormControl<string>;
   }>;
 
   constructor(
     private readonly usersService: UsersService,
-    private readonly profilesService: ProfilesService,
     private readonly formBuilder: FormBuilder,
     private readonly i18nService: I18nService,
+    private readonly ngZone: NgZone,
+    private readonly cdr: ChangeDetectorRef,
   ) {
     this.createUserForm = this.formBuilder.group({
       name: this.formBuilder.nonNullable.control('', [Validators.required, Validators.minLength(3)]),
       email: this.formBuilder.nonNullable.control('', [Validators.required, Validators.email]),
       password: this.formBuilder.nonNullable.control('', [Validators.required, Validators.minLength(8)]),
-      profileName: this.formBuilder.nonNullable.control('', [Validators.required]),
     });
     this.editUserForm = this.formBuilder.group({
       name: this.formBuilder.nonNullable.control('', [Validators.required, Validators.minLength(3)]),
       email: this.formBuilder.nonNullable.control('', [Validators.required, Validators.email]),
       password: this.formBuilder.nonNullable.control('', [Validators.minLength(8)]),
-      profileName: this.formBuilder.nonNullable.control('', [Validators.required]),
-    });
-    this.createProfileForm = this.formBuilder.group({
-      name: this.formBuilder.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
-    });
-    this.editProfileForm = this.formBuilder.group({
-      name: this.formBuilder.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
     });
   }
 
@@ -122,20 +91,39 @@ export class SettingsComponent implements OnInit {
     this.loadUsers();
   }
 
-  selectSection(section: SettingsSectionKey): void {
-    this.activeSection = section;
-
-    if (section === 'users' && this.users.length === 0 && !this.usersLoading) {
-      this.loadUsers();
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    if (!this.usersLoaded) {
+      return;
     }
 
-    if (section === 'profiles' && this.profiles.length === 0 && !this.loadingProfiles) {
-      this.loadProfiles();
+    const threshold = 140;
+    const currentSection = this.sections
+      .filter((section) => {
+        const target = document.getElementById(section.anchor);
+        return !!target && target.getBoundingClientRect().top - threshold <= 0;
+      })
+      .at(-1);
+
+    if (currentSection) {
+      this.activeSection = currentSection.key;
     }
   }
 
   isSectionActive(section: SettingsSectionKey): boolean {
     return this.activeSection === section;
+  }
+
+  goToSection(event: Event, section: SettingsSection): void {
+    event.preventDefault();
+
+    const target = document.getElementById(section.anchor);
+    if (!target) {
+      return;
+    }
+
+    this.activeSection = section.key;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   saveSystemSettings(): void {
@@ -150,9 +138,7 @@ export class SettingsComponent implements OnInit {
       name: '',
       email: '',
       password: '',
-      profileName: '',
     });
-    this.loadProfiles();
   }
 
   closeCreateUserModal(): void {
@@ -166,12 +152,12 @@ export class SettingsComponent implements OnInit {
       return;
     }
 
-    const { name, email, password, profileName } = this.createUserForm.getRawValue();
+    const { name, email, password } = this.createUserForm.getRawValue();
     const payload: UserCreateRequest = {
       name: name.trim(),
       email: email.trim(),
       password,
-      profileName,
+      profileName: 'USER',
       enabled: true,
     };
 
@@ -199,9 +185,7 @@ export class SettingsComponent implements OnInit {
       name: user.name,
       email: user.email,
       password: '',
-      profileName: user.profileName,
     });
-    this.loadProfiles();
   }
 
   closeEditUserModal(): void {
@@ -216,11 +200,11 @@ export class SettingsComponent implements OnInit {
       return;
     }
 
-    const { name, email, password, profileName } = this.editUserForm.getRawValue();
+    const { name, email, password } = this.editUserForm.getRawValue();
     const payload: UserUpdateRequest = {
       name: name.trim(),
       email: email.trim(),
-      profileName,
+      profileName: this.selectedUserToEdit.profileName || 'USER',
       enabled: this.selectedUserToEdit.active,
     };
 
@@ -273,154 +257,53 @@ export class SettingsComponent implements OnInit {
       });
   }
 
-  openCreateProfileModal(): void {
-    this.isCreateProfileModalOpen = true;
-    this.createProfileError = null;
-    this.createProfileForm.reset({
-      name: '',
-    });
-  }
-
-  closeCreateProfileModal(): void {
-    this.isCreateProfileModalOpen = false;
-    this.createProfileError = null;
-  }
-
-  submitCreateProfile(): void {
-    if (this.createProfileForm.invalid || this.creatingProfile) {
-      this.createProfileForm.markAllAsTouched();
-      return;
-    }
-
-    const payload: ProfileCreateRequest = {
-      name: this.createProfileForm.controls.name.value.trim(),
-    };
-
-    this.creatingProfile = true;
-    this.createProfileError = null;
-    this.profilesService
-      .create(payload)
-      .pipe(finalize(() => (this.creatingProfile = false)))
-      .subscribe({
-        next: () => {
-          this.closeCreateProfileModal();
-          this.loadProfiles();
-        },
-        error: () => {
-          this.createProfileError = 'Não foi possível criar o profile.';
-        },
-      });
-  }
-
-  openEditProfileModal(profile: ProfileResponse): void {
-    this.selectedProfileToEdit = profile;
-    this.isEditProfileModalOpen = true;
-    this.editProfileError = null;
-    this.editProfileForm.reset({
-      name: profile.name,
-    });
-  }
-
-  closeEditProfileModal(): void {
-    this.isEditProfileModalOpen = false;
-    this.editProfileError = null;
-    this.selectedProfileToEdit = null;
-  }
-
-  submitEditProfile(): void {
-    if (!this.selectedProfileToEdit || this.editProfileForm.invalid || this.editingProfile) {
-      this.editProfileForm.markAllAsTouched();
-      return;
-    }
-
-    const payload: ProfileUpdateRequest = {
-      name: this.editProfileForm.controls.name.value.trim(),
-    };
-
-    this.editingProfile = true;
-    this.editProfileError = null;
-    this.profilesService
-      .update(this.selectedProfileToEdit.id, payload)
-      .pipe(finalize(() => (this.editingProfile = false)))
-      .subscribe({
-        next: () => {
-          this.closeEditProfileModal();
-          this.loadProfiles();
-        },
-        error: () => {
-          this.editProfileError = 'Não foi possível atualizar o profile.';
-        },
-      });
-  }
-
-  askDeleteProfile(profile: ProfileResponse): void {
-    this.selectedProfileToDelete = profile;
-  }
-
-  cancelDeleteProfile(): void {
-    this.selectedProfileToDelete = null;
-  }
-
-  confirmDeleteProfile(): void {
-    if (!this.selectedProfileToDelete || this.deletingProfile) {
-      return;
-    }
-
-    this.deletingProfile = true;
-    this.profilesService
-      .delete(this.selectedProfileToDelete.id)
-      .pipe(finalize(() => (this.deletingProfile = false)))
-      .subscribe({
-        next: () => {
-          this.selectedProfileToDelete = null;
-          this.loadProfiles();
-        },
-        error: () => {
-          this.profilesError = 'Não foi possível excluir o profile.';
-        },
-      });
+  retryLoadUsers(): void {
+    this.hasRetriedInitialLoad = false;
+    this.loadUsers();
   }
 
   private loadUsers(): void {
-    this.usersLoading = true;
-    this.usersLoaded = false;
-    this.usersError = null;
+    this.runInAngular(() => {
+      this.usersLoading = true;
+      this.usersLoaded = false;
+      this.usersError = null;
+    });
 
     this.usersService
       .list()
-      .pipe(finalize(() => (this.usersLoading = false)))
+      .pipe(timeout(12000))
       .subscribe({
         next: (response) => {
-          this.users = response.content;
-          this.usersLoaded = true;
+          this.runInAngular(() => {
+            this.users = response.content;
+            this.usersLoaded = true;
+            this.usersLoading = false;
+            this.initialUsersLoaded = true;
+            this.hasRetriedInitialLoad = false;
+          });
         },
         error: () => {
-          this.usersError = 'Não foi possível carregar os usuários.';
+          this.runInAngular(() => {
+            this.usersLoading = false;
+          });
+
+          if (!this.initialUsersLoaded && !this.hasRetriedInitialLoad) {
+            this.hasRetriedInitialLoad = true;
+            this.loadUsers();
+            return;
+          }
+
+          this.runInAngular(() => {
+            this.usersError = 'Não foi possível carregar os usuários.';
+          });
         },
       });
   }
 
-  private loadProfiles(): void {
-    if (this.loadingProfiles) {
-      return;
-    }
-
-    this.loadingProfiles = true;
-    this.profilesLoaded = false;
-    this.profilesError = null;
-    this.profileLoadError = null;
-    this.profilesService
-      .list()
-      .pipe(finalize(() => (this.loadingProfiles = false)))
-      .subscribe({
-        next: (profiles) => {
-          this.profiles = profiles;
-          this.profilesLoaded = true;
-        },
-        error: () => {
-          this.profilesError = 'Não foi possível carregar os profiles.';
-          this.profileLoadError = 'Não foi possível carregar os perfis.';
-        },
-      });
+  private runInAngular(callback: () => void): void {
+    this.ngZone.run(() => {
+      callback();
+      this.cdr.detectChanges();
+    });
   }
 }
