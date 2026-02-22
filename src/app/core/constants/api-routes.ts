@@ -1,6 +1,10 @@
 export const API_ROUTES = {
   authLogin: '/auth/login',
   authLogout: '/auth/logout',
+  users: '/users',
+  userById: (id: number | string) => `/users/${id}`,
+  profiles: '/profiles',
+  profileById: (id: number | string) => `/profiles/${id}`,
   dashboardKpis: '/dashboard/kpis',
   platforms: '/platforms',
   platformById: (id: number | string) => `/platforms/${id}`,

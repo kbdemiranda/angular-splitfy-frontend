@@ -26,68 +26,107 @@
 
     <section class="settings-content" aria-live="polite">
       @if (activeSection === 'users') {
-        <article class="content-card">
-          <div class="content-header">
-            <h2>Usuários</h2>
-            <button type="button">Novo usuário</button>
-          </div>
-          <p>Cadastro, edição, consulta e remoção de usuários da aplicação.</p>
+        @if (usersLoading) {
+          <p>Carregando usuários...</p>
+        }
 
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>Email</th>
-                  <th>Status</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Ana Ferreira</td>
-                  <td>ana.ferreira@splitfy.com</td>
-                  <td>Ativo</td>
-                  <td>
-                    <button type="button" class="link">Editar</button>
-                    <button type="button" class="link danger">Excluir</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Lucas Nunes</td>
-                  <td>lucas.nunes@splitfy.com</td>
-                  <td>Inativo</td>
-                  <td>
-                    <button type="button" class="link">Editar</button>
-                    <button type="button" class="link danger">Excluir</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </article>
+        @if (usersError) {
+          <p>{{ usersError }}</p>
+        }
+
+        @if (usersLoaded) {
+          <article class="content-card">
+            <div class="content-header">
+              <h2>Usuários</h2>
+              <button type="button" (click)="openCreateUserModal()">Novo usuário</button>
+            </div>
+            <p>Cadastro, edição, consulta e remoção de usuários da aplicação.</p>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Perfil</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @if (users.length === 0) {
+                    <tr>
+                      <td colspan="5">Nenhum usuário encontrado.</td>
+                    </tr>
+                  } @else {
+                    @for (user of users; track user.id) {
+                      <tr>
+                        <td>{{ user.name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.profile }}</td>
+                        <td>{{ user.active ? 'Ativo' : 'Inativo' }}</td>
+                        <td>
+                          <button type="button" class="link" (click)="openEditUserModal(user)">Editar</button>
+                          <button type="button" class="link danger" (click)="askDeleteUser(user)">Excluir</button>
+                        </td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
+            </div>
+          </article>
+        }
       }
 
       @if (activeSection === 'profiles') {
-        <article class="content-card">
-          <div class="content-header">
-            <h2>Profiles</h2>
-            <button type="button">Novo profile</button>
-          </div>
-          <p>Defina perfis com permissões e regras de acesso para cada tipo de usuário.</p>
+        @if (loadingProfiles) {
+          <p>Carregando profiles...</p>
+        }
 
-          <div class="chips">
-            <span>Administrador</span>
-            <span>Financeiro</span>
-            <span>Operação</span>
-            <span>Somente leitura</span>
-          </div>
+        @if (profilesError) {
+          <p>{{ profilesError }}</p>
+        }
 
-          <div class="actions-row">
-            <button type="button">Gerenciar permissões</button>
-            <button type="button" class="secondary">Duplicar profile</button>
-          </div>
-        </article>
+        @if (profilesLoaded) {
+          <article class="content-card">
+            <div class="content-header">
+              <h2>Profiles</h2>
+              <button type="button" (click)="openCreateProfileModal()">Novo profile</button>
+            </div>
+            <p>Defina perfis com permissões e regras de acesso para cada tipo de usuário.</p>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @if (profiles.length === 0) {
+                    <tr>
+                      <td colspan="2">Nenhum profile encontrado.</td>
+                    </tr>
+                  } @else {
+                    @for (profile of profiles; track profile.id) {
+                      <tr>
+                        <td>{{ profile.name }}</td>
+                        <td>
+                          <button type="button" class="link" (click)="openEditProfileModal(profile)">Editar</button>
+                          <button type="button" class="link danger" (click)="askDeleteProfile(profile)">
+                            Excluir
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
+            </div>
+          </article>
+        }
       }
 
       @if (activeSection === 'system') {
@@ -127,3 +166,223 @@
     </section>
   </div>
 </section>
+
+@if (isCreateModalOpen) {
+  <div class="modal-overlay" (click)="closeCreateUserModal()">
+    <section class="modal" (click)="$event.stopPropagation()">
+      <h2>Novo usuário</h2>
+      <p>Preencha os dados para criar um novo usuário.</p>
+
+      <form [formGroup]="createUserForm" (ngSubmit)="submitCreateUser()" class="edit-form">
+        <label>
+          Nome
+          <input type="text" formControlName="name" placeholder="Nome completo" />
+          @if (createUserForm.controls.name.invalid && createUserForm.controls.name.touched) {
+            <small class="field-error">Informe um nome válido.</small>
+          }
+        </label>
+
+        <label>
+          Email
+          <input type="email" formControlName="email" placeholder="email@dominio.com" />
+          @if (createUserForm.controls.email.invalid && createUserForm.controls.email.touched) {
+            <small class="field-error">Informe um email válido.</small>
+          }
+        </label>
+
+        <label>
+          Senha
+          <input type="password" formControlName="password" placeholder="********" />
+          @if (createUserForm.controls.password.invalid && createUserForm.controls.password.touched) {
+            <small class="field-error">A senha deve ter no mínimo 8 caracteres.</small>
+          }
+        </label>
+
+        <label>
+          Perfil
+          <select formControlName="profileName">
+            <option value="">Selecione um perfil</option>
+            @for (profile of profiles; track profile.id) {
+              <option [value]="profile.name">{{ profile.name }}</option>
+            }
+          </select>
+          @if (loadingProfiles) {
+            <small>Carregando perfis...</small>
+          }
+          @if (profileLoadError) {
+            <small class="field-error">{{ profileLoadError }}</small>
+          }
+          @if (createUserForm.controls.profileName.invalid && createUserForm.controls.profileName.touched) {
+            <small class="field-error">Selecione um perfil.</small>
+          }
+        </label>
+
+        @if (createUserError) {
+          <small class="field-error">{{ createUserError }}</small>
+        }
+
+        <div class="modal-actions">
+          <button type="button" class="secondary" (click)="closeCreateUserModal()">Cancelar</button>
+          <button type="submit" class="primary" [disabled]="creatingUser">
+            {{ creatingUser ? 'Criando...' : 'Criar usuário' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}
+
+@if (isEditModalOpen) {
+  <div class="modal-overlay" (click)="closeEditUserModal()">
+    <section class="modal" (click)="$event.stopPropagation()">
+      <h2>Editar usuário</h2>
+      <p>Atualize os dados do usuário.</p>
+
+      <form [formGroup]="editUserForm" (ngSubmit)="submitEditUser()" class="edit-form">
+        <label>
+          Nome
+          <input type="text" formControlName="name" placeholder="Nome completo" />
+          @if (editUserForm.controls.name.invalid && editUserForm.controls.name.touched) {
+            <small class="field-error">Informe um nome válido.</small>
+          }
+        </label>
+
+        <label>
+          Email
+          <input type="email" formControlName="email" placeholder="email@dominio.com" />
+          @if (editUserForm.controls.email.invalid && editUserForm.controls.email.touched) {
+            <small class="field-error">Informe um email válido.</small>
+          }
+        </label>
+
+        <label>
+          Senha (opcional)
+          <input type="password" formControlName="password" placeholder="Deixe em branco para manter a atual" />
+          @if (editUserForm.controls.password.invalid && editUserForm.controls.password.touched) {
+            <small class="field-error">Se informada, a senha deve ter no mínimo 8 caracteres.</small>
+          }
+        </label>
+
+        <label>
+          Perfil
+          <select formControlName="profileName">
+            <option value="">Selecione um perfil</option>
+            @for (profile of profiles; track profile.id) {
+              <option [value]="profile.name">{{ profile.name }}</option>
+            }
+          </select>
+          @if (loadingProfiles) {
+            <small>Carregando perfis...</small>
+          }
+          @if (profileLoadError) {
+            <small class="field-error">{{ profileLoadError }}</small>
+          }
+          @if (editUserForm.controls.profileName.invalid && editUserForm.controls.profileName.touched) {
+            <small class="field-error">Selecione um perfil.</small>
+          }
+        </label>
+
+        @if (editUserError) {
+          <small class="field-error">{{ editUserError }}</small>
+        }
+
+        <div class="modal-actions">
+          <button type="button" class="secondary" (click)="closeEditUserModal()">Cancelar</button>
+          <button type="submit" class="primary" [disabled]="editingUser">
+            {{ editingUser ? 'Salvando...' : 'Salvar alterações' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}
+
+@if (selectedUserToDelete) {
+  <div class="modal-overlay" (click)="cancelDeleteUser()">
+    <section class="modal confirm-modal" (click)="$event.stopPropagation()">
+      <h2>Confirmar exclusão</h2>
+      <p>Tem certeza que deseja excluir {{ selectedUserToDelete.name }}?</p>
+      <div class="modal-actions">
+        <button type="button" class="secondary" (click)="cancelDeleteUser()">Cancelar</button>
+        <button type="button" class="danger" (click)="confirmDeleteUser()" [disabled]="deletingUser">
+          {{ deletingUser ? 'Excluindo...' : 'Excluir' }}
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (isCreateProfileModalOpen) {
+  <div class="modal-overlay" (click)="closeCreateProfileModal()">
+    <section class="modal" (click)="$event.stopPropagation()">
+      <h2>Novo profile</h2>
+      <p>Preencha os dados para criar um novo profile.</p>
+
+      <form [formGroup]="createProfileForm" (ngSubmit)="submitCreateProfile()" class="edit-form">
+        <label>
+          Nome
+          <input type="text" formControlName="name" placeholder="Ex.: VIEWER" />
+          @if (createProfileForm.controls.name.invalid && createProfileForm.controls.name.touched) {
+            <small class="field-error">Informe um nome válido.</small>
+          }
+        </label>
+
+        @if (createProfileError) {
+          <small class="field-error">{{ createProfileError }}</small>
+        }
+
+        <div class="modal-actions">
+          <button type="button" class="secondary" (click)="closeCreateProfileModal()">Cancelar</button>
+          <button type="submit" class="primary" [disabled]="creatingProfile">
+            {{ creatingProfile ? 'Criando...' : 'Criar profile' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}
+
+@if (isEditProfileModalOpen) {
+  <div class="modal-overlay" (click)="closeEditProfileModal()">
+    <section class="modal" (click)="$event.stopPropagation()">
+      <h2>Editar profile</h2>
+      <p>Atualize o nome do profile.</p>
+
+      <form [formGroup]="editProfileForm" (ngSubmit)="submitEditProfile()" class="edit-form">
+        <label>
+          Nome
+          <input type="text" formControlName="name" placeholder="Ex.: VIEWER" />
+          @if (editProfileForm.controls.name.invalid && editProfileForm.controls.name.touched) {
+            <small class="field-error">Informe um nome válido.</small>
+          }
+        </label>
+
+        @if (editProfileError) {
+          <small class="field-error">{{ editProfileError }}</small>
+        }
+
+        <div class="modal-actions">
+          <button type="button" class="secondary" (click)="closeEditProfileModal()">Cancelar</button>
+          <button type="submit" class="primary" [disabled]="editingProfile">
+            {{ editingProfile ? 'Salvando...' : 'Salvar alterações' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}
+
+@if (selectedProfileToDelete) {
+  <div class="modal-overlay" (click)="cancelDeleteProfile()">
+    <section class="modal confirm-modal" (click)="$event.stopPropagation()">
+      <h2>Confirmar exclusão</h2>
+      <p>Tem certeza que deseja excluir {{ selectedProfileToDelete.name }}?</p>
+      <div class="modal-actions">
+        <button type="button" class="secondary" (click)="cancelDeleteProfile()">Cancelar</button>
+        <button type="button" class="danger" (click)="confirmDeleteProfile()" [disabled]="deletingProfile">
+          {{ deletingProfile ? 'Excluindo...' : 'Excluir' }}
+        </button>
+      </div>
+    </section>
+  </div>
+}
