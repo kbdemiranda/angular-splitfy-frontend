@@ -66,8 +66,8 @@ Current frontend scope includes:
 ├── public/                   # Static public assets
 ├── Dockerfile.dev            # Development container image
 ├── Dockerfile                # Production multi-stage image
-├── docker-compose.yml        # Development compose stack (5000:4200)
-├── docker-compose.prod.yml   # Production compose stack (5000:80)
+├── docker-compose.yml        # Development compose stack (4200:4200)
+├── docker-compose.prod.yml   # Production compose stack (4200:80)
 ├── nginx.conf                # SPA routing for production runtime
 └── proxy.conf.json           # API proxy config for local/dev mode
 ```
@@ -108,7 +108,7 @@ Application URL: `http://localhost:4200`
 docker compose up --build
 ```
 
-Application URL: `http://localhost:5000`
+Application URL: `http://localhost:4200`
 
 ### Production-like container (Nginx serving compiled app)
 
@@ -116,7 +116,17 @@ Application URL: `http://localhost:5000`
 docker compose -f docker-compose.prod.yml up --build
 ```
 
-Application URL: `http://localhost:5000`
+Application URL: `http://localhost:4200`
+
+If port `4200` is already in use, override it at runtime:
+
+```bash
+FRONTEND_PORT=4201 docker compose up --build
+```
+
+```bash
+FRONTEND_PORT=4201 docker compose -f docker-compose.prod.yml up --build
+```
 
 ## Backend Integration
 
@@ -131,8 +141,8 @@ If your backend runs in another container/host, update `target` accordingly.
 
 ## Environment Notes
 
-- Dev compose maps host `5000` to container `4200`.
-- Prod compose maps host `5000` to container `80`.
+- Dev compose maps host `4200` to container `4200`.
+- Prod compose maps host `4200` to container `80`.
 - Keep these mappings aligned with your local backend and reverse proxy setup.
 
 ## Screenshots
@@ -196,7 +206,7 @@ Suggested workflow:
 
 ## Troubleshooting
 
-- Port `5000` already in use:
+- Port `4200` already in use:
   Update port mapping in `docker-compose.yml` and `docker-compose.prod.yml`.
 - API calls failing in development:
   Re-check `proxy.conf.json` target and backend availability.
