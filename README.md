@@ -1,59 +1,204 @@
-# AngularSplitfyFrontend
+<div align="center">
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.3.
+# Splitfy Frontend
 
-## Development server
+Angular-based web client for Splitfy.
+Manage subscriptions, billing flows, and account settings from a modern SPA.
 
-To start a local development server, run:
+[![Angular](https://img.shields.io/badge/Angular-21-dd0031?logo=angular&logoColor=white)](https://angular.dev/)
+[![Node](https://img.shields.io/badge/Node-22+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ed?logo=docker&logoColor=white)](https://www.docker.com/)
 
-```bash
-ng serve
+</div>
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Feature Scope](#feature-scope)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Docker Workflows](#docker-workflows)
+- [Backend Integration](#backend-integration)
+- [Environment Notes](#environment-notes)
+- [Screenshots](#screenshots)
+- [Available Scripts](#available-scripts)
+- [Quality Gates](#quality-gates)
+- [Contributing](#contributing)
+- [Troubleshooting](#troubleshooting)
+
+## Overview
+
+Splitfy Frontend is the UI layer of the Splitfy platform.
+It consumes backend APIs and provides the core product experience for end users and administrators.
+
+This repository is designed to support:
+
+- local development with fast feedback
+- containerized development and deployment
+- production static hosting via Nginx
+
+## Feature Scope
+
+Current frontend scope includes:
+
+- authentication flows
+- dashboard experience
+- subscribers management
+- billing/charges management
+- settings screens
+
+## Tech Stack
+
+- Angular 21
+- TypeScript
+- SCSS
+- RxJS
+- Docker + Docker Compose
+- Nginx (production container)
+
+## Project Structure
+
+```text
+.
+├── src/                      # Application source code
+├── public/                   # Static public assets
+├── Dockerfile.dev            # Development container image
+├── Dockerfile                # Production multi-stage image
+├── docker-compose.yml        # Development compose stack (5000:4200)
+├── docker-compose.prod.yml   # Production compose stack (5000:80)
+├── nginx.conf                # SPA routing for production runtime
+└── proxy.conf.json           # API proxy config for local/dev mode
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Prerequisites
 
-## Code scaffolding
+### Local mode (without Docker)
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- Node.js 22 or higher
+- npm 11 or higher
 
-```bash
-ng generate component component-name
-```
+### Container mode
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+- Docker Engine
+- Docker Compose v2
 
-```bash
-ng generate --help
-```
+## Quick Start
 
-## Building
-
-To build the project run:
+### 1. Install dependencies
 
 ```bash
-ng build
+npm install
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+### 2. Run in development mode
 
 ```bash
-ng test
+npm run start
 ```
 
-## Running end-to-end tests
+Application URL: `http://localhost:4200`
 
-For end-to-end (e2e) testing, run:
+## Docker Workflows
+
+### Development container (hot reload)
 
 ```bash
-ng e2e
+docker compose up --build
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Application URL: `http://localhost:5000`
 
-## Additional Resources
+### Production-like container (Nginx serving compiled app)
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```bash
+docker compose -f docker-compose.prod.yml up --build
+```
+
+Application URL: `http://localhost:5000`
+
+## Backend Integration
+
+Development API proxy is configured in `proxy.conf.json`.
+
+Current defaults:
+
+- route prefix: `/api`
+- target: `http://localhost:8080`
+
+If your backend runs in another container/host, update `target` accordingly.
+
+## Environment Notes
+
+- Dev compose maps host `5000` to container `4200`.
+- Prod compose maps host `5000` to container `80`.
+- Keep these mappings aligned with your local backend and reverse proxy setup.
+
+## Screenshots
+
+Add images under `docs/images/` using these filenames:
+
+- `login.png`
+- `dashboard.png`
+- `subscribers.png`
+- `billing.png`
+- `settings.png`
+
+### Login
+
+![Login screen placeholder](docs/images/login.png)
+
+### Dashboard
+
+![Dashboard placeholder](docs/images/dashboard.png)
+
+### Subscribers
+
+![Subscribers screen placeholder](docs/images/subscribers.png)
+
+### Billing
+
+![Billing screen placeholder](docs/images/billing.png)
+
+### Settings
+
+![Settings screen placeholder](docs/images/settings.png)
+
+## Available Scripts
+
+```bash
+npm run start      # Run Angular dev server
+npm run build      # Build production artifacts
+npm run test       # Run test suite
+```
+
+## Quality Gates
+
+Before opening a PR, run:
+
+```bash
+npm run build
+npm run test
+```
+
+## Contributing
+
+Contributions are welcome.
+
+Suggested workflow:
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Commit with clear, scoped messages.
+4. Validate build/tests locally.
+5. Open a pull request describing intent and impact.
+
+## Troubleshooting
+
+- Port `5000` already in use:
+  Update port mapping in `docker-compose.yml` and `docker-compose.prod.yml`.
+- API calls failing in development:
+  Re-check `proxy.conf.json` target and backend availability.
+- Dependency conflicts:
+  Remove `node_modules` and reinstall with `npm install`.
