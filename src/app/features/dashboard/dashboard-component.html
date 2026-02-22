@@ -6,7 +6,7 @@
     </div>
     <div class="month-controls">
       <button type="button" (click)="loadPreviousMonth()" [attr.aria-label]="'dashboard.prev_month' | t">
-        {{ 'common.previous' | t }}
+        &lt;
       </button>
       <input
         type="month"
@@ -15,7 +15,7 @@
         [attr.aria-label]="'dashboard.select_month' | t"
       />
       <button type="button" (click)="loadNextMonth()" [attr.aria-label]="'dashboard.next_month' | t">
-        {{ 'common.next' | t }}
+        &gt;
       </button>
     </div>
   </header>

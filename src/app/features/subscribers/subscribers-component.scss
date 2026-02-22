@@ -202,6 +202,29 @@
   padding: 8px 10px;
 }
 
+.month-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.month-nav-button {
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #1e293b;
+  color: #e2e8f0;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.month-nav-button:hover {
+  background: #334155;
+}
+
 .billing-header input:focus {
   outline: 2px solid #0284c7;
   outline-offset: 1px;

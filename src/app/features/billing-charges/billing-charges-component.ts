@@ -133,6 +133,22 @@ export class BillingChargesComponent implements OnInit {
     this.loadBilling(this.selectedSubscriber.id, referenceMonth);
   }
 
+  loadPreviousBillingMonth(): void {
+    this.changeBillingMonth(this.shiftMonth(this.billingReferenceMonth, -1));
+  }
+
+  loadNextBillingMonth(): void {
+    this.changeBillingMonth(this.shiftMonth(this.billingReferenceMonth, 1));
+  }
+
+  changeBulkChargeMonth(offset: number): void {
+    this.bulkChargeReferenceMonth = this.shiftMonth(this.bulkChargeReferenceMonth, offset);
+  }
+
+  changeRegisterPaymentMonth(offset: number): void {
+    this.registerPaymentReferenceMonth = this.shiftMonth(this.registerPaymentReferenceMonth, offset);
+  }
+
   initials(name: string): string {
     return name
       .split(' ')
@@ -498,6 +514,12 @@ export class BillingChargesComponent implements OnInit {
   private currentReferenceMonth(): string {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  private shiftMonth(referenceMonth: string, offset: number): string {
+    const [year, month] = referenceMonth.split('-').map(Number);
+    const date = new Date(year, month - 1 + offset, 1);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
   }
 
   private runInZone(action: () => void): void {
