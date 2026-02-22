@@ -3,6 +3,8 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { finalize } from 'rxjs';
 import { ProfilesService } from '../../core/services/profiles.service';
 import { UsersService } from '../../core/services/users.service';
+import { I18nService } from '../../core/i18n/i18n.service';
+import { AppLanguage, LANGUAGE_OPTIONS, LanguageOption } from '../../core/i18n/translations';
 import { ProfileCreateRequest, ProfileResponse, ProfileUpdateRequest } from '../../shared/models/profiles.model';
 import { UserCreateRequest, UserResponse, UserUpdateRequest } from '../../shared/models/users.model';
 
@@ -10,8 +12,8 @@ type SettingsSectionKey = 'users' | 'profiles' | 'system';
 
 interface SettingsSection {
   readonly key: SettingsSectionKey;
-  readonly label: string;
-  readonly description: string;
+  readonly labelKey: string;
+  readonly descriptionKey: string;
 }
 
 @Component({
@@ -24,22 +26,25 @@ export class SettingsComponent implements OnInit {
   readonly sections: SettingsSection[] = [
     {
       key: 'users',
-      label: 'Usuários',
-      description: 'CRUD de usuários da aplicação.',
+      labelKey: 'settings.section_users',
+      descriptionKey: 'settings.section_users_desc',
     },
     {
       key: 'profiles',
-      label: 'Profiles',
-      description: 'CRUD de perfis e níveis de acesso.',
+      labelKey: 'settings.section_profiles',
+      descriptionKey: 'settings.section_profiles_desc',
     },
     {
       key: 'system',
-      label: 'Configurações do Sistema',
-      description: 'Idioma, temas e preferências globais.',
+      labelKey: 'settings.section_system',
+      descriptionKey: 'settings.section_system_desc',
     },
   ];
 
+  readonly languageOptions: readonly LanguageOption[] = LANGUAGE_OPTIONS;
   activeSection: SettingsSectionKey = 'users';
+  selectedLanguage: AppLanguage = 'pt-BR';
+  systemFeedback: string | null = null;
   users: UserResponse[] = [];
   usersLoading = false;
   usersLoaded = false;
@@ -90,6 +95,7 @@ export class SettingsComponent implements OnInit {
     private readonly usersService: UsersService,
     private readonly profilesService: ProfilesService,
     private readonly formBuilder: FormBuilder,
+    private readonly i18nService: I18nService,
   ) {
     this.createUserForm = this.formBuilder.group({
       name: this.formBuilder.nonNullable.control('', [Validators.required, Validators.minLength(3)]),
@@ -112,6 +118,7 @@ export class SettingsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.selectedLanguage = this.i18nService.currentLanguage;
     this.loadUsers();
   }
 
@@ -129,6 +136,11 @@ export class SettingsComponent implements OnInit {
 
   isSectionActive(section: SettingsSectionKey): boolean {
     return this.activeSection === section;
+  }
+
+  saveSystemSettings(): void {
+    this.i18nService.setLanguage(this.selectedLanguage);
+    this.systemFeedback = 'settings.saved';
   }
 
   openCreateUserModal(): void {

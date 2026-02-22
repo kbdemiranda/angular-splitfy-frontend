@@ -5,11 +5,11 @@
         type="button"
         class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800 sm:hidden"
         (click)="toggleMenu()"
-        aria-label="Abrir menu"
+        [attr.aria-label]="'nav.open_menu' | t"
       >
         <lucide-angular [img]="icons.menu" [size]="18"></lucide-angular>
       </button>
-      <strong class="text-sm font-semibold tracking-wide text-cyan-300 sm:text-base">SPLITFY</strong>
+      <strong class="text-sm font-semibold tracking-wide text-cyan-300 sm:text-base">{{ 'app.brand' | t }}</strong>
 
       <nav class="ml-4 hidden items-center gap-1 sm:flex">
         @for (item of navItems; track item.path) {
@@ -19,7 +19,7 @@
             class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-white"
           >
             <lucide-angular [img]="item.icon" [size]="16"></lucide-angular>
-            <span>{{ item.label }}</span>
+            <span>{{ item.labelKey | t }}</span>
           </a>
         }
       </nav>
@@ -31,7 +31,7 @@
       (click)="logout()"
     >
       <lucide-angular [img]="icons.logout" [size]="16"></lucide-angular>
-      Sair
+      {{ 'nav.logout' | t }}
     </button>
   </div>
 
@@ -49,7 +49,7 @@
           (click)="closeMenu()"
         >
           <lucide-angular [img]="item.icon" [size]="16"></lucide-angular>
-          <span>{{ item.label }}</span>
+          <span>{{ item.labelKey | t }}</span>
         </a>
       }
 
@@ -59,7 +59,7 @@
         (click)="logout()"
       >
         <lucide-angular [img]="icons.logout" [size]="16"></lucide-angular>
-        Sair
+        {{ 'nav.logout' | t }}
       </button>
     </div>
   </nav>

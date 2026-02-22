@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { CircleCheck, CircleX, Clock3, LucideIconData } from 'lucide-angular';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { SubscribersService } from '../../core/services/subscribers.service';
 import { SubscriberBillingService } from '../../core/services/subscriber-billing.service';
 import { PaymentConfirmationsService } from '../../core/services/payment-confirmations.service';
@@ -58,6 +59,7 @@ export class BillingChargesComponent implements OnInit {
     private readonly paymentConfirmationsService: PaymentConfirmationsService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly ngZone: NgZone,
+    private readonly i18nService: I18nService,
   ) {}
 
   ngOnInit(): void {
@@ -141,7 +143,7 @@ export class BillingChargesComponent implements OnInit {
   }
 
   formatCurrency(value: number | null | undefined, currency = 'BRL'): string {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(value ?? 0);
+    return new Intl.NumberFormat(this.i18nService.localeForIntl(), { style: 'currency', currency }).format(value ?? 0);
   }
 
   formatNullableCurrency(value: number | null | undefined, currency = 'BRL'): string {
@@ -157,7 +159,7 @@ export class BillingChargesComponent implements OnInit {
       return '-';
     }
 
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat(this.i18nService.localeForIntl(), {
       minimumFractionDigits: 2,
       maximumFractionDigits: 6,
     }).format(value);
@@ -168,20 +170,20 @@ export class BillingChargesComponent implements OnInit {
       return '-';
     }
 
-    return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(new Date(value));
+    return new Intl.DateTimeFormat(this.i18nService.localeForIntl(), { dateStyle: 'short' }).format(new Date(value));
   }
 
   billingCycleLabel(cycle: string): string {
     if (cycle === 'MONTHLY') {
-      return 'Mensal';
+      return this.i18nService.translate('status.monthly');
     }
 
     if (cycle === 'SEMI_ANNUAL') {
-      return 'Semestral';
+      return this.i18nService.translate('status.semi_annual');
     }
 
     if (cycle === 'ANNUAL') {
-      return 'Anual';
+      return this.i18nService.translate('status.annual');
     }
 
     return cycle;
@@ -189,15 +191,15 @@ export class BillingChargesComponent implements OnInit {
 
   paymentStatusLabel(status: string): string {
     if (status === 'PAID') {
-      return 'Pago';
+      return this.i18nService.translate('status.paid');
     }
 
     if (status === 'PENDING') {
-      return 'Pendente';
+      return this.i18nService.translate('status.pending');
     }
 
     if (status === 'UNPAID') {
-      return 'Não pago';
+      return this.i18nService.translate('status.unpaid');
     }
 
     return status;

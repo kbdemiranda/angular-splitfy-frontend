@@ -1,55 +1,59 @@
 <section class="dashboard-page">
   <header>
     <div>
-      <h1>Dashboard</h1>
-      <p>Visão geral por competência: {{ referenceMonthLabel }}</p>
+      <h1>{{ 'dashboard.title' | t }}</h1>
+      <p>{{ 'dashboard.overview' | t: { month: referenceMonthLabel } }}</p>
     </div>
     <div class="month-controls">
-      <button type="button" (click)="loadPreviousMonth()" aria-label="Mês anterior">Anterior</button>
+      <button type="button" (click)="loadPreviousMonth()" [attr.aria-label]="'dashboard.prev_month' | t">
+        {{ 'common.previous' | t }}
+      </button>
       <input
         type="month"
         [value]="selectedReferenceMonth"
         (change)="onReferenceMonthChange($any($event.target).value)"
-        aria-label="Selecionar mês de referência"
+        [attr.aria-label]="'dashboard.select_month' | t"
       />
-      <button type="button" (click)="loadNextMonth()" aria-label="Próximo mês">Próximo</button>
+      <button type="button" (click)="loadNextMonth()" [attr.aria-label]="'dashboard.next_month' | t">
+        {{ 'common.next' | t }}
+      </button>
     </div>
   </header>
 
   @if (isLoading) {
     <section class="loading-state" aria-live="polite" aria-busy="true">
-      <div class="spinner" role="status" aria-label="Carregando KPIs"></div>
-      <p>Carregando KPIs...</p>
+      <div class="spinner" role="status" [attr.aria-label]="'dashboard.loading_kpis' | t"></div>
+      <p>{{ 'dashboard.loading_kpis' | t }}</p>
     </section>
   } @else if (kpis) {
     <article class="grid">
       <div class="card">
-        <strong>Total devido</strong>
+        <strong>{{ 'dashboard.total_due' | t }}</strong>
         <span>{{ kpis.totalDue | currency: kpis.currency }}</span>
       </div>
       <div class="card">
-        <strong>Total pago</strong>
+        <strong>{{ 'dashboard.total_paid' | t }}</strong>
         <span>{{ kpis.totalPaid | currency: kpis.currency }}</span>
       </div>
       <div class="card">
-        <strong>Total pendente</strong>
+        <strong>{{ 'dashboard.total_pending' | t }}</strong>
         <span>{{ kpis.totalPending | currency: kpis.currency }}</span>
       </div>
       <div class="card">
-        <strong>Inadimplência</strong>
+        <strong>{{ 'dashboard.delinquency' | t }}</strong>
         <span>{{ kpis.delinquencyRate }}%</span>
       </div>
     </article>
 
     <section class="bottom-grid">
       <article class="status-card">
-        <h2>Pagamentos por status</h2>
+        <h2>{{ 'dashboard.by_status' | t }}</h2>
 
         <div class="status-content">
           <div class="donut" [style.background]="donutBackground">
             <div class="donut-hole">
               <strong>{{ totalStatusAmount | currency: kpis.currency }}</strong>
-              <small>Total</small>
+              <small>{{ 'dashboard.total' | t }}</small>
             </div>
           </div>
 
@@ -57,21 +61,21 @@
             <li>
               <span class="dot paid"></span>
               <div>
-                <strong>Pago</strong>
+                <strong>{{ 'dashboard.status_paid' | t }}</strong>
                 <small>{{ kpis.totalPaid | currency: kpis.currency }} ({{ paidPercentage | number: '1.0-1' }}%)</small>
               </div>
             </li>
             <li>
               <span class="dot pending"></span>
               <div>
-                <strong>Pendente (status)</strong>
+                <strong>{{ 'dashboard.status_pending' | t }}</strong>
                 <small>{{ kpis.totalPending | currency: kpis.currency }} ({{ pendingPercentage | number: '1.0-1' }}%)</small>
               </div>
             </li>
             <li>
               <span class="dot unpaid"></span>
               <div>
-                <strong>Não pago</strong>
+                <strong>{{ 'dashboard.status_unpaid' | t }}</strong>
                 <small>{{ kpis.totalUnpaid | currency: kpis.currency }} ({{ unpaidPercentage | number: '1.0-1' }}%)</small>
               </div>
             </li>
@@ -80,18 +84,18 @@
       </article>
 
       <article class="debtors-card">
-        <h2>Quem está devendo</h2>
+        <h2>{{ 'dashboard.debtors_title' | t }}</h2>
 
         @if (!debtorCount) {
-          <p class="empty-hint">Nenhum devedor neste mês.</p>
+          <p class="empty-hint">{{ 'dashboard.no_debtors' | t }}</p>
         } @else {
           <div class="table-wrapper">
             <table>
               <thead>
                 <tr>
-                  <th>Nome</th>
-                  <th>E-mail</th>
-                  <th>Dívida total</th>
+                  <th>{{ 'dashboard.name' | t }}</th>
+                  <th>{{ 'dashboard.email' | t }}</th>
+                  <th>{{ 'dashboard.total_debt' | t }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -108,9 +112,13 @@
 
           @if (debtorCount > debtorPageSize) {
             <footer class="pagination">
-              <button type="button" (click)="goToPreviousDebtorsPage()" [disabled]="currentDebtorPage === 1">Anterior</button>
-              <small>Página {{ currentDebtorPage }} de {{ totalDebtorPages }}</small>
-              <button type="button" (click)="goToNextDebtorsPage()" [disabled]="currentDebtorPage === totalDebtorPages">Próxima</button>
+              <button type="button" (click)="goToPreviousDebtorsPage()" [disabled]="currentDebtorPage === 1">
+                {{ 'common.previous' | t }}
+              </button>
+              <small>{{ 'common.page_of' | t: { current: currentDebtorPage, total: totalDebtorPages } }}</small>
+              <button type="button" (click)="goToNextDebtorsPage()" [disabled]="currentDebtorPage === totalDebtorPages">
+                {{ 'common.next' | t }}
+              </button>
             </footer>
           }
         }
@@ -118,7 +126,7 @@
     </section>
   } @else {
     <section class="empty-state">
-      <p>Nenhum dado de KPI disponível no momento.</p>
+      <p>{{ 'dashboard.no_data' | t }}</p>
     </section>
   }
 </section>

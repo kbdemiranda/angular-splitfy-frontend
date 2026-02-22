@@ -16,6 +16,7 @@ import { BillingChargesComponent } from './features/billing-charges/billing-char
 import { ApiBaseUrlInterceptor } from './core/interceptors/api-base-url.interceptor';
 import { AuthTokenInterceptor } from './core/interceptors/auth-token.interceptor';
 import { ErrorInterceptor } from './core/interceptors/error.interceptor';
+import { TranslatePipe } from './core/i18n/translate.pipe';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import { ErrorInterceptor } from './core/interceptors/error.interceptor';
     SubscriberSubscriptionsComponent,
     SettingsComponent,
     BillingChargesComponent,
+    TranslatePipe,
   ],
   imports: [BrowserModule, FormsModule, ReactiveFormsModule, AppRoutingModule, LUCIDE_ICONS],
   providers: [

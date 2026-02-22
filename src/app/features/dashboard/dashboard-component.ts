@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { DashboardDebtorItem, DashboardKpiResponse } from '../../shared/models/dashboard.model';
 import { finalize } from 'rxjs';
+import { I18nService } from '../../core/i18n/i18n.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -19,6 +20,7 @@ export class DashboardComponent implements OnInit {
   constructor(
     private readonly dashboardService: DashboardService,
     private readonly changeDetectorRef: ChangeDetectorRef,
+    private readonly i18nService: I18nService,
   ) {}
 
   ngOnInit(): void {
@@ -91,7 +93,9 @@ export class DashboardComponent implements OnInit {
       return this.selectedReferenceMonth;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date(year, month - 1, 1));
+    return new Intl.DateTimeFormat(this.i18nService.localeForIntl(), { month: 'long', year: 'numeric' }).format(
+      new Date(year, month - 1, 1),
+    );
   }
 
   get totalStatusAmount(): number {

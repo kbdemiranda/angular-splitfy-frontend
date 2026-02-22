@@ -17,7 +17,7 @@ import { AuthService } from '../../core/services/auth.service';
 
 interface NavItem {
   path: string;
-  label: string;
+  labelKey: string;
   icon: LucideIconData;
 }
 
@@ -36,27 +36,27 @@ export class NavbarComponent {
   readonly navItems: NavItem[] = [
     {
       path: '/dashboard',
-      label: 'Dashboard',
+      labelKey: 'nav.dashboard',
       icon: LayoutDashboard,
     },
     {
       path: '/subscriber',
-      label: 'Assinantes',
+      labelKey: 'nav.subscribers',
       icon: Users,
     },
     {
       path: '/platforms',
-      label: 'Plataformas',
+      labelKey: 'nav.platforms',
       icon: Cloud,
     },
     {
       path: '/billing-charges',
-      label: 'Cobranças',
+      labelKey: 'nav.billing',
       icon: CircleCheck,
     },
     {
       path: '/settings',
-      label: 'Configurações',
+      labelKey: 'nav.settings',
       icon: Settings,
     },
   ];

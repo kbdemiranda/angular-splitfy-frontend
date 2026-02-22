@@ -1,8 +1,8 @@
 @if (isLoadingSubscribers && !hasLoadedSubscribers) {
   <section class="subscribers-page">
     <section class="loading-state" aria-live="polite" aria-busy="true">
-      <div class="spinner" role="status" aria-label="Carregando assinantes"></div>
-      <p>Carregando assinantes...</p>
+      <div class="spinner" role="status" [attr.aria-label]="'subscribers.loading' | t"></div>
+      <p>{{ 'subscribers.loading' | t }}</p>
     </section>
   </section>
 } @else if (subscribersError && !hasLoadedSubscribers) {
@@ -12,8 +12,8 @@
 } @else if (hasLoadedSubscribers) {
   <section class="subscribers-page">
     <header class="subscribers-header">
-      <h1>Assinantes</h1>
-      <p>Acompanhe os participantes ativos das suas plataformas.</p>
+      <h1>{{ 'subscribers.title' | t }}</h1>
+      <p>{{ 'subscribers.subtitle' | t }}</p>
     </header>
 
     @if (placeholderMessage) {
@@ -51,19 +51,19 @@
               (click)="openDetails(subscriber)"
               [disabled]="openingDetailsSubscriberId === subscriber.id"
             >
-              {{ openingDetailsSubscriberId === subscriber.id ? 'Carregando...' : 'Detalhar' }}
+              {{ openingDetailsSubscriberId === subscriber.id ? ('common.loading' | t) : ('subscribers.detail' | t) }}
             </button>
           </div>
         </li>
       }
 
       @if (subscribers.length === 0) {
-        <li class="empty-card">Nenhum assinante cadastrado.</li>
+        <li class="empty-card">{{ 'subscribers.empty' | t }}</li>
       }
     </ul>
 
     <button type="button" class="floating-create-button" (click)="openCreate()">
-      + Novo assinante
+      {{ 'subscribers.new' | t }}
     </button>
   </section>
 }

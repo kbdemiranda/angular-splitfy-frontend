@@ -1,25 +1,25 @@
 <section class="login-page">
   <article class="login-card">
-    <h1>Splitfy</h1>
-    <p>Faça login para acessar o painel.</p>
+    <h1>{{ 'login.title' | t }}</h1>
+    <p>{{ 'login.subtitle' | t }}</p>
 
     <form [formGroup]="form" (ngSubmit)="submit()">
-      <label for="email">E-mail</label>
+      <label for="email">{{ 'login.email' | t }}</label>
       <input id="email" type="email" formControlName="email" placeholder="email@splitfy.app" />
       @if (form.controls.email.touched && form.controls.email.invalid) {
-        <small>E-mail inválido.</small>
+        <small>{{ 'login.invalid_email' | t }}</small>
       }
 
-      <label for="password">Senha</label>
-      <input id="password" type="password" formControlName="password" placeholder="Sua senha" />
+      <label for="password">{{ 'login.password' | t }}</label>
+      <input id="password" type="password" formControlName="password" [attr.placeholder]="'login.password' | t" />
       @if (form.controls.password.touched && form.controls.password.invalid) {
-        <small>Senha obrigatória.</small>
+        <small>{{ 'login.required_password' | t }}</small>
       }
 
-      <div class="error" *ngIf="invalidLogin">Login inválido</div>
+      <div class="error" *ngIf="invalidLogin">{{ 'login.invalid_credentials' | t }}</div>
 
       <button type="submit" [disabled]="submitting">
-        {{ submitting ? 'Entrando...' : 'Entrar' }}
+        {{ submitting ? ('login.submitting' | t) : ('login.submit' | t) }}
       </button>
     </form>
   </article>

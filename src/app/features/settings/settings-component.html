@@ -1,11 +1,11 @@
 <section class="settings-page">
   <header class="settings-header">
-    <h1>Configurações</h1>
-    <p>Centralize as configurações administrativas da plataforma.</p>
+    <h1>{{ 'settings.title' | t }}</h1>
+    <p>{{ 'settings.subtitle' | t }}</p>
   </header>
 
   <div class="settings-layout">
-    <aside class="settings-sidebar" aria-label="Menu de configurações">
+    <aside class="settings-sidebar" [attr.aria-label]="'settings.menu' | t">
       <nav>
         <ul>
           @for (section of sections; track section.key) {
@@ -15,8 +15,8 @@
                 [class.active]="isSectionActive(section.key)"
                 (click)="selectSection(section.key)"
               >
-                <strong>{{ section.label }}</strong>
-                <span>{{ section.description }}</span>
+                <strong>{{ section.labelKey | t }}</strong>
+                <span>{{ section.descriptionKey | t }}</span>
               </button>
             </li>
           }
@@ -132,34 +132,24 @@
       @if (activeSection === 'system') {
         <article class="content-card">
           <div class="content-header">
-            <h2>Configurações do Sistema</h2>
-            <button type="button">Salvar alterações</button>
+            <h2>{{ 'settings.system_title' | t }}</h2>
+            <button type="button" (click)="saveSystemSettings()">{{ 'settings.save_changes' | t }}</button>
           </div>
-          <p>Ajuste idioma, tema e preferências globais da aplicação.</p>
+          <p>{{ 'settings.system_desc' | t }}</p>
 
           <form class="system-form">
             <label>
-              Idioma padrão
-              <select>
-                <option>Português (Brasil)</option>
-                <option>English (US)</option>
-                <option>Español</option>
+              {{ 'settings.language' | t }}
+              <select [(ngModel)]="selectedLanguage" name="selectedLanguage">
+                @for (option of languageOptions; track option.code) {
+                  <option [value]="option.code">{{ option.label }}</option>
+                }
               </select>
             </label>
 
-            <label>
-              Tema
-              <select>
-                <option>Escuro</option>
-                <option>Claro</option>
-                <option>Automático</option>
-              </select>
-            </label>
-
-            <label class="toggle-field">
-              <input type="checkbox" checked />
-              <span>Habilitar notificações administrativas por email</span>
-            </label>
+            @if (systemFeedback) {
+              <small>{{ systemFeedback | t }}</small>
+            }
           </form>
         </article>
       }

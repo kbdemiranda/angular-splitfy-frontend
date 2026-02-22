@@ -1,8 +1,8 @@
 @if (isLoading && !hasLoadedData) {
   <section class="platforms-page">
     <section class="loading-state" aria-live="polite" aria-busy="true">
-      <div class="spinner" role="status" aria-label="Carregando plataformas"></div>
-      <p>Carregando plataformas...</p>
+      <div class="spinner" role="status" [attr.aria-label]="'platforms.loading' | t"></div>
+      <p>{{ 'platforms.loading' | t }}</p>
     </section>
   </section>
 } @else if (errorMessage && !hasLoadedData) {
@@ -14,8 +14,8 @@
 } @else if (hasLoadedData) {
   <section class="platforms-page">
     <header class="platforms-header">
-      <h1>Plataformas</h1>
-      <p>Gerencie seus planos e acompanhe disponibilidade de vagas.</p>
+      <h1>{{ 'platforms.title' | t }}</h1>
+      <p>{{ 'platforms.subtitle' | t }}</p>
     </header>
 
     @if (placeholderMessage) {
@@ -49,7 +49,7 @@
 
               @if (openMenuPlatformId === platform.id) {
                 <div class="context-menu">
-                  <button type="button" (click)="openDetails(platform)">Detalhes</button>
+                  <button type="button" (click)="openDetails(platform)">{{ 'platforms.details' | t }}</button>
                   <button type="button" (click)="openEdit(platform)">Editar</button>
                   <button type="button" class="danger" (click)="askDelete(platform)">Excluir</button>
                 </div>
@@ -76,13 +76,13 @@
 
       @if (platforms.length === 0) {
         <article class="empty-card">
-          <strong>Nenhuma plataforma cadastrada.</strong>
+          <strong>{{ 'platforms.empty' | t }}</strong>
         </article>
       }
     </div>
 
     <button type="button" class="floating-create-button" (click)="openCreate()">
-      + Nova plataforma
+      {{ 'platforms.new' | t }}
     </button>
   </section>
 }
@@ -187,7 +187,7 @@
         }
 
         <div class="modal-actions sm:col-span-2">
-          <button type="button" class="secondary" (click)="closeDetails()">Fechar</button>
+          <button type="button" class="secondary" (click)="closeDetails()">{{ 'platforms.close' | t }}</button>
           <button type="button" class="primary" (click)="openEditFromDetails()">Editar</button>
           <button type="button" class="danger" (click)="askDeleteFromDetails()">Excluir</button>
         </div>

@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
 import { CircleCheck, CircleX, Clock3, LucideIconData } from 'lucide-angular';
+import { I18nService } from '../../core/i18n/i18n.service';
 import { SubscriberBillingService } from '../../core/services/subscriber-billing.service';
 import { SubscriberBillingItem, SubscriberBillingResponse } from '../../shared/models/subscriber-billing.model';
 import { PlatformResponse } from '../../shared/models/platforms.model';
@@ -77,6 +78,7 @@ export class SubscribersComponent implements OnInit {
     private readonly subscriberBillingService: SubscriberBillingService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly ngZone: NgZone,
+    private readonly i18nService: I18nService,
   ) {
     this.editProfileForm = this.formBuilder.group({
       name: this.formBuilder.nonNullable.control('', [Validators.required, Validators.minLength(3)]),
@@ -432,7 +434,7 @@ export class SubscribersComponent implements OnInit {
   }
 
   formatCurrency(value: number, currency = 'BRL'): string {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(value);
+    return new Intl.NumberFormat(this.i18nService.localeForIntl(), { style: 'currency', currency }).format(value);
   }
 
   changeBillingMonth(referenceMonth: string): void {
@@ -452,11 +454,11 @@ export class SubscribersComponent implements OnInit {
 
   billingCycleLabel(cycle: string): string {
     if (cycle === 'MONTHLY') {
-      return 'Mensal';
+      return this.i18nService.translate('status.monthly');
     }
 
     if (cycle === 'ANNUAL') {
-      return 'Anual';
+      return this.i18nService.translate('status.annual');
     }
 
     return cycle;
@@ -464,15 +466,15 @@ export class SubscribersComponent implements OnInit {
 
   paymentStatusLabel(status: string): string {
     if (status === 'PAID') {
-      return 'Pago';
+      return this.i18nService.translate('status.paid');
     }
 
     if (status === 'PENDING') {
-      return 'Pendente';
+      return this.i18nService.translate('status.pending');
     }
 
     if (status === 'UNPAID') {
-      return 'Não pago';
+      return this.i18nService.translate('status.unpaid');
     }
 
     return status;

@@ -1,8 +1,8 @@
 @if (isLoadingSubscribers && !hasLoadedSubscribers) {
   <section class="billing-page">
     <section class="loading-state" aria-live="polite" aria-busy="true">
-      <div class="spinner" role="status" aria-label="Carregando assinantes"></div>
-      <p>Carregando assinantes...</p>
+      <div class="spinner" role="status" [attr.aria-label]="'billing.loading' | t"></div>
+      <p>{{ 'billing.loading' | t }}</p>
     </section>
   </section>
 } @else if (subscribersError && !hasLoadedSubscribers) {
@@ -13,10 +13,12 @@
   <section class="billing-page">
     <header class="page-header">
       <div>
-        <h1>Cobranças</h1>
-        <p>Selecione um assinante para visualizar as plataformas pendentes por mês de referência.</p>
+        <h1>{{ 'billing.title' | t }}</h1>
+        <p>{{ 'billing.subtitle' | t }}</p>
       </div>
-      <button type="button" class="bulk-charge-trigger" (click)="openBulkChargeModal()">Cobrar usuários</button>
+      <button type="button" class="bulk-charge-trigger" (click)="openBulkChargeModal()">
+        {{ 'billing.charge_users' | t }}
+      </button>
     </header>
 
     <ul role="list" class="subscribers-grid">
@@ -36,7 +38,7 @@
             [disabled]="openingDetailsSubscriberId === subscriber.id"
             (click)="openDetails(subscriber)"
           >
-            {{ openingDetailsSubscriberId === subscriber.id ? 'Carregando...' : 'Detalhes' }}
+            {{ openingDetailsSubscriberId === subscriber.id ? ('common.loading' | t) : ('billing.details' | t) }}
           </button>
         </li>
       }
@@ -120,7 +122,7 @@
         <h2>Detalhes da cobrança</h2>
         <div class="header-actions">
           <button type="button" class="charge-btn" [disabled]="charging" (click)="sendChargeEmail()">
-            {{ charging ? 'Cobrando...' : 'Cobrar' }}
+            {{ charging ? ('billing.charging' | t) : ('billing.charge' | t) }}
           </button>
           <button type="button" class="secondary-btn" [disabled]="billingLoading" (click)="openRegisterPaymentModal()">
             Registrar pagamento
