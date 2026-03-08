@@ -41,7 +41,9 @@
                 }
               </div>
             </div>
-            <div class="avatar">{{ initials(subscriber.name) }}</div>
+            <div class="avatar" aria-hidden="true">
+              <lucide-angular [img]="subscriberIcon" [size]="40"></lucide-angular>
+            </div>
           </div>
 
           <div class="mt-auto">
@@ -77,7 +79,9 @@
       </div>
 
       <div class="subscriber-identification">
-        <div class="avatar large">{{ initials(selectedSubscriber.name) }}</div>
+        <div class="avatar large" aria-hidden="true">
+          <lucide-angular [img]="subscriberIcon" [size]="48"></lucide-angular>
+        </div>
         <div>
           <strong>{{ selectedSubscriber.name }}</strong>
           <p>{{ selectedSubscriber.email }}</p>

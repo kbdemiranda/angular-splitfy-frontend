@@ -79,9 +79,15 @@
   gap: 8px;
 }
 
+.card-copy {
+  min-width: 0;
+  flex: 1;
+}
+
 .card-body h3 {
   margin: 0;
   font-size: 0.98rem;
+  overflow-wrap: anywhere;
 }
 
 .card-body p {
@@ -93,17 +99,18 @@
 .avatar {
   width: 42px;
   height: 42px;
-  border-radius: 9999px;
+  min-width: 42px;
+  flex-shrink: 0;
   display: grid;
   place-items: center;
-  background: #0ea5e9;
-  color: #082f49;
-  font-weight: 700;
+  color: #38bdf8;
 }
 
 .avatar.large {
   width: 58px;
   height: 58px;
+  min-width: 58px;
+  color: #67e8f9;
 }
 
 .card-action {

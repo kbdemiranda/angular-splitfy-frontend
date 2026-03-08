@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
-import { CircleCheck, CircleX, Clock3, LucideIconData } from 'lucide-angular';
+import { CircleCheck, CircleUser, CircleX, Clock3, LucideIconData } from 'lucide-angular';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { SubscriberBillingService } from '../../core/services/subscriber-billing.service';
 import { SubscriberBillingItem, SubscriberBillingResponse } from '../../shared/models/subscriber-billing.model';
@@ -70,6 +70,7 @@ export class SubscribersComponent implements OnInit {
     PENDING: Clock3,
     UNPAID: CircleX,
   };
+  readonly subscriberIcon = CircleUser;
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -422,15 +423,6 @@ export class SubscribersComponent implements OnInit {
 
   closePlaceholderMessage(): void {
     this.placeholderMessage = null;
-  }
-
-  initials(name: string): string {
-    return name
-      .split(' ')
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase() ?? '')
-      .join('');
   }
 
   formatCurrency(value: number, currency = 'BRL'): string {

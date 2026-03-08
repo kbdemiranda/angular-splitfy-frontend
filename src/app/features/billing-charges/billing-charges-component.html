@@ -25,11 +25,12 @@
       @for (subscriber of subscribers; track trackById($index, subscriber)) {
         <li class="subscriber-card">
           <div class="card-body">
-            <div>
+            <div class="card-copy">
               <h3>{{ subscriber.name }}</h3>
-              <p>{{ subscriber.email }}</p>
             </div>
-            <div class="avatar">{{ initials(subscriber.name) }}</div>
+            <div class="avatar" aria-hidden="true">
+              <lucide-angular [img]="subscriberIcon" [size]="32"></lucide-angular>
+            </div>
           </div>
 
           <button
@@ -150,7 +151,9 @@
       </div>
 
       <div class="subscriber-identification">
-        <div class="avatar large">{{ initials(selectedSubscriber.name) }}</div>
+        <div class="avatar large" aria-hidden="true">
+          <lucide-angular [img]="subscriberIcon" [size]="42"></lucide-angular>
+        </div>
         <div>
           <strong>{{ selectedSubscriber.name }}</strong>
           <p>{{ selectedSubscriber.email }}</p>

@@ -66,19 +66,15 @@
 .avatar {
   width: 56px;
   height: 56px;
-  border-radius: 999px;
   display: grid;
   place-items: center;
-  background: #e2e8f0;
-  color: #0f172a;
-  font-weight: 700;
+  color: #38bdf8;
 }
 
 .avatar.large {
   width: 64px;
   height: 64px;
-  background: #e2e8f0;
-  color: #0f172a;
+  color: #67e8f9;
 }
 
 .empty-card {

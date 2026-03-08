@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
-import { CircleCheck, CircleX, Clock3, LucideIconData } from 'lucide-angular';
+import { CircleCheck, CircleUser, CircleX, Clock3, LucideIconData } from 'lucide-angular';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { SubscribersService } from '../../core/services/subscribers.service';
 import { SubscriberBillingService } from '../../core/services/subscriber-billing.service';
@@ -52,6 +52,7 @@ export class BillingChargesComponent implements OnInit {
     PENDING: Clock3,
     UNPAID: CircleX,
   };
+  readonly subscriberIcon = CircleUser;
 
   constructor(
     private readonly subscribersService: SubscribersService,
@@ -147,15 +148,6 @@ export class BillingChargesComponent implements OnInit {
 
   changeRegisterPaymentMonth(offset: number): void {
     this.registerPaymentReferenceMonth = this.shiftMonth(this.registerPaymentReferenceMonth, offset);
-  }
-
-  initials(name: string): string {
-    return name
-      .split(' ')
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase() ?? '')
-      .join('');
   }
 
   formatCurrency(value: number | null | undefined, currency = 'BRL'): string {
