@@ -177,6 +177,134 @@
             }
           </form>
       </article>
+
+      <article class="content-card">
+        <div class="content-header">
+          <div>
+            <p class="section-kicker">Agendamento</p>
+            <h2>E-mail do dashboard</h2>
+          </div>
+          <button
+            type="button"
+            [disabled]="!isAdmin || scheduleLoading || scheduleSaving"
+            (click)="saveDashboardEmailSchedule()"
+          >
+            {{ scheduleSaving ? 'Salvando...' : 'Salvar configuração' }}
+          </button>
+        </div>
+        <p>Configure em quais dias e horários o dashboard deve ser enviado por e-mail.</p>
+
+        @if (!isAdmin) {
+          <p class="inline-feedback error">Apenas administradores podem configurar esse agendamento.</p>
+        } @else if (scheduleLoading && !scheduleLoaded) {
+          <p>Carregando configuração de agendamento...</p>
+        } @else if (scheduleError && !scheduleLoaded) {
+          <div class="schedule-state">
+            <p class="inline-feedback error">{{ scheduleError }}</p>
+            <button type="button" class="secondary-inline" (click)="retryLoadDashboardEmailSchedule()">
+              Tentar novamente
+            </button>
+          </div>
+        } @else {
+          <form class="schedule-form" (ngSubmit)="saveDashboardEmailSchedule()">
+            <div class="schedule-top-row">
+              <label class="switch-field">
+                <span>Agendamento ativo</span>
+                <span class="switch-control">
+                  <input
+                    type="checkbox"
+                    name="scheduleEnabled"
+                    [(ngModel)]="scheduleEnabled"
+                    (ngModelChange)="scheduleSuccess = null"
+                  />
+                  <span class="switch-slider"></span>
+                </span>
+              </label>
+
+              <label>
+                Timezone
+                <input
+                  type="text"
+                  name="scheduleTimezone"
+                  [(ngModel)]="scheduleTimezone"
+                  list="timezone-options"
+                  placeholder="America/Sao_Paulo"
+                  (ngModelChange)="scheduleValidationError = null; scheduleSuccess = null"
+                />
+                <datalist id="timezone-options">
+                  @for (timezone of timezoneOptions; track timezone) {
+                    <option [value]="timezone"></option>
+                  }
+                </datalist>
+              </label>
+            </div>
+
+            <div class="schedule-list">
+              <div class="schedule-list-header">
+                <div>
+                  <strong>Horários configurados</strong>
+                  <small>Os envios são ordenados por dia e hora ao renderizar e ao salvar.</small>
+                </div>
+                <button type="button" class="secondary-inline" (click)="addScheduleOccurrence()">
+                  Adicionar horário
+                </button>
+              </div>
+
+              @if (!hasScheduleOccurrences) {
+                <div class="empty-occurrences">
+                  <p>Nenhum horário configurado.</p>
+                  <small>Adicione pelo menos uma ocorrência para ativar o envio recorrente.</small>
+                </div>
+              } @else {
+                <div class="occurrence-list">
+                  @for (occurrence of scheduleOccurrences; track trackOccurrence($index, occurrence); let index = $index) {
+                    <div class="occurrence-row">
+                      <label>
+                        Dia da semana
+                        <select
+                          [name]="'dayOfWeek-' + index"
+                          [(ngModel)]="occurrence.dayOfWeek"
+                          (ngModelChange)="onScheduleOccurrenceChange()"
+                        >
+                          @for (day of dayOfWeekOptions; track day.value) {
+                            <option [ngValue]="day.value">{{ day.label }}</option>
+                          }
+                        </select>
+                      </label>
+
+                      <label>
+                        Horário
+                        <input
+                          type="time"
+                          [name]="'executionTime-' + index"
+                          [(ngModel)]="occurrence.executionTime"
+                          (ngModelChange)="onScheduleOccurrenceChange()"
+                        />
+                      </label>
+
+                      <button type="button" class="remove-occurrence" (click)="removeScheduleOccurrence(index)">
+                        Remover
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            @if (scheduleValidationError) {
+              <p class="inline-feedback error">{{ scheduleValidationError }}</p>
+            }
+
+            @if (scheduleSuccess) {
+              <p class="inline-feedback success">{{ scheduleSuccess }}</p>
+            }
+
+            @if (scheduleError && scheduleLoaded) {
+              <p class="inline-feedback error">{{ scheduleError }}</p>
+            }
+          </form>
+        }
+      </article>
     </section>
   }
 </section>

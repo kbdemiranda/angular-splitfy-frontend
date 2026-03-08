@@ -7,6 +7,14 @@ import { I18nService } from '../../core/i18n/i18n.service';
 import { AppLanguage, LANGUAGE_OPTIONS, LanguageOption } from '../../core/i18n/translations';
 import { UserCreateRequest, UserResponse, UserUpdateRequest } from '../../shared/models/users.model';
 import { ThemeMode, ThemePalette, ThemeService } from '../../core/services/theme.service';
+import {
+  DashboardEmailOccurrence,
+  DashboardEmailScheduleRequest,
+  DashboardEmailScheduleResponse,
+  DayOfWeek,
+} from '../../shared/models/email-schedules.model';
+import { EmailSchedulesService } from '../../core/services/email-schedules.service';
+import { AuthService } from '../../core/services/auth.service';
 
 interface ThemeModeOption {
   readonly value: ThemeMode;
@@ -18,6 +26,17 @@ interface ThemePaletteOption {
   readonly label: string;
   readonly description: string;
   readonly preview: readonly [string, string, string];
+}
+
+interface DayOfWeekOption {
+  readonly value: DayOfWeek;
+  readonly label: string;
+  readonly shortLabel: string;
+}
+
+interface ScheduleOccurrenceFormValue {
+  dayOfWeek: DayOfWeek;
+  executionTime: string;
 }
 
 @Component({
@@ -70,6 +89,16 @@ export class SettingsComponent implements OnInit {
       preview: ['#64748b', '#94a3b8', '#111827'],
     },
   ];
+  readonly dayOfWeekOptions: readonly DayOfWeekOption[] = [
+    { value: 1, label: 'Segunda-feira', shortLabel: 'Seg' },
+    { value: 2, label: 'Terça-feira', shortLabel: 'Ter' },
+    { value: 3, label: 'Quarta-feira', shortLabel: 'Qua' },
+    { value: 4, label: 'Quinta-feira', shortLabel: 'Qui' },
+    { value: 5, label: 'Sexta-feira', shortLabel: 'Sex' },
+    { value: 6, label: 'Sábado', shortLabel: 'Sáb' },
+    { value: 7, label: 'Domingo', shortLabel: 'Dom' },
+  ];
+  readonly timezoneOptions = this.buildTimezoneOptions();
   selectedLanguage: AppLanguage = 'pt-BR';
   selectedThemeMode: ThemeMode = 'dark';
   selectedThemePalette: ThemePalette = 'default';
@@ -85,6 +114,15 @@ export class SettingsComponent implements OnInit {
   dashboardEmailUpdatingValue: boolean | null = null;
   selectedUserToReplaceDashboardRecipient: UserResponse | null = null;
   dashboardEmailConflictMessage: string | null = null;
+  scheduleEnabled = false;
+  scheduleTimezone = 'America/Sao_Paulo';
+  scheduleOccurrences: ScheduleOccurrenceFormValue[] = [];
+  scheduleLoading = false;
+  scheduleLoaded = false;
+  scheduleSaving = false;
+  scheduleError: string | null = null;
+  scheduleSuccess: string | null = null;
+  scheduleValidationError: string | null = null;
   private hasRetriedInitialLoad = false;
   isCreateModalOpen = false;
   isEditModalOpen = false;
@@ -108,6 +146,8 @@ export class SettingsComponent implements OnInit {
 
   constructor(
     private readonly usersService: UsersService,
+    private readonly emailSchedulesService: EmailSchedulesService,
+    private readonly authService: AuthService,
     private readonly formBuilder: FormBuilder,
     private readonly i18nService: I18nService,
     private readonly themeService: ThemeService,
@@ -132,6 +172,17 @@ export class SettingsComponent implements OnInit {
     this.selectedThemeMode = theme.mode;
     this.selectedThemePalette = theme.palette;
     this.loadUsers();
+    if (this.isAdmin) {
+      this.loadDashboardEmailSchedule();
+    }
+  }
+
+  get isAdmin(): boolean {
+    return this.authService.getSession()?.profile === 'ADMIN';
+  }
+
+  get hasScheduleOccurrences(): boolean {
+    return this.scheduleOccurrences.length > 0;
   }
 
   saveSystemSettings(): void {
@@ -145,6 +196,83 @@ export class SettingsComponent implements OnInit {
 
   selectPalette(palette: ThemePalette): void {
     this.selectedThemePalette = palette;
+  }
+
+  addScheduleOccurrence(): void {
+    this.scheduleValidationError = null;
+    this.scheduleSuccess = null;
+    this.scheduleOccurrences = [
+      ...this.scheduleOccurrences,
+      {
+        dayOfWeek: 1,
+        executionTime: '09:00',
+      },
+    ];
+  }
+
+  removeScheduleOccurrence(index: number): void {
+    this.scheduleValidationError = null;
+    this.scheduleSuccess = null;
+    this.scheduleOccurrences = this.scheduleOccurrences.filter((_, currentIndex) => currentIndex !== index);
+  }
+
+  onScheduleOccurrenceChange(): void {
+    this.scheduleValidationError = null;
+    this.scheduleSuccess = null;
+  }
+
+  saveDashboardEmailSchedule(): void {
+    if (!this.isAdmin || this.scheduleSaving) {
+      return;
+    }
+
+    const validationMessage = this.validateSchedule();
+    if (validationMessage) {
+      this.scheduleValidationError = validationMessage;
+      this.scheduleSuccess = null;
+      return;
+    }
+
+    this.scheduleSaving = true;
+    this.scheduleError = null;
+    this.scheduleSuccess = null;
+    this.scheduleValidationError = null;
+
+    const payload: DashboardEmailScheduleRequest = {
+      enabled: this.scheduleEnabled,
+      timezone: this.scheduleTimezone.trim(),
+      occurrences: this.sortOccurrences(this.scheduleOccurrences).map((occurrence) => ({
+        dayOfWeek: occurrence.dayOfWeek,
+        executionTime: occurrence.executionTime,
+      })),
+    };
+
+    this.emailSchedulesService
+      .updateDashboardSchedule(payload)
+      .pipe(finalize(() => (this.scheduleSaving = false)))
+      .subscribe({
+        next: (response) => {
+          this.applyDashboardEmailSchedule(response);
+          this.scheduleLoaded = true;
+          this.scheduleSuccess = 'Agendamento do e-mail do dashboard salvo com sucesso.';
+        },
+        error: (error: HttpErrorResponse) => {
+          this.scheduleError =
+            this.extractErrorMessage(error) ?? 'Não foi possível salvar o agendamento do e-mail do dashboard.';
+        },
+      });
+  }
+
+  retryLoadDashboardEmailSchedule(): void {
+    if (!this.isAdmin) {
+      return;
+    }
+
+    this.loadDashboardEmailSchedule();
+  }
+
+  trackOccurrence(index: number, occurrence: ScheduleOccurrenceFormValue): string {
+    return `${index}-${occurrence.dayOfWeek}-${occurrence.executionTime}`;
   }
 
   openCreateUserModal(): void {
@@ -352,9 +480,77 @@ export class SettingsComponent implements OnInit {
 
           this.runInAngular(() => {
             this.usersError = 'Não foi possível carregar os usuários.';
+            this.initialUsersLoaded = true;
           });
         },
       });
+  }
+
+  private loadDashboardEmailSchedule(): void {
+    this.scheduleLoading = true;
+    this.scheduleError = null;
+    this.scheduleSuccess = null;
+    this.scheduleValidationError = null;
+
+    this.emailSchedulesService
+      .getDashboardSchedule()
+      .pipe(finalize(() => (this.scheduleLoading = false)))
+      .subscribe({
+        next: (response) => {
+          this.applyDashboardEmailSchedule(response);
+          this.scheduleLoaded = true;
+        },
+        error: (error: HttpErrorResponse) => {
+          this.scheduleLoaded = false;
+          this.scheduleError =
+            this.extractErrorMessage(error) ?? 'Não foi possível carregar o agendamento do e-mail do dashboard.';
+        },
+      });
+  }
+
+  private applyDashboardEmailSchedule(response: DashboardEmailScheduleResponse): void {
+    this.scheduleEnabled = response.enabled;
+    this.scheduleTimezone = response.timezone;
+    this.scheduleOccurrences = this.sortOccurrences(response.occurrences).map((occurrence) => ({
+      dayOfWeek: occurrence.dayOfWeek,
+      executionTime: occurrence.executionTime,
+    }));
+  }
+
+  private validateSchedule(): string | null {
+    const timezone = this.scheduleTimezone.trim();
+    if (timezone.length === 0) {
+      return 'Informe uma timezone válida.';
+    }
+
+    const unsupportedTimezone = !this.timezoneOptions.includes(timezone);
+    if (unsupportedTimezone) {
+      return 'Selecione uma timezone válida da lista.';
+    }
+
+    if (this.scheduleOccurrences.length === 0) {
+      return 'Adicione pelo menos um horário para salvar o agendamento.';
+    }
+
+    const seen = new Set<string>();
+    for (const occurrence of this.scheduleOccurrences) {
+      if (!this.isValidDayOfWeek(occurrence.dayOfWeek)) {
+        return 'Selecione um dia da semana válido em todas as ocorrências.';
+      }
+
+      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(occurrence.executionTime)) {
+        return 'Informe um horário válido no formato HH:mm em todas as ocorrências.';
+      }
+
+      const key = `${occurrence.dayOfWeek}-${occurrence.executionTime}`;
+      if (seen.has(key)) {
+        return 'Existem ocorrências duplicadas. Ajuste os dias e horários antes de salvar.';
+      }
+
+      seen.add(key);
+    }
+
+    return null;
   }
 
   private updateDashboardEmailPreference(user: UserResponse, receivesDashboardEmail: boolean, force: boolean): void {
@@ -415,6 +611,36 @@ export class SettingsComponent implements OnInit {
     }
 
     return null;
+  }
+
+  private sortOccurrences<T extends DashboardEmailOccurrence>(occurrences: readonly T[]): T[] {
+    return [...occurrences].sort((left, right) => {
+      if (left.dayOfWeek !== right.dayOfWeek) {
+        return left.dayOfWeek - right.dayOfWeek;
+      }
+
+      return left.executionTime.localeCompare(right.executionTime);
+    });
+  }
+
+  private isValidDayOfWeek(value: number): value is DayOfWeek {
+    return value >= 1 && value <= 7;
+  }
+
+  private buildTimezoneOptions(): string[] {
+    const runtime = typeof Intl !== 'undefined' && 'supportedValuesOf' in Intl
+      ? Intl.supportedValuesOf('timeZone')
+      : [];
+
+    const defaults = [
+      'America/Sao_Paulo',
+      'America/Manaus',
+      'America/Recife',
+      'America/New_York',
+      'UTC',
+    ];
+
+    return Array.from(new Set([...defaults, ...runtime])).sort((left, right) => left.localeCompare(right));
   }
 
   private runInAngular(callback: () => void): void {

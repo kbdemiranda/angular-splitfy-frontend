@@ -59,6 +59,8 @@
   border-radius: 14px;
   background: color-mix(in srgb, var(--app-surface-900) 92%, transparent);
   padding: 18px;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .section-kicker {
@@ -225,7 +227,7 @@ th {
 .system-form {
   margin-top: 14px;
   display: grid;
-  grid-template-columns: minmax(0, 420px);
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
 
@@ -234,6 +236,10 @@ th {
   gap: 6px;
   font-size: 0.84rem;
   color: var(--app-text-secondary);
+}
+
+.system-form > label {
+  width: min(100%, 420px);
 }
 
 .system-form select {
@@ -249,6 +255,7 @@ th {
   grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
   gap: 12px;
   align-items: start;
+  min-width: 0;
 }
 
 .theme-mode-picker {
@@ -301,6 +308,8 @@ th {
   margin: 0;
   border: 0;
   padding: 0;
+  min-width: 0;
+  width: 100%;
 }
 
 .palette-picker legend {
@@ -313,9 +322,13 @@ th {
   display: flex;
   flex-wrap: nowrap;
   gap: 8px;
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   padding-bottom: 4px;
   scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 }
 
 .palette-card {
@@ -330,6 +343,7 @@ th {
   display: grid;
   gap: 4px;
   min-height: 76px;
+  min-width: 0;
 }
 
 .palette-card strong {

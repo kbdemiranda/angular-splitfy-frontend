@@ -7,6 +7,7 @@ export const API_ROUTES = {
   profiles: '/profiles',
   profileById: (id: number | string) => `/profiles/${id}`,
   dashboardKpis: '/dashboard/kpis',
+  dashboardEmailSchedule: '/email-schedules/dashboard',
   platforms: '/platforms',
   platformById: (id: number | string) => `/platforms/${id}`,
   subscribers: '/subscribers',
