@@ -106,6 +106,36 @@
 @layer base {
   * {
     box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--app-accent-500) 55%, var(--app-surface-700)) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: color-mix(in srgb, var(--app-surface-800) 72%, transparent);
+    border-radius: 999px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--app-accent-700) 88%, transparent),
+      color-mix(in srgb, var(--app-accent-500) 72%, var(--app-surface-700))
+    );
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--app-surface-900) 75%, transparent);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--app-accent-500) 92%, transparent),
+      color-mix(in srgb, var(--app-accent-300) 76%, var(--app-surface-700))
+    );
   }
 
   html,
@@ -118,6 +148,13 @@
       background-color 160ms ease,
       color 160ms ease,
       border-color 160ms ease;
+  }
+
+  @media (max-width: 768px) {
+    *::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
   }
 }
 

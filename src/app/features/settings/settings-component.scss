@@ -327,7 +327,6 @@ th {
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 4px;
-  scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -498,5 +497,9 @@ th {
 
   .appearance-row {
     grid-template-columns: 1fr;
+  }
+
+  .palette-grid {
+    padding-bottom: 6px;
   }
 }
