@@ -3,6 +3,7 @@ export const API_ROUTES = {
   authLogout: '/auth/logout',
   users: '/users',
   userById: (id: number | string) => `/users/${id}`,
+  userDashboardEmailPreferenceById: (id: number | string) => `/users/${id}/dashboard-email-preference`,
   profiles: '/profiles',
   profileById: (id: number | string) => `/profiles/${id}`,
   dashboardKpis: '/dashboard/kpis',

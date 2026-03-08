@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { finalize, timeout } from 'rxjs';
 import { UsersService } from '../../core/services/users.service';
@@ -78,6 +79,12 @@ export class SettingsComponent implements OnInit {
   usersLoaded = false;
   initialUsersLoaded = false;
   usersError: string | null = null;
+  dashboardEmailError: string | null = null;
+  dashboardEmailSuccess: string | null = null;
+  dashboardEmailUpdatingUserId: number | string | null = null;
+  dashboardEmailUpdatingValue: boolean | null = null;
+  selectedUserToReplaceDashboardRecipient: UserResponse | null = null;
+  dashboardEmailConflictMessage: string | null = null;
   private hasRetriedInitialLoad = false;
   isCreateModalOpen = false;
   isEditModalOpen = false;
@@ -266,6 +273,47 @@ export class SettingsComponent implements OnInit {
       });
   }
 
+  toggleDashboardEmailRecipient(user: UserResponse): void {
+    if (this.isDashboardEmailActionDisabled(user)) {
+      return;
+    }
+
+    this.updateDashboardEmailPreference(user, !user.receivesDashboardEmail, false);
+  }
+
+  confirmReplaceDashboardRecipient(): void {
+    if (!this.selectedUserToReplaceDashboardRecipient) {
+      return;
+    }
+
+    this.updateDashboardEmailPreference(this.selectedUserToReplaceDashboardRecipient, true, true);
+  }
+
+  cancelReplaceDashboardRecipient(): void {
+    this.selectedUserToReplaceDashboardRecipient = null;
+    this.dashboardEmailConflictMessage = null;
+  }
+
+  isDashboardEmailActionDisabled(user: UserResponse): boolean {
+    if (this.dashboardEmailUpdatingUserId !== null) {
+      return true;
+    }
+
+    return !user.active && !user.receivesDashboardEmail;
+  }
+
+  dashboardEmailActionLabel(user: UserResponse): string {
+    if (this.dashboardEmailUpdatingUserId === user.id) {
+      return this.dashboardEmailUpdatingValue ? 'Marcando...' : 'Desmarcando...';
+    }
+
+    if (!user.active && !user.receivesDashboardEmail) {
+      return 'Indisponível';
+    }
+
+    return user.receivesDashboardEmail ? 'Desmarcar' : 'Marcar';
+  }
+
   retryLoadUsers(): void {
     this.hasRetriedInitialLoad = false;
     this.loadUsers();
@@ -307,6 +355,66 @@ export class SettingsComponent implements OnInit {
           });
         },
       });
+  }
+
+  private updateDashboardEmailPreference(user: UserResponse, receivesDashboardEmail: boolean, force: boolean): void {
+    this.dashboardEmailError = null;
+    this.dashboardEmailSuccess = null;
+    this.dashboardEmailUpdatingUserId = user.id;
+    this.dashboardEmailUpdatingValue = receivesDashboardEmail;
+
+    this.usersService
+      .updateDashboardEmailPreference(user.id, {
+        receivesDashboardEmail,
+        force,
+      })
+      .pipe(
+        finalize(() => {
+          this.dashboardEmailUpdatingUserId = null;
+          this.dashboardEmailUpdatingValue = null;
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.selectedUserToReplaceDashboardRecipient = null;
+          this.dashboardEmailConflictMessage = null;
+          this.dashboardEmailSuccess = receivesDashboardEmail
+            ? `${user.name} agora recebe o e-mail agendado do dashboard.`
+            : `${user.name} não recebe mais o e-mail agendado do dashboard.`;
+          this.loadUsers();
+        },
+        error: (error: HttpErrorResponse) => {
+          if (error.status === 409 && receivesDashboardEmail && !force) {
+            this.selectedUserToReplaceDashboardRecipient = user;
+            this.dashboardEmailConflictMessage =
+              this.extractErrorMessage(error) ??
+              'Já existe outro usuário configurado para receber o e-mail do dashboard.';
+            return;
+          }
+
+          this.dashboardEmailError =
+            this.extractErrorMessage(error) ??
+            'Não foi possível atualizar o destinatário do e-mail agendado do dashboard.';
+        },
+      });
+  }
+
+  private extractErrorMessage(error: HttpErrorResponse): string | null {
+    const payload = error.error;
+
+    if (typeof payload === 'string' && payload.trim().length > 0) {
+      return payload;
+    }
+
+    if (payload && typeof payload === 'object') {
+      const source = payload as Record<string, unknown>;
+      const message = source['message'] ?? source['error'] ?? source['detail'];
+      if (typeof message === 'string' && message.trim().length > 0) {
+        return message;
+      }
+    }
+
+    return null;
   }
 
   private runInAngular(callback: () => void): void {

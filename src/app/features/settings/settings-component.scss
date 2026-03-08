@@ -132,6 +132,20 @@
   color: var(--app-danger-300);
 }
 
+.inline-feedback {
+  margin-top: 12px;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.inline-feedback.success {
+  color: var(--app-accent-300);
+}
+
+.inline-feedback.error {
+  color: var(--app-danger-300);
+}
+
 .table-wrapper {
   margin-top: 14px;
   overflow: auto;
@@ -170,8 +184,42 @@ th {
   margin-right: 10px;
 }
 
+.link:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .link.danger {
   color: var(--app-danger-300);
+}
+
+.dashboard-link.active {
+  color: var(--app-accent-200);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--app-text-primary);
+  background: color-mix(in srgb, var(--app-accent-700) 24%, var(--app-surface-800));
+  border: 1px solid color-mix(in srgb, var(--app-accent-500) 35%, transparent);
+}
+
+.status-badge.inactive,
+.status-badge.muted {
+  color: var(--app-text-muted);
+  background: color-mix(in srgb, var(--app-surface-800) 84%, transparent);
+  border-color: color-mix(in srgb, var(--app-border-soft) 80%, transparent);
+}
+
+.status-badge.dashboard {
+  min-width: 108px;
 }
 
 .system-form {

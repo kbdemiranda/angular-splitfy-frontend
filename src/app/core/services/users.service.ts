@@ -2,7 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { API_ROUTES } from '../constants/api-routes';
-import { UserCreateRequest, UserPageResponse, UserResponse, UserUpdateRequest } from '../../shared/models/users.model';
+import {
+  UserCreateRequest,
+  UserDashboardEmailPreferenceRequest,
+  UserPageResponse,
+  UserResponse,
+  UserUpdateRequest,
+} from '../../shared/models/users.model';
 
 @Injectable({ providedIn: 'root' })
 export class UsersService {
@@ -21,6 +27,13 @@ export class UsersService {
 
   update(id: number | string, payload: UserUpdateRequest): Observable<unknown> {
     return this.http.put<unknown>(API_ROUTES.userById(id), payload);
+  }
+
+  updateDashboardEmailPreference(
+    id: number | string,
+    payload: UserDashboardEmailPreferenceRequest,
+  ): Observable<unknown> {
+    return this.http.patch<unknown>(API_ROUTES.userDashboardEmailPreferenceById(id), payload);
   }
 
   delete(id: number | string): Observable<void> {
@@ -95,6 +108,7 @@ export class UsersService {
         : typeof activeValue === 'string'
           ? ['active', 'ativo', 'enabled', 'true'].includes(activeValue.toLowerCase())
           : true;
+    const receivesDashboardEmail = this.toBoolean(source['receivesDashboardEmail']);
 
     return {
       id: idValue,
@@ -103,6 +117,7 @@ export class UsersService {
       profileName,
       profile,
       active,
+      receivesDashboardEmail,
     };
   }
 
@@ -143,5 +158,17 @@ export class UsersService {
 
   private numberOrDefault(value: unknown, fallback: number): number {
     return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  }
+
+  private toBoolean(value: unknown): boolean {
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      return value.trim().toLowerCase() === 'true';
+    }
+
+    return false;
   }
 }

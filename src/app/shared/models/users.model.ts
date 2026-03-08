@@ -5,6 +5,7 @@ export interface UserResponse {
   profileName: string;
   profile: string;
   active: boolean;
+  receivesDashboardEmail: boolean;
 }
 
 export interface UserCreateRequest {
@@ -21,6 +22,11 @@ export interface UserUpdateRequest {
   profileName: string;
   enabled: boolean;
   password?: string;
+}
+
+export interface UserDashboardEmailPreferenceRequest {
+  receivesDashboardEmail: boolean;
+  force: boolean;
 }
 
 export interface UserPageResponse {

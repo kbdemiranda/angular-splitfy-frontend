@@ -41,6 +41,14 @@
             <p class="error-inline">{{ usersError }}</p>
           }
 
+          @if (dashboardEmailSuccess) {
+            <p class="inline-feedback success">{{ dashboardEmailSuccess }}</p>
+          }
+
+          @if (dashboardEmailError) {
+            <p class="inline-feedback error">{{ dashboardEmailError }}</p>
+          }
+
           <div class="table-wrapper">
             <table>
               <thead>
@@ -49,13 +57,14 @@
                   <th>Email</th>
                   <th>Perfil</th>
                   <th>Status</th>
+                  <th>Recebe dashboard</th>
                   <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 @if (users.length === 0) {
                   <tr>
-                    <td colspan="5">Nenhum usuário encontrado.</td>
+                    <td colspan="6">Nenhum usuário encontrado.</td>
                   </tr>
                 } @else {
                   @for (user of users; track user.id) {
@@ -63,8 +72,34 @@
                       <td>{{ user.name }}</td>
                       <td>{{ user.email }}</td>
                       <td>{{ user.profile }}</td>
-                      <td>{{ user.active ? 'Ativo' : 'Inativo' }}</td>
                       <td>
+                        <span class="status-badge" [class.inactive]="!user.active">
+                          {{ user.active ? 'Ativo' : 'Inativo' }}
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          class="status-badge dashboard"
+                          [class.muted]="!user.receivesDashboardEmail"
+                          [attr.aria-label]="
+                            user.receivesDashboardEmail
+                              ? 'Usuário recebe o e-mail do dashboard'
+                              : 'Usuário não recebe o e-mail do dashboard'
+                          "
+                        >
+                          {{ user.receivesDashboardEmail ? 'Recebe' : 'Não recebe' }}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          class="link dashboard-link"
+                          [class.active]="user.receivesDashboardEmail"
+                          [disabled]="isDashboardEmailActionDisabled(user)"
+                          (click)="toggleDashboardEmailRecipient(user)"
+                        >
+                          {{ dashboardEmailActionLabel(user) }}
+                        </button>
                         <button type="button" class="link" (click)="openEditUserModal(user)">Editar</button>
                         <button type="button" class="link danger" (click)="askDeleteUser(user)">Excluir</button>
                       </td>
@@ -247,6 +282,25 @@
         <button type="button" class="secondary" (click)="cancelDeleteUser()">Cancelar</button>
         <button type="button" class="danger" (click)="confirmDeleteUser()" [disabled]="deletingUser">
           {{ deletingUser ? 'Excluindo...' : 'Excluir' }}
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+@if (selectedUserToReplaceDashboardRecipient) {
+  <div class="modal-overlay" (click)="cancelReplaceDashboardRecipient()">
+    <section class="modal confirm-modal" (click)="$event.stopPropagation()">
+      <h2>Substituir destinatário</h2>
+      <p>{{ dashboardEmailConflictMessage }}</p>
+      <p>
+        Deseja definir {{ selectedUserToReplaceDashboardRecipient.name }} como novo destinatário do e-mail do
+        dashboard?
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="secondary" (click)="cancelReplaceDashboardRecipient()">Cancelar</button>
+        <button type="button" class="primary" (click)="confirmReplaceDashboardRecipient()" [disabled]="dashboardEmailUpdatingUserId !== null">
+          {{ dashboardEmailUpdatingUserId !== null ? 'Substituindo...' : 'Substituir destinatário' }}
         </button>
       </div>
     </section>
