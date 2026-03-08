@@ -1,11 +1,51 @@
 services:
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    working_dir: /app
-    volumes:
-      - ./:/app
-      - /app/node_modules
+  db:
+    image: kbdemiranda/postgres:multiarch
+    container_name: splitfy-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: splitfy
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
-      - "${FRONTEND_PORT:-4200}:4200"
+      - "35432:5432"
+    volumes:
+      - splitfy_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d splitfy"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: kbdemiranda/splitfy-api:latest
+    container_name: splitfy-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/splitfy
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      JWT_SECRET: blNod2hEYWUg/ilE7U0NEAPRUWXN8K0bu5tfwQ5jsJBW1E5oR5/E8qJWVV9namvgcz4jGLU/oPB2f3bR9LuElg==
+      JWT_EXPIRATION_MS: 3600000
+      MAIL_USERNAME: donotanswer.contact@gmail.com
+      MAIL_PASSWORD: ifau jlqm efiu ilmo
+      MAIL_FROM: Splitfy <no-reply@splitfy.local>
+      ADMIN_EMAIL: admin@splitfy.local
+      ADMIN_PASSWORD: admin
+    ports:
+      - "9090:8080"
+
+  frontend:
+    image: kbdemiranda/angular-splitfy-frontend:latest
+    container_name: splitfy-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "4242:4242"
+
+volumes:
+  splitfy_postgres_data:

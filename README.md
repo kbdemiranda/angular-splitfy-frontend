@@ -66,10 +66,10 @@ Current frontend scope includes:
 ├── public/                   # Static public assets
 ├── Dockerfile.dev            # Development container image
 ├── Dockerfile                # Production multi-stage image
-├── docker-compose.yml        # Development compose stack (4200:4200)
-├── docker-compose.prod.yml   # Production compose stack (4200:80)
+├── docker-compose.yml        # Development compose stack (4242:4242)
+├── docker-compose.prod.yml   # Production compose stack (4242:4242)
 ├── nginx.conf                # SPA routing for production runtime
-└── proxy.conf.json           # API proxy config for local/dev mode
+└── proxy.conf.cjs            # API proxy config for local/dev mode
 ```
 
 ## Prerequisites
@@ -98,7 +98,7 @@ npm install
 npm run start
 ```
 
-Application URL: `http://localhost:4200`
+Application URL: `http://localhost:4242`
 
 ## Docker Workflows
 
@@ -108,7 +108,7 @@ Application URL: `http://localhost:4200`
 docker compose up --build
 ```
 
-Application URL: `http://localhost:4200`
+Application URL: `http://localhost:4242`
 
 ### Production-like container (Nginx serving compiled app)
 
@@ -116,33 +116,68 @@ Application URL: `http://localhost:4200`
 docker compose -f docker-compose.prod.yml up --build
 ```
 
-Application URL: `http://localhost:4200`
+Application URL: `http://localhost:4242`
 
-If port `4200` is already in use, override it at runtime:
+If port `4242` is already in use, override it at runtime:
 
 ```bash
-FRONTEND_PORT=4201 docker compose up --build
+FRONTEND_PORT=4243 docker compose up --build
 ```
 
 ```bash
-FRONTEND_PORT=4201 docker compose -f docker-compose.prod.yml up --build
+FRONTEND_PORT=4243 docker compose -f docker-compose.prod.yml up --build
+```
+
+### Build local image
+
+```bash
+docker build -t angular-splitfy-frontend:local .
+```
+
+Run the image locally:
+
+```bash
+docker run --rm -p 4242:4242 angular-splitfy-frontend:local
+```
+
+### Publish to Docker Hub
+
+Build with your Docker Hub repository name:
+
+```bash
+docker build -t <dockerhub-user>/angular-splitfy-frontend:latest .
+```
+
+Login and push:
+
+```bash
+docker login
+docker push <dockerhub-user>/angular-splitfy-frontend:latest
+```
+
+If you prefer Compose for a tagged production image:
+
+```bash
+DOCKER_IMAGE=<dockerhub-user>/angular-splitfy-frontend IMAGE_TAG=latest docker compose -f docker-compose.prod.yml build
+DOCKER_IMAGE=<dockerhub-user>/angular-splitfy-frontend IMAGE_TAG=latest docker compose -f docker-compose.prod.yml push
 ```
 
 ## Backend Integration
 
-Development API proxy is configured in `proxy.conf.json`.
+Development API proxy is configured in `proxy.conf.cjs`.
 
 Current defaults:
 
 - route prefix: `/api`
-- target: `http://localhost:8080`
+- target: `http://localhost:8080` locally
+- target: `http://host.docker.internal:8282` in Docker via `.env.docker`
 
 If your backend runs in another container/host, update `target` accordingly.
 
 ## Environment Notes
 
-- Dev compose maps host `4200` to container `4200`.
-- Prod compose maps host `4200` to container `80`.
+- Dev compose maps host `4242` to container `4242`.
+- Prod compose maps host `4242` to container `4242`.
 - Keep these mappings aligned with your local backend and reverse proxy setup.
 
 ## Screenshots
@@ -206,9 +241,9 @@ Suggested workflow:
 
 ## Troubleshooting
 
-- Port `4200` already in use:
+- Port `4242` already in use:
   Update port mapping in `docker-compose.yml` and `docker-compose.prod.yml`.
 - API calls failing in development:
-  Re-check `proxy.conf.json` target and backend availability.
+  Re-check `proxy.conf.cjs`, `.env.docker`, and backend availability.
 - Dependency conflicts:
   Remove `node_modules` and reinstall with `npm install`.

@@ -1,7 +1,10 @@
 services:
   frontend:
+    image: ${DOCKER_IMAGE:-angular-splitfy-frontend}:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        APP_NAME: angular-splitfy-frontend
     ports:
-      - "${FRONTEND_PORT:-4200}:80"
+      - "${FRONTEND_PORT:-4242}:4242"
