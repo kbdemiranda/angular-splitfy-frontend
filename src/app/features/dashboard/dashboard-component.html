@@ -69,14 +69,7 @@
               <span class="dot pending"></span>
               <div>
                 <strong>{{ 'dashboard.status_pending' | t }}</strong>
-                <small>{{ kpis.totalPending | currency: kpis.currency }} ({{ pendingPercentage | number: '1.0-1' }}%)</small>
-              </div>
-            </li>
-            <li>
-              <span class="dot unpaid"></span>
-              <div>
-                <strong>{{ 'dashboard.status_unpaid' | t }}</strong>
-                <small>{{ kpis.totalUnpaid | currency: kpis.currency }} ({{ unpaidPercentage | number: '1.0-1' }}%)</small>
+                <small>{{ totalPendingStatusAmount | currency: kpis.currency }} ({{ pendingPercentage | number: '1.0-1' }}%)</small>
               </div>
             </li>
           </ul>
