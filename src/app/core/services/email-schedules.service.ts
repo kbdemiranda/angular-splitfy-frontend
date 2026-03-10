@@ -12,15 +12,15 @@ import {
 export class EmailSchedulesService {
   constructor(private readonly http: HttpClient) {}
 
-  getDashboardSchedule(): Observable<DashboardEmailScheduleResponse> {
+  getKpiSummarySchedule(): Observable<DashboardEmailScheduleResponse> {
     return this.http
-      .get<unknown>(API_ROUTES.dashboardEmailSchedule)
+      .get<unknown>(API_ROUTES.kpiSummaryEmailSchedule)
       .pipe(map((response) => this.normalizeResponse(response)));
   }
 
-  updateDashboardSchedule(payload: DashboardEmailScheduleRequest): Observable<DashboardEmailScheduleResponse> {
+  updateKpiSummarySchedule(payload: DashboardEmailScheduleRequest): Observable<DashboardEmailScheduleResponse> {
     return this.http
-      .put<unknown>(API_ROUTES.dashboardEmailSchedule, payload)
+      .put<unknown>(API_ROUTES.kpiSummaryEmailSchedule, payload)
       .pipe(map((response) => this.normalizeResponse(response, payload)));
   }
 
@@ -37,7 +37,7 @@ export class EmailSchedulesService {
       scheduleKey:
         typeof source['scheduleKey'] === 'string' && source['scheduleKey'].trim().length > 0
           ? source['scheduleKey']
-          : 'DASHBOARD_EMAIL',
+          : 'KPI_SUMMARY',
       enabled: typeof source['enabled'] === 'boolean' ? source['enabled'] : fallback?.enabled ?? false,
       timezone:
         typeof source['timezone'] === 'string' && source['timezone'].trim().length > 0

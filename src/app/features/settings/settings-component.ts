@@ -173,7 +173,7 @@ export class SettingsComponent implements OnInit {
     this.selectedThemePalette = theme.palette;
     this.loadUsers();
     if (this.isAdmin) {
-      this.loadDashboardEmailSchedule();
+      this.loadKpiSummaryEmailSchedule();
     }
   }
 
@@ -221,7 +221,7 @@ export class SettingsComponent implements OnInit {
     this.scheduleSuccess = null;
   }
 
-  saveDashboardEmailSchedule(): void {
+  saveKpiSummaryEmailSchedule(): void {
     if (!this.isAdmin || this.scheduleSaving) {
       return;
     }
@@ -248,27 +248,27 @@ export class SettingsComponent implements OnInit {
     };
 
     this.emailSchedulesService
-      .updateDashboardSchedule(payload)
+      .updateKpiSummarySchedule(payload)
       .pipe(finalize(() => (this.scheduleSaving = false)))
       .subscribe({
         next: (response) => {
-          this.applyDashboardEmailSchedule(response);
+          this.applyKpiSummaryEmailSchedule(response);
           this.scheduleLoaded = true;
-          this.scheduleSuccess = 'Agendamento do e-mail do dashboard salvo com sucesso.';
+          this.scheduleSuccess = 'Agendamento do e-mail de KPIs salvo com sucesso.';
         },
         error: (error: HttpErrorResponse) => {
           this.scheduleError =
-            this.extractErrorMessage(error) ?? 'Não foi possível salvar o agendamento do e-mail do dashboard.';
+            this.extractErrorMessage(error) ?? 'Não foi possível salvar o agendamento do e-mail de KPIs.';
         },
       });
   }
 
-  retryLoadDashboardEmailSchedule(): void {
+  retryLoadKpiSummaryEmailSchedule(): void {
     if (!this.isAdmin) {
       return;
     }
 
-    this.loadDashboardEmailSchedule();
+    this.loadKpiSummaryEmailSchedule();
   }
 
   trackOccurrence(index: number, occurrence: ScheduleOccurrenceFormValue): string {
@@ -486,29 +486,29 @@ export class SettingsComponent implements OnInit {
       });
   }
 
-  private loadDashboardEmailSchedule(): void {
+  private loadKpiSummaryEmailSchedule(): void {
     this.scheduleLoading = true;
     this.scheduleError = null;
     this.scheduleSuccess = null;
     this.scheduleValidationError = null;
 
     this.emailSchedulesService
-      .getDashboardSchedule()
+      .getKpiSummarySchedule()
       .pipe(finalize(() => (this.scheduleLoading = false)))
       .subscribe({
         next: (response) => {
-          this.applyDashboardEmailSchedule(response);
+          this.applyKpiSummaryEmailSchedule(response);
           this.scheduleLoaded = true;
         },
         error: (error: HttpErrorResponse) => {
           this.scheduleLoaded = false;
           this.scheduleError =
-            this.extractErrorMessage(error) ?? 'Não foi possível carregar o agendamento do e-mail do dashboard.';
+            this.extractErrorMessage(error) ?? 'Não foi possível carregar o agendamento do e-mail de KPIs.';
         },
       });
   }
 
-  private applyDashboardEmailSchedule(response: DashboardEmailScheduleResponse): void {
+  private applyKpiSummaryEmailSchedule(response: DashboardEmailScheduleResponse): void {
     this.scheduleEnabled = response.enabled;
     this.scheduleTimezone = response.timezone;
     this.scheduleOccurrences = this.sortOccurrences(response.occurrences).map((occurrence) => ({
@@ -575,8 +575,8 @@ export class SettingsComponent implements OnInit {
           this.selectedUserToReplaceDashboardRecipient = null;
           this.dashboardEmailConflictMessage = null;
           this.dashboardEmailSuccess = receivesDashboardEmail
-            ? `${user.name} agora recebe o e-mail agendado do dashboard.`
-            : `${user.name} não recebe mais o e-mail agendado do dashboard.`;
+            ? `${user.name} agora recebe o e-mail agendado de KPIs.`
+            : `${user.name} não recebe mais o e-mail agendado de KPIs.`;
           this.loadUsers();
         },
         error: (error: HttpErrorResponse) => {
@@ -584,13 +584,13 @@ export class SettingsComponent implements OnInit {
             this.selectedUserToReplaceDashboardRecipient = user;
             this.dashboardEmailConflictMessage =
               this.extractErrorMessage(error) ??
-              'Já existe outro usuário configurado para receber o e-mail do dashboard.';
+              'Já existe outro usuário configurado para receber o e-mail de KPIs.';
             return;
           }
 
           this.dashboardEmailError =
             this.extractErrorMessage(error) ??
-            'Não foi possível atualizar o destinatário do e-mail agendado do dashboard.';
+            'Não foi possível atualizar o destinatário do e-mail agendado de KPIs.';
         },
       });
   }

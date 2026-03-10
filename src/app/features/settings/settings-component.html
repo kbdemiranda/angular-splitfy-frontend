@@ -57,7 +57,7 @@
                   <th>Email</th>
                   <th>Perfil</th>
                   <th>Status</th>
-                  <th>Recebe dashboard</th>
+                  <th>Recebe KPI</th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -83,8 +83,8 @@
                           [class.muted]="!user.receivesDashboardEmail"
                           [attr.aria-label]="
                             user.receivesDashboardEmail
-                              ? 'Usuário recebe o e-mail do dashboard'
-                              : 'Usuário não recebe o e-mail do dashboard'
+                              ? 'Usuário recebe o e-mail de KPIs'
+                              : 'Usuário não recebe o e-mail de KPIs'
                           "
                         >
                           {{ user.receivesDashboardEmail ? 'Recebe' : 'Não recebe' }}
@@ -182,17 +182,17 @@
         <div class="content-header">
           <div>
             <p class="section-kicker">Agendamento</p>
-            <h2>E-mail do dashboard</h2>
+              <h2>E-mail de KPIs</h2>
           </div>
           <button
             type="button"
             [disabled]="!isAdmin || scheduleLoading || scheduleSaving"
-            (click)="saveDashboardEmailSchedule()"
+            (click)="saveKpiSummaryEmailSchedule()"
           >
             {{ scheduleSaving ? 'Salvando...' : 'Salvar configuração' }}
           </button>
         </div>
-        <p>Configure em quais dias e horários o dashboard deve ser enviado por e-mail.</p>
+        <p>Configure em quais dias e horários o resumo de KPIs deve ser enviado por e-mail.</p>
 
         @if (!isAdmin) {
           <p class="inline-feedback error">Apenas administradores podem configurar esse agendamento.</p>
@@ -201,12 +201,12 @@
         } @else if (scheduleError && !scheduleLoaded) {
           <div class="schedule-state">
             <p class="inline-feedback error">{{ scheduleError }}</p>
-            <button type="button" class="secondary-inline" (click)="retryLoadDashboardEmailSchedule()">
+            <button type="button" class="secondary-inline" (click)="retryLoadKpiSummaryEmailSchedule()">
               Tentar novamente
             </button>
           </div>
         } @else {
-          <form class="schedule-form" (ngSubmit)="saveDashboardEmailSchedule()">
+          <form class="schedule-form" (ngSubmit)="saveKpiSummaryEmailSchedule()">
             <div class="schedule-top-row">
               <label class="switch-field">
                 <span>Agendamento ativo</span>
@@ -422,8 +422,7 @@
       <h2>Substituir destinatário</h2>
       <p>{{ dashboardEmailConflictMessage }}</p>
       <p>
-        Deseja definir {{ selectedUserToReplaceDashboardRecipient.name }} como novo destinatário do e-mail do
-        dashboard?
+        Deseja definir {{ selectedUserToReplaceDashboardRecipient.name }} como novo destinatário do e-mail de KPIs?
       </p>
       <div class="modal-actions">
         <button type="button" class="secondary" (click)="cancelReplaceDashboardRecipient()">Cancelar</button>
