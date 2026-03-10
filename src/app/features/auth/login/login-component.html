@@ -23,5 +23,10 @@
         {{ submitting ? ('login.submitting' | t) : ('login.submit' | t) }}
       </button>
     </form>
+
+    <p class="hint">
+      {{ 'login.no_account' | t }}
+      <a routerLink="/register">{{ 'login.create_account' | t }}</a>
+    </p>
   </article>
 </section>

@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
 import { DashboardComponent } from './features/dashboard/dashboard-component';
 import { LoginComponent } from './features/auth/login/login-component';
+import { RegisterComponent } from './features/auth/register/register-component';
 import { SettingsComponent } from './features/settings/settings-component';
 import { PlatformsComponent } from './features/platforms/platforms-component';
 import { SubscribersComponent } from './features/subscribers/subscribers-component';
@@ -13,6 +14,10 @@ const routes: Routes = [
   {
     path: 'login',
     component: LoginComponent,
+  },
+  {
+    path: 'register',
+    component: RegisterComponent,
   },
   {
     path: 'dashboard',

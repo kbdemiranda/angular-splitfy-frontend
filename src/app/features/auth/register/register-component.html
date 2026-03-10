@@ -1,0 +1,63 @@
+<section class="register-page">
+  <article class="register-card">
+    <div class="register-brand">{{ 'app.brand' | t }}</div>
+    <h1>{{ 'register.title' | t }}</h1>
+    <p>{{ 'register.subtitle' | t }}</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label for="name">{{ 'register.name' | t }}</label>
+      <input id="name" type="text" formControlName="name" [attr.placeholder]="'register.name_placeholder' | t" />
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <small>{{ 'register.invalid_name' | t }}</small>
+      }
+
+      <label for="email">{{ 'register.email' | t }}</label>
+      <input id="email" type="email" formControlName="email" placeholder="email@splitfy.app" />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <small>{{ 'register.invalid_email' | t }}</small>
+      }
+
+      <label for="password">{{ 'register.password' | t }}</label>
+      <input
+        id="password"
+        type="password"
+        formControlName="password"
+        [attr.placeholder]="'register.password_placeholder' | t"
+      />
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <small>{{ 'register.invalid_password' | t }}</small>
+      }
+
+      <label for="confirmPassword">{{ 'register.confirm_password' | t }}</label>
+      <input
+        id="confirmPassword"
+        type="password"
+        formControlName="confirmPassword"
+        [attr.placeholder]="'register.confirm_password_placeholder' | t"
+      />
+      @if (form.controls.confirmPassword.touched && form.controls.confirmPassword.invalid) {
+        <small>{{ 'register.required_confirm_password' | t }}</small>
+      }
+      @if (form.touched && form.errors?.['passwordMismatch']) {
+        <small>{{ 'register.password_mismatch' | t }}</small>
+      }
+
+      @if (errorMessage) {
+        <div class="error">{{ errorMessage | t }}</div>
+      }
+
+      @if (success) {
+        <div class="success">{{ 'register.success' | t }}</div>
+      }
+
+      <button type="submit" [disabled]="submitting || success">
+        {{ submitting ? ('register.submitting' | t) : ('register.submit' | t) }}
+      </button>
+    </form>
+
+    <p class="hint">
+      {{ 'register.back_to_login_label' | t }}
+      <a routerLink="/login">{{ 'register.back_to_login_link' | t }}</a>
+    </p>
+  </article>
+</section>

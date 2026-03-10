@@ -17,11 +17,13 @@ import { ApiBaseUrlInterceptor } from './core/interceptors/api-base-url.intercep
 import { AuthTokenInterceptor } from './core/interceptors/auth-token.interceptor';
 import { ErrorInterceptor } from './core/interceptors/error.interceptor';
 import { TranslatePipe } from './core/i18n/translate.pipe';
+import { RegisterComponent } from './features/auth/register/register-component';
 
 @NgModule({
   declarations: [
     App,
     LoginComponent,
+    RegisterComponent,
     DashboardComponent,
     NavbarComponent,
     ComingSoonComponent,

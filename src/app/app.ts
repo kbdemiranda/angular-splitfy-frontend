@@ -10,6 +10,8 @@ import { ThemeService } from './core/services/theme.service';
   styleUrl: './app.scss',
 })
 export class App implements OnInit {
+  private readonly publicRoutes = ['/login', '/register'];
+
   constructor(
     private readonly authService: AuthService,
     private readonly router: Router,
@@ -21,6 +23,6 @@ export class App implements OnInit {
   }
 
   get showNavbar(): boolean {
-    return this.authService.isAuthenticated() && !this.router.url.startsWith('/login');
+    return this.authService.isAuthenticated() && !this.publicRoutes.some((route) => this.router.url.startsWith(route));
   }
 }

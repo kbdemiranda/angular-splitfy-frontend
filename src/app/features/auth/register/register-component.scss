@@ -1,4 +1,4 @@
-.login-page {
+.register-page {
   min-height: 100dvh;
   display: grid;
   place-items: center;
@@ -9,8 +9,8 @@
     #020817;
 }
 
-.login-card {
-  width: min(440px, 100%);
+.register-card {
+  width: min(460px, 100%);
   background: linear-gradient(180deg, #12213b 0%, #0b1830 100%);
   border: 1px solid #24324a;
   border-radius: 14px;
@@ -18,7 +18,7 @@
   box-shadow: 0 24px 50px rgba(2, 8, 23, 0.48);
 }
 
-.login-brand {
+.register-brand {
   display: inline-flex;
   align-items: center;
   margin-bottom: 12px;
@@ -83,14 +83,24 @@ small {
   font-size: 0.8rem;
 }
 
-.error {
+.error,
+.success {
   margin-top: 10px;
-  border: 1px solid #7f1d1d;
-  background: rgba(127, 29, 29, 0.26);
-  color: #fecaca;
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 0.9rem;
+}
+
+.error {
+  border: 1px solid #7f1d1d;
+  background: rgba(127, 29, 29, 0.26);
+  color: #fecaca;
+}
+
+.success {
+  border: 1px solid #14532d;
+  background: rgba(20, 83, 45, 0.26);
+  color: #bbf7d0;
 }
 
 button {
@@ -131,10 +141,4 @@ a {
 
 a:hover {
   text-decoration: underline;
-}
-
-code {
-  display: block;
-  margin-top: 4px;
-  color: #cbd5e1;
 }
