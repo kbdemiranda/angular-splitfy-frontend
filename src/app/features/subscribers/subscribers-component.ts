@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, map, of } from 'rxjs';
 import { CircleCheck, CircleUser, CircleX, Clock3, LucideIconData } from 'lucide-angular';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { SubscriberBillingService } from '../../core/services/subscriber-billing.service';
@@ -17,6 +17,11 @@ import { SubscribersService } from '../../core/services/subscribers.service';
 
 type PlatformCatalogItem = SubscriberPlatform & {
   availableSlots: number;
+};
+
+type SubscriberPlatformsItem = {
+  id: number;
+  associatedPlatforms: SubscriberPlatform[];
 };
 
 @Component({
@@ -212,7 +217,8 @@ export class SubscribersComponent implements OnInit {
       this.subscribersService.create(payload).subscribe({
         next: (createdSubscriber) => {
           this.runInZone(() => {
-            this.subscribers = [...this.subscribers, createdSubscriber];
+            const normalizedSubscriber = this.normalizeSubscriberResponse(createdSubscriber);
+            this.subscribers = [...this.subscribers, normalizedSubscriber];
             this.subscribersPage = {
               ...this.subscribersPage,
               content: this.subscribers,
@@ -237,15 +243,16 @@ export class SubscribersComponent implements OnInit {
     this.subscribersService.updateProfile(editingId, payload).subscribe({
       next: (updatedSubscriber) => {
         this.runInZone(() => {
+          const normalizedSubscriber = this.normalizeSubscriberResponse(updatedSubscriber);
           this.subscribers = this.subscribers.map((subscriber) =>
-            subscriber.id === editingId ? updatedSubscriber : subscriber,
+            subscriber.id === editingId ? normalizedSubscriber : subscriber,
           );
           this.subscribersPage = {
             ...this.subscribersPage,
             content: this.subscribers,
           };
           if (this.selectedSubscriber?.id === editingId) {
-            this.selectedSubscriber = updatedSubscriber;
+            this.selectedSubscriber = normalizedSubscriber;
           }
           this.cancelEdit();
           this.placeholderMessage = 'Assinante atualizado com sucesso.';
@@ -532,7 +539,7 @@ export class SubscribersComponent implements OnInit {
     }).subscribe({
       next: ({ subscriber, subscriberSubscriptions, platformsPage }) => {
         this.runInZone(() => {
-          this.editingSubscriptionsSubscriber = subscriber;
+          this.editingSubscriptionsSubscriber = this.normalizeSubscriberResponse(subscriber);
           this.subscriptionsCatalog = platformsPage.content.map((platform) =>
             this.mapPlatformFromCatalog(platform),
           );
@@ -709,7 +716,7 @@ export class SubscribersComponent implements OnInit {
       return [];
     }
 
-    const candidates = [source['content'], source['items'], source['data']];
+    const candidates = [source['content'], source['items'], source['data'], source['subscriptions']];
     const list = candidates.find((candidate) => Array.isArray(candidate));
     return Array.isArray(list) ? list : [];
   }
@@ -782,6 +789,64 @@ export class SubscribersComponent implements OnInit {
     return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
   }
 
+  private normalizeSubscriberResponse(subscriber: SubscriberResponse): SubscriberResponse {
+    const associatedPlatforms = Array.isArray(subscriber?.associatedPlatforms)
+      ? subscriber.associatedPlatforms.map((platform) => ({ ...platform }))
+      : [];
+    return {
+      ...subscriber,
+      associatedPlatforms,
+    };
+  }
+
+  private hydrateSubscribersPlatforms(subscribers: SubscriberResponse[]): void {
+    if (subscribers.length === 0) {
+      return;
+    }
+
+    const requests = subscribers.map((subscriber) =>
+      this.subscribersService.subscriptions(subscriber.id).pipe(
+        map((response) => ({
+          id: subscriber.id,
+          associatedPlatforms: this.normalizeAssociatedPlatforms(response, new Map<number, PlatformCatalogItem>()),
+        })),
+      ),
+    );
+
+    forkJoin(requests).subscribe({
+      next: (results) => {
+        this.runInZone(() => {
+          const platformsBySubscriberId = new Map<number, SubscriberPlatform[]>(
+            results.map((item: SubscriberPlatformsItem) => [item.id, item.associatedPlatforms]),
+          );
+
+          this.subscribers = this.subscribers.map((subscriber) => ({
+            ...subscriber,
+            associatedPlatforms: platformsBySubscriberId.get(subscriber.id) ?? [],
+          }));
+          this.subscribersPage = {
+            ...this.subscribersPage,
+            content: this.subscribers,
+          };
+          this.syncView();
+        });
+      },
+      error: () => {
+        this.runInZone(() => {
+          this.subscribers = this.subscribers.map((subscriber) => ({
+            ...subscriber,
+            associatedPlatforms: [],
+          }));
+          this.subscribersPage = {
+            ...this.subscribersPage,
+            content: this.subscribers,
+          };
+          this.syncView();
+        });
+      },
+    });
+  }
+
   private loadSubscriberBilling(subscriberId: number, referenceMonth?: string, keepCurrentData = false): void {
     this.runInZone(() => {
       this.billingLoading = true;
@@ -823,8 +888,8 @@ export class SubscribersComponent implements OnInit {
 
     this.subscribersService.list(page, size).subscribe({
       next: (response) => {
+        const list = response.content.map((subscriber) => this.normalizeSubscriberResponse(subscriber));
         this.runInZone(() => {
-          const list = [...response.content];
           this.subscribersPage = { ...response, content: list };
           this.subscribers = list;
           this.isLoadingSubscribers = false;
@@ -832,6 +897,7 @@ export class SubscribersComponent implements OnInit {
           this.hasLoadedSubscribers = true;
           this.syncView();
         });
+        this.hydrateSubscribersPlatforms(list);
       },
       error: () => {
         this.runInZone(() => {
