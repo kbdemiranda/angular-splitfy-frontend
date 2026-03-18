@@ -236,24 +236,24 @@
                     <dd>{{ item.participantsCount }}</dd>
                   </div>
                   <div>
-                    <dt>Moeda</dt>
+                    <dt>Moeda da plataforma</dt>
                     <dd>{{ item.serviceCurrency }}</dd>
                   </div>
                   <div>
-                    <dt>Valor mensal plataforma</dt>
+                    <dt>Valor plataforma (BRL)</dt>
                     <dd>{{ formatCurrency(item.serviceMonthlyAmount, 'BRL') }}</dd>
                   </div>
                   <div>
-                    <dt>Sua parte mensal</dt>
-                    <dd>{{ formatCurrency(item.userMonthlyShare, selectedSubscriberBilling.currency) }}</dd>
+                    <dt>Sua parte (BRL)</dt>
+                    <dd>{{ formatCurrency(item.userMonthlyShare, 'BRL') }}</dd>
                   </div>
                   <div>
-                    <dt>Valor original plataforma</dt>
+                    <dt>Valor original plataforma (moeda da plataforma)</dt>
                     <dd>{{ formatNullableCurrency(item.serviceMonthlyAmountOriginal, item.serviceCurrency) }}</dd>
                   </div>
                   <div>
-                    <dt>Sua parte original</dt>
-                    <dd>{{ formatNullableCurrency(item.userMonthlyShareOriginal, selectedSubscriberBilling.currency) }}</dd>
+                    <dt>Sua parte original (moeda da plataforma)</dt>
+                    <dd>{{ formatNullableCurrency(item.userMonthlyShareOriginal, item.serviceCurrency) }}</dd>
                   </div>
                   <div>
                     <dt>Câmbio para BRL</dt>
