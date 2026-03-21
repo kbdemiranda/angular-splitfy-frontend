@@ -14,8 +14,11 @@ import {
 export class SubscribersService {
   constructor(private readonly http: HttpClient) {}
 
-  list(page = 0, size = 20): Observable<SubscriberPageResponse> {
-    const params = new HttpParams().set('page', String(page)).set('size', String(size));
+  list(page = 0, size = 20, name?: string): Observable<SubscriberPageResponse> {
+    let params = new HttpParams().set('page', String(page)).set('size', String(size));
+    if (name && name.trim() !== '') {
+      params = params.set('name', name.trim());
+    }
     return this.http
       .get<unknown>(API_ROUTES.subscribers, { params })
       .pipe(map((response) => this.normalizePageResponse(response, page, size)));

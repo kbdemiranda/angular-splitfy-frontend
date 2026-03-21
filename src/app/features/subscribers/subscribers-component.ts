@@ -32,6 +32,7 @@ type SubscriberPlatformsItem = {
 })
 export class SubscribersComponent implements OnInit {
   private readonly createSentinelId = -1;
+  private financialResponsibleSearchRequestId = 0;
   subscribers: SubscriberResponse[] = [];
   subscribersPage: SubscriberPageResponse = {
     content: [],
@@ -66,6 +67,11 @@ export class SubscribersComponent implements OnInit {
   subscriptionsInfoMessage: string | null = null;
   editErrorMessage: string | null = null;
   placeholderMessage: string | null = null;
+  financialResponsibleSearchTerm = '';
+  financialResponsibleSearchResults: SubscriberResponse[] = [];
+  financialResponsibleSearchLoading = false;
+  financialResponsibleSearchError: string | null = null;
+  selectedFinancialResponsibleSubscriber: SubscriberResponse | null = null;
   readonly editProfileForm: FormGroup<{
     name: FormControl<string>;
     email: FormControl<string>;
@@ -176,6 +182,19 @@ export class SubscribersComponent implements OnInit {
 
     this.editingSubscriberId = subscriber.id;
     this.editErrorMessage = null;
+    this.resetFinancialResponsibleSearchState();
+    if (
+      subscriber.financialResponsibleSubscriberId &&
+      subscriber.financialResponsibleSubscriberId !== subscriber.id
+    ) {
+      this.selectedFinancialResponsibleSubscriber = {
+        id: subscriber.financialResponsibleSubscriberId,
+        name: subscriber.financialResponsibleSubscriberName ?? 'Responsável atual',
+        email: '',
+        associatedPlatforms: [],
+      };
+      this.financialResponsibleSearchTerm = this.selectedFinancialResponsibleSubscriber.name;
+    }
     this.editProfileForm.setValue({
       name: subscriber.name,
       email: subscriber.email,
@@ -185,6 +204,7 @@ export class SubscribersComponent implements OnInit {
   openCreate(): void {
     this.editingSubscriberId = this.createSentinelId;
     this.editErrorMessage = null;
+    this.resetFinancialResponsibleSearchState();
     this.editProfileForm.reset({
       name: '',
       email: '',
@@ -194,6 +214,7 @@ export class SubscribersComponent implements OnInit {
   cancelEdit(): void {
     this.editingSubscriberId = null;
     this.editErrorMessage = null;
+    this.resetFinancialResponsibleSearchState();
     this.editProfileForm.reset({
       name: '',
       email: '',
@@ -212,6 +233,9 @@ export class SubscribersComponent implements OnInit {
 
     const { name, email } = this.editProfileForm.getRawValue();
     const payload: SubscriberRequest = { name: name.trim(), email: email.trim() };
+    if (this.selectedFinancialResponsibleSubscriber) {
+      payload.financialResponsibleSubscriberId = this.selectedFinancialResponsibleSubscriber.id;
+    }
 
     if (this.isCreateMode) {
       this.subscribersService.create(payload).subscribe({
@@ -266,6 +290,65 @@ export class SubscribersComponent implements OnInit {
         });
       },
     });
+  }
+
+  onFinancialResponsibleSearch(term: string): void {
+    this.financialResponsibleSearchTerm = term;
+    this.financialResponsibleSearchError = null;
+    this.selectedFinancialResponsibleSubscriber = null;
+    this.financialResponsibleSearchResults = [];
+
+    const normalizedTerm = term.trim();
+    if (normalizedTerm.length < 3) {
+      this.financialResponsibleSearchLoading = false;
+      return;
+    }
+
+    const requestId = ++this.financialResponsibleSearchRequestId;
+    this.financialResponsibleSearchLoading = true;
+    this.syncView();
+
+    this.subscribersService.list(0, 10, normalizedTerm).subscribe({
+      next: (response) => {
+        this.runInZone(() => {
+          if (requestId !== this.financialResponsibleSearchRequestId) {
+            return;
+          }
+
+          this.financialResponsibleSearchLoading = false;
+          this.financialResponsibleSearchResults = response.content;
+          this.financialResponsibleSearchError = null;
+          this.syncView();
+        });
+      },
+      error: () => {
+        this.runInZone(() => {
+          if (requestId !== this.financialResponsibleSearchRequestId) {
+            return;
+          }
+
+          this.financialResponsibleSearchLoading = false;
+          this.financialResponsibleSearchResults = [];
+          this.financialResponsibleSearchError = 'Não foi possível buscar assinantes.';
+          this.syncView();
+        });
+      },
+    });
+  }
+
+  selectFinancialResponsible(subscriber: SubscriberResponse): void {
+    this.selectedFinancialResponsibleSubscriber = { ...subscriber };
+    this.financialResponsibleSearchTerm = subscriber.name;
+    this.financialResponsibleSearchResults = [];
+    this.financialResponsibleSearchError = null;
+  }
+
+  clearFinancialResponsible(): void {
+    this.selectedFinancialResponsibleSubscriber = null;
+    this.financialResponsibleSearchTerm = '';
+    this.financialResponsibleSearchResults = [];
+    this.financialResponsibleSearchError = null;
+    this.financialResponsibleSearchLoading = false;
   }
 
   chooseEditSubscriptions(): void {
@@ -511,6 +594,15 @@ export class SubscribersComponent implements OnInit {
     const now = new Date();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     return `${now.getFullYear()}-${month}`;
+  }
+
+  private resetFinancialResponsibleSearchState(): void {
+    this.financialResponsibleSearchRequestId += 1;
+    this.financialResponsibleSearchTerm = '';
+    this.financialResponsibleSearchResults = [];
+    this.financialResponsibleSearchLoading = false;
+    this.financialResponsibleSearchError = null;
+    this.selectedFinancialResponsibleSubscriber = null;
   }
 
   private shiftMonth(referenceMonth: string, offset: number): string {

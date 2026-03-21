@@ -219,6 +219,47 @@
           }
         </label>
 
+        <label class="financial-responsible-field">
+          Responsável financeiro (opcional)
+          <input
+            type="text"
+            name="financialResponsibleSearch"
+            [ngModel]="financialResponsibleSearchTerm"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onFinancialResponsibleSearch($event)"
+            placeholder="Digite pelo menos 3 letras do nome"
+          />
+          <small class="field-help">
+            Se não informar, o assinante será responsável financeiro por si.
+          </small>
+
+          @if (selectedFinancialResponsibleSubscriber) {
+            <div class="financial-responsible-selected">
+              <span>Selecionado: {{ selectedFinancialResponsibleSubscriber.name }}</span>
+              <button type="button" (click)="clearFinancialResponsible()">Limpar</button>
+            </div>
+          }
+
+          @if (financialResponsibleSearchLoading) {
+            <small class="field-help">Buscando assinantes...</small>
+          } @else if (financialResponsibleSearchError) {
+            <small class="field-error">{{ financialResponsibleSearchError }}</small>
+          } @else if (financialResponsibleSearchResults.length > 0) {
+            <ul class="search-results-list">
+              @for (subscriber of financialResponsibleSearchResults; track trackById($index, subscriber)) {
+                <li>
+                  <button type="button" (click)="selectFinancialResponsible(subscriber)">
+                    <strong>{{ subscriber.name }}</strong>
+                    <small>{{ subscriber.email }}</small>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else if (financialResponsibleSearchTerm.trim().length >= 3) {
+            <small class="field-help">Nenhum assinante encontrado para esse nome.</small>
+          }
+        </label>
+
         @if (editErrorMessage) {
           <small class="field-error">{{ editErrorMessage }}</small>
         }

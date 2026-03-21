@@ -11,11 +11,14 @@ export interface SubscriberResponse {
   name: string;
   email: string;
   associatedPlatforms: SubscriberPlatform[];
+  financialResponsibleSubscriberId?: number;
+  financialResponsibleSubscriberName?: string;
 }
 
 export interface SubscriberRequest {
   name: string;
   email: string;
+  financialResponsibleSubscriberId?: number;
 }
 
 export type SubscriberUpdateRequest = SubscriberRequest;
