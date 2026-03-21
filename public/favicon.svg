@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="barTop" x1="188" y1="235" x2="325" y2="273" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#67C29A"/>
+      <stop offset="1" stop-color="#8AD07A"/>
+    </linearGradient>
+    <linearGradient id="barBottom" x1="188" y1="292" x2="325" y2="330" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#08A189"/>
+      <stop offset="1" stop-color="#46BA7A"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(256 256) rotate(-40) scale(1.28) translate(-256 -256)">
+    <rect x="164" y="120" width="256" height="98" rx="34" fill="url(#barTop)"/>
+    <rect x="164" y="226" width="256" height="98" rx="34" fill="url(#barBottom)"/>
+  </g>
+</svg>
