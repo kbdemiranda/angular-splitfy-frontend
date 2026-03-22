@@ -9,7 +9,10 @@
       >
         <lucide-angular [img]="icons.menu" [size]="18"></lucide-angular>
       </button>
-      <strong class="text-sm font-semibold tracking-wide text-cyan-300 sm:text-base">{{ 'app.brand' | t }}</strong>
+      <div class="inline-flex items-center gap-1">
+        <img src="favicon.svg" class="h-5 w-5 shrink-0 translate-y-[3px]" />
+        <strong class="text-sm font-semibold leading-none tracking-wide text-cyan-300 sm:text-base">{{ 'app.brand' | t }}</strong>
+      </div>
 
       <nav class="ml-4 hidden items-center gap-1 sm:flex">
         @for (item of navItems; track item.path) {
