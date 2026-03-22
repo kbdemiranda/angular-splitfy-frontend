@@ -85,11 +85,11 @@
 .logo-chip {
   width: clamp(135px, 10vw, 165px);
   height: clamp(72px, 6vw, 85px);
-  border-radius: 14px;
+  border-radius: 0;
   background: none;
   display: grid;
   place-items: center;
-  box-shadow: 0 12px 24px rgba(2, 8, 23, 0.24);
+  box-shadow: none;
 }
 
 .logo-image {
