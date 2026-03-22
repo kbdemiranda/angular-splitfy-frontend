@@ -1,6 +1,33 @@
 <section class="register-page">
+  <article class="register-showcase" aria-hidden="true">
+    <div class="showcase-content">
+      <h2 class="showcase-brand">
+        <img src="/favicon.svg" alt="" />
+        <span>{{ 'app.brand' | t }}</span>
+      </h2>
+      <p>Centralize contas, assinaturas e cobranças em um só lugar.</p>
+    </div>
+
+    <div class="logos-carousel">
+      @for (row of logoRows; track row.id) {
+        <div class="logos-track" [class.reverse]="row.reverse">
+          @for (logo of row.items; track $index) {
+            <span class="logo-chip">
+              <img
+                class="logo-image"
+                [class.logo-youtube]="logo === 'youtube'"
+                [class.logo-microsoft]="logo === 'microsoft'"
+                [src]="'/logos/' + logo + '.svg'"
+                alt=""
+              />
+            </span>
+          }
+        </div>
+      }
+    </div>
+  </article>
+
   <article class="register-card">
-    <div class="register-brand">{{ 'app.brand' | t }}</div>
     <h1>{{ 'register.title' | t }}</h1>
     <p>{{ 'register.subtitle' | t }}</p>
 

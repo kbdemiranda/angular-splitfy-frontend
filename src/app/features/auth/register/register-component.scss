@@ -1,36 +1,136 @@
 .register-page {
   min-height: 100dvh;
   display: grid;
-  place-items: center;
-  padding: clamp(20px, 4vw, 40px);
+  grid-template-columns: minmax(320px, 1.05fr) minmax(320px, 0.95fr);
+  align-items: stretch;
+  padding: 0;
+  gap: 0;
   background:
     radial-gradient(1200px 500px at 0% -10%, rgba(56, 189, 248, 0.15), transparent 60%),
     radial-gradient(900px 450px at 100% 110%, rgba(14, 116, 144, 0.2), transparent 62%),
     #020817;
 }
 
-.register-card {
-  width: min(460px, 100%);
-  background: linear-gradient(180deg, #12213b 0%, #0b1830 100%);
-  border: 1px solid #24324a;
-  border-radius: 14px;
-  padding: clamp(22px, 3vw, 30px);
-  box-shadow: 0 24px 50px rgba(2, 8, 23, 0.48);
+.register-showcase {
+  position: relative;
+  border: 1px solid #1e293b;
+  border-radius: 0;
+  background:
+    radial-gradient(700px 320px at 10% -20%, rgba(14, 165, 233, 0.34), transparent 72%),
+    linear-gradient(165deg, rgba(7, 18, 43, 0.9) 8%, rgba(3, 7, 18, 0.94) 92%);
+  padding: clamp(22px, 3vw, 36px);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: clamp(20px, 2.2vw, 30px);
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: 0 24px 50px rgba(2, 8, 23, 0.42);
 }
 
-.register-brand {
+.showcase-content {
+  position: relative;
+  z-index: 2;
+}
+
+.showcase-brand {
+  margin: 0;
   display: inline-flex;
   align-items: center;
-  margin-bottom: 12px;
-  border: 1px solid #164e63;
-  background: rgba(8, 47, 73, 0.62);
-  color: #67e8f9;
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  gap: 10px;
+  font-size: clamp(1.4rem, 2.2vw, 2rem);
+  letter-spacing: 0.02em;
+}
+
+.showcase-brand img {
+  width: clamp(26px, 2.2vw, 34px);
+  height: clamp(26px, 2.2vw, 34px);
+}
+
+.showcase-brand span {
+  background: linear-gradient(90deg, #67e8f9 0%, #22d3ee 42%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.showcase-content p {
+  margin: 8px 0 0;
+  max-width: 46ch;
+  color: #cbd5e1;
+}
+
+.logos-carousel {
+  position: absolute;
+  z-index: 1;
+  inset: 120px 18px 24px;
+  display: grid;
+  align-content: center;
+  gap: 14px;
+  pointer-events: none;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+}
+
+.logos-track {
+  display: flex;
+  gap: 14px;
+  width: max-content;
+  animation: logo-marquee 28s linear infinite;
+}
+
+.logos-track.reverse {
+  animation-duration: 34s;
+  animation-direction: reverse;
+}
+
+.logo-chip {
+  width: clamp(135px, 10vw, 165px);
+  height: clamp(72px, 6vw, 85px);
+  border-radius: 14px;
+  background: none;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 12px 24px rgba(2, 8, 23, 0.24);
+}
+
+.logo-image {
+  width: 80%;
+  height: 68%;
+  object-fit: contain;
+  filter: brightness(0) saturate(100%) invert(100%);
+  opacity: 0.95;
+}
+
+.logo-image.logo-youtube {
+  filter: none;
+  opacity: 1;
+}
+
+.logo-image.logo-microsoft {
+  filter: grayscale(1) brightness(1.85) contrast(0.8);
+  opacity: 1;
+}
+
+@keyframes logo-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.register-card {
+  width: 100%;
+  justify-self: stretch;
+  align-self: stretch;
+  display: grid;
+  align-content: center;
+  background: linear-gradient(180deg, #12213b 0%, #0b1830 100%);
+  border: 1px solid #24324a;
+  border-radius: 0;
+  padding: clamp(28px, 4vw, 56px);
+  box-shadow: none;
 }
 
 h1 {
@@ -141,4 +241,30 @@ a {
 
 a:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 920px) {
+  .register-page {
+    grid-template-columns: 1fr;
+  }
+
+  .register-card {
+    order: 1;
+  }
+
+  .register-showcase {
+    order: 2;
+    min-height: 300px;
+  }
+
+  .logos-carousel {
+    inset: 110px 16px 18px;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 640px) {
+  .register-showcase {
+    display: none;
+  }
 }
