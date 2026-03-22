@@ -41,8 +41,8 @@ export const TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     'nav.open_menu': 'Abrir menu',
     'nav.logout': 'Sair',
 
-    'login.title': 'Splitfy',
-    'login.subtitle': 'Faça login para acessar o painel.',
+    'login.title': 'Entrar',
+    'login.subtitle': 'Entre para gerenciar assinaturas e dividir despesas com praticidade.',
     'login.email': 'E-mail',
     'login.password': 'Senha',
     'login.invalid_email': 'E-mail inválido.',
@@ -166,8 +166,8 @@ export const TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     'nav.open_menu': 'Open menu',
     'nav.logout': 'Sign out',
 
-    'login.title': 'Splitfy',
-    'login.subtitle': 'Sign in to access the panel.',
+    'login.title': 'Sign in',
+    'login.subtitle': 'Sign in to manage subscriptions and split expenses with ease.',
     'login.email': 'E-mail',
     'login.password': 'Password',
     'login.invalid_email': 'Invalid e-mail.',
@@ -291,8 +291,8 @@ export const TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     'nav.open_menu': 'Abrir menú',
     'nav.logout': 'Salir',
 
-    'login.title': 'Splitfy',
-    'login.subtitle': 'Inicia sesión para acceder al panel.',
+    'login.title': 'Iniciar sesión',
+    'login.subtitle': 'Inicia sesión para gestionar suscripciones y dividir gastos fácilmente.',
     'login.email': 'Correo',
     'login.password': 'Contraseña',
     'login.invalid_email': 'Correo inválido.',

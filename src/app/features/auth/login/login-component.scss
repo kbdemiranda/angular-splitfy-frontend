@@ -86,7 +86,7 @@
   width: clamp(135px, 10vw, 165px);
   height: clamp(72px, 6vw, 85px);
   border-radius: 14px;
-  background: rgba(2, 6, 23, 0.18);
+  background: none;
   display: grid;
   place-items: center;
   box-shadow: 0 12px 24px rgba(2, 8, 23, 0.24);
@@ -131,21 +131,6 @@
   border-radius: 0;
   padding: clamp(28px, 4vw, 56px);
   box-shadow: none;
-}
-
-.login-brand {
-  display: inline-flex;
-  align-items: center;
-  margin-bottom: 12px;
-  border: 1px solid #164e63;
-  background: rgba(8, 47, 73, 0.62);
-  color: #67e8f9;
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 h1 {
