@@ -14,6 +14,7 @@ export class LoginComponent {
     email: FormControl<string>;
     password: FormControl<string>;
   }>;
+  readonly logoRows = this.buildLogoRows();
 
   invalidLogin = false;
   submitting = false;
@@ -66,5 +67,20 @@ export class LoginComponent {
           });
         },
       });
+  }
+
+  private buildLogoRows(): Array<{ id: string; reverse: boolean; items: string[] }> {
+    const base = ['disneyplus', 'netflix', 'youtube', 'hbomax', 'microsoft', 'spotfy'];
+
+    return [
+      { id: 'row-1', reverse: false, items: [...base, ...base] },
+      { id: 'row-2', reverse: true, items: [...this.rotate(base, 4), ...this.rotate(base, 4)] },
+      { id: 'row-3', reverse: false, items: [...this.rotate(base, 2), ...this.rotate(base, 2)] },
+      { id: 'row-4', reverse: true, items: [...this.rotate(base, 1), ...this.rotate(base, 1)] },
+    ];
+  }
+
+  private rotate(values: string[], offset: number): string[] {
+    return [...values.slice(offset), ...values.slice(0, offset)];
   }
 }

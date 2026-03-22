@@ -1,4 +1,32 @@
 <section class="login-page">
+  <article class="login-showcase" aria-hidden="true">
+    <div class="showcase-content">
+      <h2 class="showcase-brand">
+        <img src="/favicon.svg" alt="" />
+        <span>{{ 'app.brand' | t }}</span>
+      </h2>
+      <p>Organize seus streamings e compartilhe despesas com facilidade.</p>
+    </div>
+
+    <div class="logos-carousel">
+      @for (row of logoRows; track row.id) {
+        <div class="logos-track" [class.reverse]="row.reverse">
+          @for (logo of row.items; track $index) {
+            <span class="logo-chip">
+              <img
+                class="logo-image"
+                [class.logo-youtube]="logo === 'youtube'"
+                [class.logo-microsoft]="logo === 'microsoft'"
+                [src]="'/logos/' + logo + '.svg'"
+                alt=""
+              />
+            </span>
+          }
+        </div>
+      }
+    </div>
+  </article>
+
   <article class="login-card">
     <div class="login-brand">{{ 'app.brand' | t }}</div>
     <h1>{{ 'login.title' | t }}</h1>
