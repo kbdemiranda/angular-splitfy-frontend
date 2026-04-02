@@ -667,7 +667,13 @@ export class SubscribersComponent implements OnInit {
   private recalculateSubscriptionLists(): void {
     const associatedIds = new Set(this.subscriptionsAssociatedPlatforms.map((platform) => platform.id));
     this.subscriptionsAvailablePlatforms = this.subscriptionsCatalog
-      .filter((platform) => platform.availableSlots > 0 && !associatedIds.has(platform.id))
+      .filter((platform) => {
+        if (associatedIds.has(platform.id)) {
+          return false;
+        }
+
+        return platform.availableSlots > 0 || this.originalAssociatedPlatformIds.has(platform.id);
+      })
       .map((platform) => ({
         id: platform.id,
         name: platform.name,

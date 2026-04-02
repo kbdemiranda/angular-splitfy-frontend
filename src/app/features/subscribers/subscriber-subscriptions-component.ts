@@ -21,6 +21,7 @@ export class SubscriberSubscriptionsComponent implements OnInit {
   associatedPlatforms: SubscriberPlatform[] = [];
   availablePlatforms: SubscriberPlatform[] = [];
   allPlatforms: PlatformCatalogItem[] = [];
+  private originalAssociatedPlatformIds = new Set<number>();
   infoMessage: string | null = null;
   isLoadingSubscriber = false;
   subscriberError: string | null = null;
@@ -47,6 +48,7 @@ export class SubscriberSubscriptionsComponent implements OnInit {
     this.associatedPlatforms = [];
     this.availablePlatforms = [];
     this.allPlatforms = [];
+    this.originalAssociatedPlatformIds = new Set<number>();
 
     forkJoin({
       subscriber: this.subscribersService.details(routeId),
@@ -59,6 +61,7 @@ export class SubscriberSubscriptionsComponent implements OnInit {
 
         const platformById = new Map(this.allPlatforms.map((platform) => [platform.id, platform]));
         this.associatedPlatforms = this.normalizeAssociatedPlatforms(subscriberSubscriptions, platformById);
+        this.originalAssociatedPlatformIds = new Set(this.associatedPlatforms.map((platform) => platform.id));
 
         this.recalculateLists();
         this.hasLoadedSubscriptionsData = true;
@@ -109,7 +112,13 @@ export class SubscriberSubscriptionsComponent implements OnInit {
   private recalculateLists(): void {
     const associatedIds = new Set(this.associatedPlatforms.map((platform) => platform.id));
     this.availablePlatforms = this.allPlatforms
-      .filter((platform) => platform.availableSlots > 0 && !associatedIds.has(platform.id))
+      .filter((platform) => {
+        if (associatedIds.has(platform.id)) {
+          return false;
+        }
+
+        return platform.availableSlots > 0 || this.originalAssociatedPlatformIds.has(platform.id);
+      })
       .map((platform) => ({
         id: platform.id,
         name: platform.name,
