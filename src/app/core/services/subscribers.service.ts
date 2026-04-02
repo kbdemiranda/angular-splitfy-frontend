@@ -45,7 +45,7 @@ export class SubscribersService {
   disassociatePlatforms(id: number, platformIds: number[]): Observable<void> {
     const headers = new HttpHeaders().set('subscriberId', String(id)).set('subscriberID', String(id));
     const payload: SubscriberPlatformsBatchPayloadItem[] = [{ platformIds }];
-    return this.http.post<void>(API_ROUTES.disassociateSubscriberPlatforms(id), payload, { headers });
+    return this.http.put<void>(API_ROUTES.disassociateSubscriberPlatforms(id), payload, { headers });
   }
 
   updateProfile(id: number, payload: SubscriberUpdateRequest): Observable<SubscriberResponse> {
