@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { forkJoin, map, of } from 'rxjs';
-import { CircleCheck, CircleUser, CircleX, Clock3, LucideIconData } from 'lucide-angular';
+import { CircleCheck, CircleX, Clock3, LucideIconData } from 'lucide-angular';
 import { I18nService } from '../../core/i18n/i18n.service';
 import { SubscriberBillingService } from '../../core/services/subscriber-billing.service';
 import { SubscriberBillingItem, SubscriberBillingResponse } from '../../shared/models/subscriber-billing.model';
@@ -81,7 +81,6 @@ export class SubscribersComponent implements OnInit {
     PENDING: Clock3,
     UNPAID: CircleX,
   };
-  readonly subscriberIcon = CircleUser;
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -106,12 +105,41 @@ export class SubscribersComponent implements OnInit {
     return this.editingSubscriberId === this.createSentinelId;
   }
 
+  get totalSubscribersCount(): number {
+    return this.subscribers.length;
+  }
+
+  get subscribersWithPlatformsCount(): number {
+    return this.subscribers.filter((subscriber) => subscriber.associatedPlatforms.length > 0).length;
+  }
+
+  get subscribersWithoutPlatformsCount(): number {
+    return this.subscribers.filter((subscriber) => subscriber.associatedPlatforms.length === 0).length;
+  }
+
+  get totalAssociatedPlatformsCount(): number {
+    return this.subscribers.reduce((total, subscriber) => total + subscriber.associatedPlatforms.length, 0);
+  }
+
   trackById(_: number, subscriber: SubscriberResponse): number {
     return subscriber.id;
   }
 
   trackPlatformId(_: number, platform: SubscriberPlatform): number {
     return platform.id;
+  }
+
+  avatarInitials(name: string): string {
+    const trimmedName = name.trim();
+    if (trimmedName.length === 0) {
+      return '??';
+    }
+
+    const parts = trimmedName.split(/\s+/).filter((part) => part.length > 0);
+    const first = parts[0]?.[0] ?? '';
+    const second = parts.length > 1 ? parts[parts.length - 1][0] : parts[0]?.[1] ?? '';
+    const initials = `${first}${second}`.toUpperCase();
+    return initials.length > 0 ? initials : '??';
   }
 
   openDetails(subscriber: SubscriberResponse): void {

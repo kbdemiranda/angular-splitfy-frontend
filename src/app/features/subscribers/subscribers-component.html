@@ -11,9 +11,40 @@
   </section>
 } @else if (hasLoadedSubscribers) {
   <section class="subscribers-page">
-    <header class="subscribers-header">
-      <h1>{{ 'subscribers.title' | t }}</h1>
-      <p>{{ 'subscribers.subtitle' | t }}</p>
+    <header class="subscribers-header rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-sm">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-400/80">Console de gerenciamento</p>
+          <h1 class="mt-1 text-4xl font-semibold text-slate-100">{{ 'subscribers.title' | t }}</h1>
+          <p class="mt-2 text-slate-400">{{ 'subscribers.subtitle' | t }}</p>
+        </div>
+        <button
+          type="button"
+          class="rounded-xl border border-cyan-500/60 bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400"
+          (click)="openCreate()"
+        >
+          + Novo assinante
+        </button>
+      </div>
+
+      <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <article class="rounded-xl border border-slate-700/80 bg-slate-950/70 p-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">Total de assinantes</p>
+          <strong class="mt-1 block text-3xl font-semibold text-slate-100">{{ totalSubscribersCount }}</strong>
+        </article>
+        <article class="rounded-xl border border-slate-700/80 bg-slate-950/70 p-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">Com plataformas</p>
+          <strong class="mt-1 block text-3xl font-semibold text-slate-100">{{ subscribersWithPlatformsCount }}</strong>
+        </article>
+        <article class="rounded-xl border border-amber-700/50 bg-slate-950/70 p-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">Sem plataformas</p>
+          <strong class="mt-1 block text-3xl font-semibold text-amber-300">{{ subscribersWithoutPlatformsCount }}</strong>
+        </article>
+        <article class="rounded-xl border border-cyan-800/60 bg-slate-950/70 p-4">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">Associações totais</p>
+          <strong class="mt-1 block text-3xl font-semibold text-cyan-300">{{ totalAssociatedPlatformsCount }}</strong>
+        </article>
+      </div>
     </header>
 
     @if (placeholderMessage) {
@@ -23,33 +54,38 @@
       </div>
     }
 
-    <ul
-      role="list"
-      class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3"
-    >
+    <ul role="list" class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
       @for (subscriber of subscribers; track trackById($index, subscriber)) {
-        <li class="col-span-1 flex h-full flex-col divide-y divide-slate-700 rounded-lg border border-slate-700 bg-slate-900/80 shadow-sm">
-          <div class="flex w-full flex-1 items-center justify-between space-x-6 p-6">
-            <div class="flex-1 truncate">
-              <h3 class="truncate text-sm/6 font-semibold text-slate-100">{{ subscriber.name }}</h3>
-              <p class="mt-1 truncate text-sm text-slate-300">{{ subscriber.email }}</p>
-              <div class="mt-3 flex flex-wrap gap-2">
-                @for (platform of subscriber.associatedPlatforms; track platform.id) {
-                  <span class="inline-flex items-center rounded-md bg-sky-500/15 px-2 py-1 text-xs font-medium text-sky-300 ring-1 ring-sky-400/30 ring-inset">
-                    {{ platform.name }}
-                  </span>
-                }
-              </div>
+        <li class="col-span-1 flex h-full flex-col rounded-xl border border-slate-800 bg-slate-900/85 p-5 shadow-sm">
+          <div class="flex w-full items-start justify-between gap-4">
+            <div class="min-w-0 flex-1">
+              <h3 class="truncate text-lg font-semibold text-slate-100">{{ subscriber.name }}</h3>
+              <p class="mt-1 truncate text-sm text-slate-400">{{ subscriber.email }}</p>
+              <p class="mt-3 text-xs text-slate-500">Plataformas associadas</p>
             </div>
             <div class="avatar" aria-hidden="true">
-              <lucide-angular [img]="subscriberIcon" [size]="40"></lucide-angular>
+              <span>{{ avatarInitials(subscriber.name) }}</span>
             </div>
           </div>
 
-          <div class="mt-auto">
+          <div class="mt-4 flex min-h-8 flex-wrap gap-2">
+            @if (subscriber.associatedPlatforms.length === 0) {
+              <span class="inline-flex items-center rounded-md bg-slate-800 px-2 py-1 text-xs font-medium text-slate-400 ring-1 ring-slate-700 ring-inset">
+                Sem plataformas
+              </span>
+            } @else {
+              @for (platform of subscriber.associatedPlatforms; track platform.id) {
+                <span class="inline-flex items-center rounded-md bg-cyan-500/15 px-2 py-1 text-xs font-medium text-cyan-300 ring-1 ring-cyan-400/30 ring-inset">
+                  {{ platform.name }}
+                </span>
+              }
+            }
+          </div>
+
+          <div class="mt-auto pt-4">
             <button
               type="button"
-              class="block w-full bg-slate-800 py-3 text-sm font-semibold text-slate-100 hover:bg-slate-700"
+              class="block w-full rounded-lg border border-slate-700 bg-slate-800 py-3 text-sm font-semibold text-slate-100 transition hover:bg-slate-700"
               (click)="openDetails(subscriber)"
               [disabled]="openingDetailsSubscriberId === subscriber.id"
             >
@@ -64,9 +100,6 @@
       }
     </ul>
 
-    <button type="button" class="floating-create-button" (click)="openCreate()">
-      {{ 'subscribers.new' | t }}
-    </button>
   </section>
 }
 
@@ -80,7 +113,7 @@
 
       <div class="subscriber-identification">
         <div class="avatar large" aria-hidden="true">
-          <lucide-angular [img]="subscriberIcon" [size]="48"></lucide-angular>
+          <span>{{ avatarInitials(selectedSubscriber.name) }}</span>
         </div>
         <div>
           <strong>{{ selectedSubscriber.name }}</strong>
