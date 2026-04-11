@@ -27,33 +27,53 @@
     </div>
   </article>
 
-  <article class="login-card">
+  <article class="login-card" data-cy="login-card" data-testid="login-card">
     <h1>{{ 'login.title' | t }}</h1>
     <p>{{ 'login.subtitle' | t }}</p>
 
-    <form [formGroup]="form" (ngSubmit)="submit()">
+    <form [formGroup]="form" (ngSubmit)="submit()" data-cy="login-form" data-testid="login-form">
       <label for="email">{{ 'login.email' | t }}</label>
-      <input id="email" type="email" formControlName="email" placeholder="email@splitfy.app" />
+      <input
+        id="email"
+        name="email"
+        type="email"
+        formControlName="email"
+        placeholder="email@splitfy.app"
+        data-cy="login-email"
+        data-testid="login-email"
+      />
       @if (form.controls.email.touched && form.controls.email.invalid) {
         <small>{{ 'login.invalid_email' | t }}</small>
       }
 
       <label for="password">{{ 'login.password' | t }}</label>
-      <input id="password" type="password" formControlName="password" [attr.placeholder]="'login.password' | t" />
+      <input
+        id="password"
+        name="password"
+        type="password"
+        formControlName="password"
+        [attr.placeholder]="'login.password' | t"
+        data-cy="login-password"
+        data-testid="login-password"
+      />
       @if (form.controls.password.touched && form.controls.password.invalid) {
         <small>{{ 'login.required_password' | t }}</small>
       }
 
-      <div class="error" *ngIf="invalidLogin">{{ 'login.invalid_credentials' | t }}</div>
+      <div class="error" *ngIf="invalidLogin" data-cy="login-error" data-testid="login-error">
+        {{ 'login.invalid_credentials' | t }}
+      </div>
 
-      <button type="submit" [disabled]="submitting">
+      <button type="submit" [disabled]="submitting" data-cy="login-submit" data-testid="login-submit">
         {{ submitting ? ('login.submitting' | t) : ('login.submit' | t) }}
       </button>
     </form>
 
     <p class="hint">
       {{ 'login.no_account' | t }}
-      <a routerLink="/register">{{ 'login.create_account' | t }}</a>
+      <a routerLink="/register" data-cy="login-create-account" data-testid="login-create-account">
+        {{ 'login.create_account' | t }}
+      </a>
     </p>
   </article>
 </section>
