@@ -31,6 +31,41 @@ describe('PaymentConfirmationsService', () => {
     await expect(resultPromise).resolves.toEqual([]);
   });
 
+  it('lists pending confirmations without reference month', async () => {
+    const resultPromise = firstValueFrom(service.listPending());
+    const req = httpMock.expectOne('/subscribers/payments/confirmations/pending');
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
+    await expect(resultPromise).resolves.toEqual([]);
+  });
+
+  it('handles register, approve and send email endpoints', async () => {
+    const registerPromise = firstValueFrom(
+      service.register({
+        referenceMonth: '2026-04',
+        confirmations: [{ subscriberId: 1, platformIds: [1, 2] }],
+      }),
+    );
+    const registerReq = httpMock.expectOne('/subscribers/payments/confirmations');
+    expect(registerReq.request.method).toBe('POST');
+    registerReq.flush([{ id: 1 }]);
+    await expect(registerPromise).resolves.toEqual([{ id: 1 }]);
+
+    const approvePromise = firstValueFrom(service.approve(55));
+    const approveReq = httpMock.expectOne('/subscribers/payments/confirmations/55/approve');
+    expect(approveReq.request.method).toBe('POST');
+    approveReq.flush({ id: 55, status: 'CONFIRMED' });
+    await expect(approvePromise).resolves.toEqual({ id: 55, status: 'CONFIRMED' });
+
+    const emailPromise = firstValueFrom(
+      service.sendBillingSummaryEmail({ subscriberIds: [1], emails: ['a@a.com'], referenceMonth: '2026-04' }),
+    );
+    const emailReq = httpMock.expectOne('/subscribers/billing/email-summary');
+    expect(emailReq.request.method).toBe('POST');
+    emailReq.flush(null);
+    await expect(emailPromise).resolves.toBeNull();
+  });
+
   it('sends subscriber headers when registering payments', async () => {
     const requestPromise = firstValueFrom(
       service.registerSubscriberPayment(44, {

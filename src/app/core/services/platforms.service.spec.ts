@@ -63,4 +63,18 @@ describe('PlatformsService', () => {
       content: [{ id: 7, name: 'YouTube' }],
     });
   });
+
+  it('returns empty content when payload does not contain list data', async () => {
+    const resultPromise = firstValueFrom(service.list(3, 7));
+    const req = httpMock.expectOne('/platforms?page=3&size=7');
+    req.flush({ foo: 'bar' });
+
+    await expect(resultPromise).resolves.toMatchObject({
+      page: 3,
+      size: 7,
+      totalElements: 0,
+      totalPages: 0,
+      content: [],
+    });
+  });
 });

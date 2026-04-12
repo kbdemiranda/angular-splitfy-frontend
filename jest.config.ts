@@ -13,8 +13,21 @@ const config: Config = {
     'src/app/**/*.ts',
     '!src/**/*.spec.ts',
     '!src/main.ts',
+    '!src/app/app-module.ts',
+    '!src/app/app-routing-module.ts',
+    '!src/app/core/interceptors/mock-backend.interceptor.ts',
+    '!src/app/features/common/coming-soon/coming-soon-component.ts',
+    '!src/app/features/subscribers/subscribers-data.ts',
     '!src/app/core/i18n/translations.ts',
   ],
+  coverageThreshold: {
+    global: {
+      statements: 80,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+    },
+  },
 };
 
 export default config;
