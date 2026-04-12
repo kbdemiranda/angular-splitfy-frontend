@@ -1,0 +1,27 @@
+{
+  "referenceMonth": "2026-04",
+  "currency": "BRL",
+  "totalDue": 1240,
+  "totalPaid": 980,
+  "totalPending": 180,
+  "totalUnpaid": 80,
+  "delinquencyRate": 6.45,
+  "pendingByPlatform": [
+    {
+      "platformId": 1,
+      "platformName": "Netflix",
+      "pendingCount": 3,
+      "pendingAmount": 89.7
+    }
+  ],
+  "debtors": [
+    {
+      "subscriberId": 10,
+      "subscriberName": "Ana Souza",
+      "subscriberEmail": "ana@example.com",
+      "pendingAmount": 120,
+      "unpaidAmount": 20,
+      "totalDebt": 140
+    }
+  ]
+}

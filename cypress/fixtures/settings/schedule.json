@@ -1,0 +1,11 @@
+{
+  "scheduleKey": "KPI_SUMMARY",
+  "enabled": true,
+  "timezone": "America/Sao_Paulo",
+  "occurrences": [
+    {
+      "dayOfWeek": 1,
+      "executionTime": "09:00"
+    }
+  ]
+}

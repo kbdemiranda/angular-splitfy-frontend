@@ -1,0 +1,32 @@
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "Netflix",
+      "price": 39.9,
+      "currency": "BRL",
+      "url": "https://netflix.com",
+      "serviceType": "Video Streaming",
+      "totalSlots": 4,
+      "availableSlots": 0,
+      "billingCycle": "MONTHLY",
+      "billingDay": "2026-04-10"
+    },
+    {
+      "id": 2,
+      "name": "Spotify",
+      "price": 21.9,
+      "currency": "BRL",
+      "url": "https://spotify.com",
+      "serviceType": "Music Streaming",
+      "totalSlots": 5,
+      "availableSlots": 3,
+      "billingCycle": "MONTHLY",
+      "billingDay": "2026-04-10"
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 2,
+  "totalPages": 1
+}

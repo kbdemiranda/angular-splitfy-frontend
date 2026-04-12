@@ -1,0 +1,22 @@
+{
+  "userId": 1,
+  "referenceMonth": "2026-04",
+  "currency": "BRL",
+  "totalMonthlyDue": 47.5,
+  "items": [
+    {
+      "serviceId": 1,
+      "serviceName": "Netflix",
+      "billingCycle": "MONTHLY",
+      "serviceCurrency": "BRL",
+      "serviceMonthlyAmount": 39.9,
+      "participantsCount": 2,
+      "userMonthlyShare": 19.95,
+      "serviceMonthlyAmountOriginal": 39.9,
+      "userMonthlyShareOriginal": 19.95,
+      "exchangeRateToBrl": 1,
+      "exchangeRateDate": "2026-04-02",
+      "paymentStatus": "PENDING"
+    }
+  ]
+}

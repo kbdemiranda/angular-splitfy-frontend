@@ -216,6 +216,8 @@ Add images under `docs/images/` using these filenames:
 npm run start      # Run Angular dev server
 npm run build      # Build production artifacts
 npm run test       # Run test suite
+npm run e2e        # Run Cypress regression suite (starts app automatically)
+npm run e2e:smoke  # Run Cypress smoke suite (starts app automatically)
 ```
 
 ## Quality Gates

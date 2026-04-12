@@ -1,4 +1,4 @@
-<section class="settings-page">
+<section class="settings-page" data-cy="settings-page">
   <header class="settings-header">
     <p class="eyebrow">Painel administrativo</p>
     <h1>{{ 'settings.title' | t }}</h1>
@@ -16,13 +16,13 @@
     </section>
   } @else if (initialUsersLoaded) {
     <section class="settings-content" aria-live="polite">
-      <article class="content-card">
+      <article class="content-card" data-cy="settings-users-card">
           <div class="content-header">
             <div>
               <p class="section-kicker">Gerenciamento</p>
               <h2>Usuários</h2>
             </div>
-            <button type="button" (click)="openCreateUserModal()">Novo usuário</button>
+            <button type="button" (click)="openCreateUserModal()" data-cy="settings-users-create">Novo usuário</button>
           </div>
           <p>Cadastro, edição, consulta e remoção de usuários da aplicação.</p>
 
@@ -90,18 +90,19 @@
                           {{ user.receivesDashboardEmail ? 'Recebe' : 'Não recebe' }}
                         </span>
                       </td>
-                      <td>
+                      <td [attr.data-cy]="'settings-user-actions-' + user.id">
                         <button
                           type="button"
                           class="link dashboard-link"
                           [class.active]="user.receivesDashboardEmail"
                           [disabled]="isDashboardEmailActionDisabled(user)"
                           (click)="toggleDashboardEmailRecipient(user)"
+                          [attr.data-cy]="'settings-user-toggle-kpi-' + user.id"
                         >
                           {{ dashboardEmailActionLabel(user) }}
                         </button>
-                        <button type="button" class="link" (click)="openEditUserModal(user)">Editar</button>
-                        <button type="button" class="link danger" (click)="askDeleteUser(user)">Excluir</button>
+                        <button type="button" class="link" (click)="openEditUserModal(user)" [attr.data-cy]="'settings-user-edit-' + user.id">Editar</button>
+                        <button type="button" class="link danger" (click)="askDeleteUser(user)" [attr.data-cy]="'settings-user-delete-' + user.id">Excluir</button>
                       </td>
                     </tr>
                   }
@@ -111,20 +112,20 @@
           </div>
       </article>
 
-      <article class="content-card">
+      <article class="content-card" data-cy="settings-system-card">
           <div class="content-header">
             <div>
               <p class="section-kicker">Preferências</p>
               <h2>{{ 'settings.system_title' | t }}</h2>
             </div>
-            <button type="button" (click)="saveSystemSettings()">{{ 'settings.save_changes' | t }}</button>
+            <button type="button" (click)="saveSystemSettings()" data-cy="settings-system-save">{{ 'settings.save_changes' | t }}</button>
           </div>
           <p>{{ 'settings.system_desc' | t }}</p>
 
           <form class="system-form">
             <label>
               {{ 'settings.language' | t }}
-              <select [(ngModel)]="selectedLanguage" name="selectedLanguage">
+              <select [(ngModel)]="selectedLanguage" name="selectedLanguage" data-cy="settings-language-select">
                 @for (option of languageOptions; track option.code) {
                   <option [value]="option.code">{{ option.label }}</option>
                 }
@@ -178,7 +179,7 @@
           </form>
       </article>
 
-      <article class="content-card">
+      <article class="content-card" data-cy="settings-schedule-card">
         <div class="content-header">
           <div>
             <p class="section-kicker">Agendamento</p>
@@ -188,6 +189,7 @@
             type="button"
             [disabled]="!isAdmin || scheduleLoading || scheduleSaving"
             (click)="saveKpiSummaryEmailSchedule()"
+            data-cy="settings-schedule-save"
           >
             {{ scheduleSaving ? 'Salvando...' : 'Salvar configuração' }}
           </button>
@@ -216,6 +218,7 @@
                     name="scheduleEnabled"
                     [(ngModel)]="scheduleEnabled"
                     (ngModelChange)="scheduleSuccess = null"
+                    data-cy="settings-schedule-enabled"
                   />
                   <span class="switch-slider"></span>
                 </span>
@@ -230,6 +233,7 @@
                   list="timezone-options"
                   placeholder="America/Sao_Paulo"
                   (ngModelChange)="scheduleValidationError = null; scheduleSuccess = null"
+                  data-cy="settings-schedule-timezone"
                 />
                 <datalist id="timezone-options">
                   @for (timezone of timezoneOptions; track timezone) {
@@ -245,7 +249,7 @@
                   <strong>Horários configurados</strong>
                   <small>Os envios são ordenados por dia e hora ao renderizar e ao salvar.</small>
                 </div>
-                <button type="button" class="secondary-inline" (click)="addScheduleOccurrence()">
+                <button type="button" class="secondary-inline" (click)="addScheduleOccurrence()" data-cy="settings-schedule-add-occurrence">
                   Adicionar horário
                 </button>
               </div>
@@ -265,6 +269,7 @@
                           [name]="'dayOfWeek-' + index"
                           [(ngModel)]="occurrence.dayOfWeek"
                           (ngModelChange)="onScheduleOccurrenceChange()"
+                          [attr.data-cy]="'settings-schedule-day-' + index"
                         >
                           @for (day of dayOfWeekOptions; track day.value) {
                             <option [ngValue]="day.value">{{ day.label }}</option>
@@ -279,10 +284,11 @@
                           [name]="'executionTime-' + index"
                           [(ngModel)]="occurrence.executionTime"
                           (ngModelChange)="onScheduleOccurrenceChange()"
+                          [attr.data-cy]="'settings-schedule-time-' + index"
                         />
                       </label>
 
-                      <button type="button" class="remove-occurrence" (click)="removeScheduleOccurrence(index)">
+                      <button type="button" class="remove-occurrence" (click)="removeScheduleOccurrence(index)" [attr.data-cy]="'settings-schedule-remove-' + index">
                         Remover
                       </button>
                     </div>
@@ -311,14 +317,14 @@
 
 @if (isCreateModalOpen) {
   <div class="modal-overlay" (click)="closeCreateUserModal()">
-    <section class="modal" (click)="$event.stopPropagation()">
+    <section class="modal" (click)="$event.stopPropagation()" data-cy="settings-create-user-modal">
       <h2>Novo usuário</h2>
       <p>Preencha os dados para criar um novo usuário.</p>
 
       <form [formGroup]="createUserForm" (ngSubmit)="submitCreateUser()" class="edit-form">
         <label>
           Nome
-          <input type="text" formControlName="name" placeholder="Nome completo" />
+          <input type="text" formControlName="name" placeholder="Nome completo" data-cy="settings-create-user-name" />
           @if (createUserForm.controls.name.invalid && createUserForm.controls.name.touched) {
             <small class="field-error">Informe um nome válido.</small>
           }
@@ -326,7 +332,7 @@
 
         <label>
           Email
-          <input type="email" formControlName="email" placeholder="email@dominio.com" />
+          <input type="email" formControlName="email" placeholder="email@dominio.com" data-cy="settings-create-user-email" />
           @if (createUserForm.controls.email.invalid && createUserForm.controls.email.touched) {
             <small class="field-error">Informe um email válido.</small>
           }
@@ -334,7 +340,7 @@
 
         <label>
           Senha
-          <input type="password" formControlName="password" placeholder="********" />
+          <input type="password" formControlName="password" placeholder="********" data-cy="settings-create-user-password" />
           @if (createUserForm.controls.password.invalid && createUserForm.controls.password.touched) {
             <small class="field-error">A senha deve ter no mínimo 8 caracteres.</small>
           }
@@ -346,7 +352,7 @@
 
         <div class="modal-actions">
           <button type="button" class="secondary" (click)="closeCreateUserModal()">Cancelar</button>
-          <button type="submit" class="primary" [disabled]="creatingUser">
+          <button type="submit" class="primary" [disabled]="creatingUser" data-cy="settings-create-user-submit">
             {{ creatingUser ? 'Criando...' : 'Criar usuário' }}
           </button>
         </div>
@@ -357,14 +363,14 @@
 
 @if (isEditModalOpen) {
   <div class="modal-overlay" (click)="closeEditUserModal()">
-    <section class="modal" (click)="$event.stopPropagation()">
+    <section class="modal" (click)="$event.stopPropagation()" data-cy="settings-edit-user-modal">
       <h2>Editar usuário</h2>
       <p>Atualize os dados do usuário.</p>
 
       <form [formGroup]="editUserForm" (ngSubmit)="submitEditUser()" class="edit-form">
         <label>
           Nome
-          <input type="text" formControlName="name" placeholder="Nome completo" />
+          <input type="text" formControlName="name" placeholder="Nome completo" data-cy="settings-edit-user-name" />
           @if (editUserForm.controls.name.invalid && editUserForm.controls.name.touched) {
             <small class="field-error">Informe um nome válido.</small>
           }
@@ -372,7 +378,7 @@
 
         <label>
           Email
-          <input type="email" formControlName="email" placeholder="email@dominio.com" />
+          <input type="email" formControlName="email" placeholder="email@dominio.com" data-cy="settings-edit-user-email" />
           @if (editUserForm.controls.email.invalid && editUserForm.controls.email.touched) {
             <small class="field-error">Informe um email válido.</small>
           }
@@ -380,7 +386,7 @@
 
         <label>
           Senha (opcional)
-          <input type="password" formControlName="password" placeholder="Deixe em branco para manter a atual" />
+          <input type="password" formControlName="password" placeholder="Deixe em branco para manter a atual" data-cy="settings-edit-user-password" />
           @if (editUserForm.controls.password.invalid && editUserForm.controls.password.touched) {
             <small class="field-error">Se informada, a senha deve ter no mínimo 8 caracteres.</small>
           }
@@ -392,7 +398,7 @@
 
         <div class="modal-actions">
           <button type="button" class="secondary" (click)="closeEditUserModal()">Cancelar</button>
-          <button type="submit" class="primary" [disabled]="editingUser">
+          <button type="submit" class="primary" [disabled]="editingUser" data-cy="settings-edit-user-submit">
             {{ editingUser ? 'Salvando...' : 'Salvar alterações' }}
           </button>
         </div>
@@ -403,12 +409,12 @@
 
 @if (selectedUserToDelete) {
   <div class="modal-overlay" (click)="cancelDeleteUser()">
-    <section class="modal confirm-modal" (click)="$event.stopPropagation()">
+    <section class="modal confirm-modal" (click)="$event.stopPropagation()" data-cy="settings-delete-user-modal">
       <h2>Confirmar exclusão</h2>
       <p>Tem certeza que deseja excluir {{ selectedUserToDelete.name }}?</p>
       <div class="modal-actions">
         <button type="button" class="secondary" (click)="cancelDeleteUser()">Cancelar</button>
-        <button type="button" class="danger" (click)="confirmDeleteUser()" [disabled]="deletingUser">
+        <button type="button" class="danger" (click)="confirmDeleteUser()" [disabled]="deletingUser" data-cy="settings-delete-user-confirm">
           {{ deletingUser ? 'Excluindo...' : 'Excluir' }}
         </button>
       </div>
@@ -418,7 +424,7 @@
 
 @if (selectedUserToReplaceDashboardRecipient) {
   <div class="modal-overlay" (click)="cancelReplaceDashboardRecipient()">
-    <section class="modal confirm-modal" (click)="$event.stopPropagation()">
+    <section class="modal confirm-modal" (click)="$event.stopPropagation()" data-cy="settings-replace-kpi-modal">
       <h2>Substituir destinatário</h2>
       <p>{{ dashboardEmailConflictMessage }}</p>
       <p>
@@ -426,7 +432,7 @@
       </p>
       <div class="modal-actions">
         <button type="button" class="secondary" (click)="cancelReplaceDashboardRecipient()">Cancelar</button>
-        <button type="button" class="primary" (click)="confirmReplaceDashboardRecipient()" [disabled]="dashboardEmailUpdatingUserId !== null">
+        <button type="button" class="primary" (click)="confirmReplaceDashboardRecipient()" [disabled]="dashboardEmailUpdatingUserId !== null" data-cy="settings-replace-kpi-confirm">
           {{ dashboardEmailUpdatingUserId !== null ? 'Substituindo...' : 'Substituir destinatário' }}
         </button>
       </div>

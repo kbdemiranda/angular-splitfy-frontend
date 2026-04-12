@@ -3,10 +3,17 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --port 4242",
+    "start:dev": "ng serve --port 4242",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "cy:run:regression": "cypress run --spec \"cypress/e2e/regression/**/*.cy.ts\"",
+    "cy:run:smoke": "cypress run --spec \"cypress/e2e/smoke/**/*.cy.ts\"",
+    "e2e": "start-server-and-test start:dev http://localhost:4242 cy:run:regression",
+    "e2e:smoke": "start-server-and-test start:dev http://localhost:4242 cy:run:smoke"
   },
   "prettier": {
     "printWidth": 100,
@@ -42,6 +49,7 @@
     "@tailwindcss/postcss": "^4.1.18",
     "cypress": "^15.13.1",
     "jsdom": "^27.1.0",
+    "start-server-and-test": "^2.1.2",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"

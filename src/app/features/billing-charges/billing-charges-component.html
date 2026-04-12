@@ -1,29 +1,29 @@
 @if (isLoadingSubscribers && !hasLoadedSubscribers) {
-  <section class="billing-page">
+  <section class="billing-page" data-cy="billing-page">
     <section class="loading-state" aria-live="polite" aria-busy="true">
       <div class="spinner" role="status" [attr.aria-label]="'billing.loading' | t"></div>
       <p>{{ 'billing.loading' | t }}</p>
     </section>
   </section>
 } @else if (subscribersError && !hasLoadedSubscribers) {
-  <section class="billing-page">
+  <section class="billing-page" data-cy="billing-page">
     <article class="state error">{{ subscribersError }}</article>
   </section>
 } @else {
-  <section class="billing-page">
+  <section class="billing-page" data-cy="billing-page">
     <header class="page-header">
       <div>
         <h1>{{ 'billing.title' | t }}</h1>
         <p>{{ 'billing.subtitle' | t }}</p>
       </div>
-      <button type="button" class="bulk-charge-trigger" (click)="openBulkChargeModal()">
+      <button type="button" class="bulk-charge-trigger" (click)="openBulkChargeModal()" data-cy="billing-open-bulk-charge">
         {{ 'billing.charge_users' | t }}
       </button>
     </header>
 
-    <ul role="list" class="subscribers-grid">
+    <ul role="list" class="subscribers-grid" data-cy="billing-subscribers-list">
       @for (subscriber of subscribers; track trackById($index, subscriber)) {
-        <li class="subscriber-card">
+        <li class="subscriber-card" data-cy="billing-subscriber-card" [attr.data-cy-id]="subscriber.id">
           <div class="card-body">
             <div class="card-copy">
               <h3>{{ subscriber.name }}</h3>
@@ -38,6 +38,7 @@
             class="card-action"
             [disabled]="openingDetailsSubscriberId === subscriber.id"
             (click)="openDetails(subscriber)"
+            [attr.data-cy]="'billing-open-details-' + subscriber.id"
           >
             {{ openingDetailsSubscriberId === subscriber.id ? ('common.loading' | t) : ('billing.details' | t) }}
           </button>
@@ -53,7 +54,7 @@
 
 @if (bulkChargeModalOpen) {
   <div class="modal-overlay" (click)="closeBulkChargeModal()">
-    <section class="modal bulk-charge-modal" (click)="$event.stopPropagation()">
+    <section class="modal bulk-charge-modal" (click)="$event.stopPropagation()" data-cy="billing-bulk-modal">
       <div class="detail-header">
         <h2>Cobrança em lote</h2>
         <button type="button" class="close-icon" (click)="closeBulkChargeModal()">Fechar</button>
@@ -81,6 +82,7 @@
               type="month"
               [(ngModel)]="bulkChargeReferenceMonth"
               name="bulkChargeReferenceMonth"
+              data-cy="billing-bulk-reference-month"
             />
             <button
               type="button"
@@ -100,6 +102,7 @@
             [(ngModel)]="bulkChargeDestinationEmails"
             name="bulkChargeDestinationEmails"
             placeholder="finance@example.com, admin@example.com"
+            data-cy="billing-bulk-emails"
           />
           <small>Se precisar, separe múltiplos e-mails por vírgula.</small>
         </label>
@@ -115,6 +118,7 @@
                   type="checkbox"
                   [checked]="hasBulkSubscriberSelected(subscriber.id)"
                   (change)="toggleBulkSubscriber(subscriber.id, $any($event.target).checked)"
+                  [attr.data-cy]="'billing-bulk-subscriber-' + subscriber.id"
                 />
                 <span>{{ subscriber.name }}</span>
                 <small>{{ subscriber.email }}</small>
@@ -125,8 +129,8 @@
       </section>
 
       <div class="modal-actions">
-        <button type="button" class="close-icon" (click)="closeBulkChargeModal()">Cancelar</button>
-        <button type="button" class="charge-btn" [disabled]="bulkCharging" (click)="submitBulkCharge()">
+        <button type="button" class="close-icon" (click)="closeBulkChargeModal()" data-cy="billing-bulk-cancel">Cancelar</button>
+        <button type="button" class="charge-btn" [disabled]="bulkCharging" (click)="submitBulkCharge()" data-cy="billing-bulk-submit">
           {{ bulkCharging ? 'Enviando...' : 'Enviar cobrança' }}
         </button>
       </div>
@@ -136,14 +140,14 @@
 
 @if (selectedSubscriber) {
   <div class="modal-overlay" (click)="closeDetails()">
-    <section class="modal detail-modal" (click)="$event.stopPropagation()">
+    <section class="modal detail-modal" (click)="$event.stopPropagation()" data-cy="billing-detail-modal">
       <div class="detail-header">
         <h2>Detalhes da cobrança</h2>
         <div class="header-actions">
-          <button type="button" class="charge-btn" [disabled]="charging" (click)="sendChargeEmail()">
+          <button type="button" class="charge-btn" [disabled]="charging" (click)="sendChargeEmail()" data-cy="billing-send-charge">
             {{ charging ? ('billing.charging' | t) : ('billing.charge' | t) }}
           </button>
-          <button type="button" class="secondary-btn" [disabled]="billingLoading" (click)="openRegisterPaymentModal()">
+          <button type="button" class="secondary-btn" [disabled]="billingLoading" (click)="openRegisterPaymentModal()" data-cy="billing-open-register-payment">
             Registrar pagamento
           </button>
           <button type="button" class="close-icon" (click)="closeDetails()">Fechar</button>
@@ -183,7 +187,7 @@
               >
                 &lt;
               </button>
-              <input #monthInput type="month" [value]="billingReferenceMonth" (change)="changeBillingMonth(monthInput.value)" />
+              <input #monthInput type="month" [value]="billingReferenceMonth" (change)="changeBillingMonth(monthInput.value)" data-cy="billing-reference-month" />
               <button
                 type="button"
                 class="month-nav-button"
@@ -278,7 +282,7 @@
 
   @if (registerPaymentModalOpen) {
     <div class="modal-overlay nested-modal-overlay" (click)="closeRegisterPaymentModal()">
-      <section class="modal register-payment-modal" (click)="$event.stopPropagation()">
+      <section class="modal register-payment-modal" (click)="$event.stopPropagation()" data-cy="billing-register-payment-modal">
         <div class="detail-header">
           <h2>Registrar pagamento</h2>
           <button type="button" class="close-icon" (click)="closeRegisterPaymentModal()">Fechar</button>
@@ -306,6 +310,7 @@
                 type="month"
                 [(ngModel)]="registerPaymentReferenceMonth"
                 name="registerPaymentReferenceMonth"
+                data-cy="billing-register-reference-month"
               />
               <button
                 type="button"
@@ -329,6 +334,7 @@
                     type="checkbox"
                     [checked]="hasRegisterPaymentPlatformSelected(platform.id)"
                     (change)="toggleRegisterPaymentPlatform(platform.id, $any($event.target).checked)"
+                    [attr.data-cy]="'billing-register-platform-' + platform.id"
                   />
                   <span>{{ platform.name }}</span>
                 </label>
@@ -342,8 +348,8 @@
         </section>
 
         <div class="modal-actions">
-          <button type="button" class="close-icon" (click)="closeRegisterPaymentModal()">Cancelar</button>
-          <button type="button" class="charge-btn" [disabled]="registeringPayment" (click)="submitRegisterPayment()">
+          <button type="button" class="close-icon" (click)="closeRegisterPaymentModal()" data-cy="billing-register-cancel">Cancelar</button>
+          <button type="button" class="charge-btn" [disabled]="registeringPayment" (click)="submitRegisterPayment()" data-cy="billing-register-submit">
             {{ registeringPayment ? 'Registrando...' : 'Registrar' }}
           </button>
         </div>

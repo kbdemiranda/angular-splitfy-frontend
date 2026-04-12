@@ -1,0 +1,9 @@
+[
+  {
+    "platformId": 1,
+    "name": "Netflix",
+    "monthlyPrice": 39.9,
+    "individualPrice": 19.95,
+    "currency": "BRL"
+  }
+]

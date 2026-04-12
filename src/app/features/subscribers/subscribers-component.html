@@ -1,16 +1,16 @@
 @if (isLoadingSubscribers && !hasLoadedSubscribers) {
-  <section class="subscribers-page">
+  <section class="subscribers-page" data-cy="subscribers-page">
     <section class="loading-state" aria-live="polite" aria-busy="true">
       <div class="spinner" role="status" [attr.aria-label]="'subscribers.loading' | t"></div>
       <p>{{ 'subscribers.loading' | t }}</p>
     </section>
   </section>
 } @else if (subscribersError && !hasLoadedSubscribers) {
-  <section class="subscribers-page">
+  <section class="subscribers-page" data-cy="subscribers-page">
     <article class="billing-state error">{{ subscribersError }}</article>
   </section>
 } @else if (hasLoadedSubscribers) {
-  <section class="subscribers-page">
+  <section class="subscribers-page" data-cy="subscribers-page">
     <header class="subscribers-header rounded-2xl border border-slate-800 bg-slate-900/70 p-5 shadow-sm">
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -22,6 +22,7 @@
           type="button"
           class="rounded-xl border border-cyan-500/60 bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400"
           (click)="openCreate()"
+          data-cy="subscribers-create-button"
         >
           + Novo assinante
         </button>
@@ -54,9 +55,13 @@
       </div>
     }
 
-    <ul role="list" class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <ul role="list" class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3" data-cy="subscribers-list">
       @for (subscriber of subscribers; track trackById($index, subscriber)) {
-        <li class="col-span-1 flex h-full flex-col rounded-xl border border-slate-800 bg-slate-900/85 p-5 shadow-sm">
+        <li
+          class="col-span-1 flex h-full flex-col rounded-xl border border-slate-800 bg-slate-900/85 p-5 shadow-sm"
+          data-cy="subscribers-card"
+          [attr.data-cy-id]="subscriber.id"
+        >
           <div class="flex w-full items-start justify-between gap-4">
             <div class="min-w-0 flex-1">
               <h3 class="truncate text-lg font-semibold text-slate-100">{{ subscriber.name }}</h3>
@@ -88,6 +93,9 @@
               class="block w-full rounded-lg border border-slate-700 bg-slate-800 py-3 text-sm font-semibold text-slate-100 transition hover:bg-slate-700"
               (click)="openDetails(subscriber)"
               [disabled]="openingDetailsSubscriberId === subscriber.id"
+              data-cy-action="subscribers-open-details"
+              [attr.data-cy-detail-id]="subscriber.id"
+              [attr.data-cy]="'subscribers-detail-' + subscriber.id"
             >
               {{ openingDetailsSubscriberId === subscriber.id ? ('common.loading' | t) : ('subscribers.detail' | t) }}
             </button>
@@ -105,7 +113,7 @@
 
 @if (selectedSubscriber) {
   <div class="modal-overlay" (click)="closeDetails()">
-    <section class="modal detail-modal" (click)="$event.stopPropagation()">
+    <section class="modal detail-modal" (click)="$event.stopPropagation()" data-cy="subscribers-detail-modal">
       <div class="detail-header">
         <h2>Assinante</h2>
         <button type="button" class="close-icon" (click)="closeDetails()">Fechar</button>
@@ -140,6 +148,7 @@
                 type="month"
                 [value]="billingReferenceMonth"
                 (change)="changeBillingMonth(monthInput.value)"
+                data-cy="subscribers-detail-reference-month"
               />
               <button
                 type="button"
@@ -189,8 +198,8 @@
       </section>
 
       <div class="modal-actions">
-        <button type="button" class="primary" (click)="openEditOptions(selectedSubscriber)">Editar</button>
-        <button type="button" class="danger" (click)="askDelete(selectedSubscriber)">Excluir</button>
+        <button type="button" class="primary" (click)="openEditOptions(selectedSubscriber)" data-cy="subscribers-edit-button">Editar</button>
+        <button type="button" class="danger" (click)="askDelete(selectedSubscriber)" data-cy="subscribers-delete-button">Excluir</button>
       </div>
 
     </section>
@@ -199,14 +208,14 @@
 
 @if (editOptionsSubscriber) {
   <div class="modal-overlay" (click)="closeEditOptions()">
-    <section class="modal choice-modal" (click)="$event.stopPropagation()">
+    <section class="modal choice-modal" (click)="$event.stopPropagation()" data-cy="subscribers-edit-options-modal">
       <h2>Editar</h2>
       <p>Escolha o tipo de edição para {{ editOptionsSubscriber.name }}.</p>
       <div class="choice-actions">
-        <button type="button" class="choice-subscriber" (click)="chooseEditSubscriber()">
+        <button type="button" class="choice-subscriber" (click)="chooseEditSubscriber()" data-cy="subscribers-edit-profile-option">
           Editar assinante
         </button>
-        <button type="button" class="choice-subscriptions" (click)="chooseEditSubscriptions()">
+        <button type="button" class="choice-subscriptions" (click)="chooseEditSubscriptions()" data-cy="subscribers-edit-subscriptions-option">
           Editar assinaturas
         </button>
       </div>
@@ -216,7 +225,7 @@
 
 @if (editingSubscriberId !== null) {
   <div class="modal-overlay" (click)="cancelEdit()">
-    <section class="modal edit-modal" (click)="$event.stopPropagation()">
+    <section class="modal edit-modal" (click)="$event.stopPropagation()" data-cy="subscribers-edit-modal">
       <h2>{{ isCreateMode ? 'Novo assinante' : 'Editar assinante' }}</h2>
       <p>
         {{
@@ -227,13 +236,14 @@
         <code>SubscriberRequest</code> do OpenAPI.
       </p>
 
-      <form [formGroup]="editProfileForm" (ngSubmit)="saveEdit()" class="edit-form">
+      <form [formGroup]="editProfileForm" (ngSubmit)="saveEdit()" class="edit-form" data-cy="subscribers-edit-form">
         <label>
           Nome
           <input
             type="text"
             formControlName="name"
             placeholder="Nome completo"
+            data-cy="subscribers-edit-name"
           />
           @if (editProfileForm.controls.name.invalid && editProfileForm.controls.name.touched) {
             <small class="field-error">Informe um nome válido.</small>
@@ -246,6 +256,7 @@
             type="email"
             formControlName="email"
             placeholder="email@dominio.com"
+            data-cy="subscribers-edit-email"
           />
           @if (editProfileForm.controls.email.invalid && editProfileForm.controls.email.touched) {
             <small class="field-error">Informe um email válido.</small>
@@ -261,6 +272,7 @@
             [ngModelOptions]="{ standalone: true }"
             (ngModelChange)="onFinancialResponsibleSearch($event)"
             placeholder="Digite pelo menos 3 letras do nome"
+            data-cy="subscribers-edit-financial-responsible"
           />
           <small class="field-help">
             Se não informar, o assinante será responsável financeiro por si.
@@ -298,8 +310,8 @@
         }
 
         <div class="modal-actions">
-          <button type="button" class="secondary" (click)="cancelEdit()">Cancelar</button>
-          <button type="submit" class="primary">{{ isCreateMode ? 'Criar' : 'Salvar' }}</button>
+          <button type="button" class="secondary" (click)="cancelEdit()" data-cy="subscribers-edit-cancel">Cancelar</button>
+          <button type="submit" class="primary" data-cy="subscribers-edit-save">{{ isCreateMode ? 'Criar' : 'Salvar' }}</button>
         </div>
       </form>
     </section>
@@ -308,7 +320,7 @@
 
 @if (editingSubscriptionsSubscriber) {
   <div class="modal-overlay" (click)="closeSubscriptionsEditor()">
-    <section class="modal subscriptions-modal" (click)="$event.stopPropagation()">
+    <section class="modal subscriptions-modal" (click)="$event.stopPropagation()" data-cy="subscribers-subscriptions-modal">
       <div class="detail-header">
         <h2>Editar assinaturas</h2>
         <button type="button" class="close-icon" (click)="closeSubscriptionsEditor()">Fechar</button>
@@ -350,6 +362,9 @@
                     class="action-button remove"
                     [disabled]="savingSubscriptionsChanges"
                     (click)="removePlatform(platform)"
+                    data-cy-action="subscribers-remove-platform"
+                    [attr.data-cy-platform-id]="platform.id"
+                    [attr.data-cy]="'subscribers-remove-platform-' + platform.id"
                   >
                     Desassociar
                   </button>
@@ -377,6 +392,9 @@
                     class="action-button add"
                     [disabled]="savingSubscriptionsChanges"
                     (click)="associatePlatform(platform)"
+                    data-cy-action="subscribers-add-platform"
+                    [attr.data-cy-platform-id]="platform.id"
+                    [attr.data-cy]="'subscribers-add-platform-' + platform.id"
                   >
                     Associar
                   </button>
@@ -397,10 +415,11 @@
           class="primary"
           [disabled]="savingSubscriptionsChanges || !hasPendingSubscriptionChanges"
           (click)="saveSubscriptionsChanges()"
+          data-cy="subscribers-save-subscriptions"
         >
           {{ savingSubscriptionsChanges ? 'Salvando...' : 'Salvar alterações' }}
         </button>
-        <button type="button" class="secondary" (click)="closeSubscriptionsEditor()">Fechar</button>
+        <button type="button" class="secondary" (click)="closeSubscriptionsEditor()" data-cy="subscribers-close-subscriptions">Fechar</button>
       </div>
     </section>
   </div>
@@ -408,12 +427,12 @@
 
 @if (subscriberToDelete) {
   <div class="modal-overlay" (click)="cancelDelete()">
-    <section class="modal confirm-modal" (click)="$event.stopPropagation()">
+    <section class="modal confirm-modal" (click)="$event.stopPropagation()" data-cy="subscribers-delete-modal">
       <h2>Confirmar exclusão</h2>
       <p>Tem certeza que deseja excluir {{ subscriberToDelete.name }}?</p>
       <div class="modal-actions">
-        <button type="button" class="secondary" (click)="cancelDelete()">Cancelar</button>
-        <button type="button" class="danger" (click)="confirmDelete()">Excluir</button>
+        <button type="button" class="secondary" (click)="cancelDelete()" data-cy="subscribers-delete-cancel">Cancelar</button>
+        <button type="button" class="danger" (click)="confirmDelete()" data-cy="subscribers-delete-confirm">Excluir</button>
       </div>
     </section>
   </div>

@@ -1,0 +1,26 @@
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "Admin Splitfy",
+      "email": "admin@splitfy.app",
+      "profileName": "ADMIN",
+      "profile": "Administrador",
+      "active": true,
+      "receivesDashboardEmail": true
+    },
+    {
+      "id": 2,
+      "name": "Operador Splitfy",
+      "email": "ops@splitfy.app",
+      "profileName": "USER",
+      "profile": "Usuário",
+      "active": true,
+      "receivesDashboardEmail": false
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 2,
+  "totalPages": 1
+}
