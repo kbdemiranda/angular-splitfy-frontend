@@ -80,10 +80,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check backend image availability
+        id: backend-image
+        run: |
+          if docker manifest inspect kbdemiranda/splitfy-api:latest >/dev/null 2>&1; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip smoke when backend image is unavailable
+        if: steps.backend-image.outputs.available != 'true'
+        run: echo "::warning::Skipping smoke tests because kbdemiranda/splitfy-api:latest is not available."
+
       - name: Start backend dependencies
+        if: steps.backend-image.outputs.available == 'true'
         run: docker compose up -d db backend
 
       - name: Wait for backend
+        if: steps.backend-image.outputs.available == 'true'
         run: |
           for i in {1..60}; do
             if curl -fsS http://localhost:9090/actuator/health >/dev/null 2>&1; then
@@ -97,6 +112,7 @@ jobs:
           exit 1
 
       - name: Run Cypress smoke
+        if: steps.backend-image.outputs.available == 'true'
         env:
           API_BASE_URL: http://localhost:9090
           CYPRESS_SMOKE_EMAIL: ${{ secrets.CYPRESS_SMOKE_EMAIL }}
@@ -114,9 +130,9 @@ jobs:
           if-no-files-found: ignore
 
       - name: Print logs on failure
-        if: failure()
+        if: failure() && steps.backend-image.outputs.available == 'true'
         run: docker compose logs backend
 
       - name: Tear down backend dependencies
-        if: always()
+        if: always() && steps.backend-image.outputs.available == 'true'
         run: docker compose down

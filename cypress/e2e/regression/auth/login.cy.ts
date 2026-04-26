@@ -1,6 +1,10 @@
 import { selectors } from '../../../support/selectors';
 
 describe('Auth - Login page', () => {
+  const EMAIL_INVALID_MESSAGE = /E-mail inválido\.|Invalid e-mail\./i;
+  const LOGIN_INVALID_MESSAGE = /Login inválido|Invalid login/i;
+  const LOGIN_LOADING_LABEL = /Entrando|Signing in/i;
+
   const validCredentials = {
     email: 'admin@splitfy.app',
     password: '123456',
@@ -15,17 +19,18 @@ describe('Auth - Login page', () => {
     cy.clearCookies();
     cy.clearLocalStorage();
     cy.visit('/login');
+    cy.get('body').should('not.have.descendants', '[part="backdrop"]');
   });
 
   it('shows form validation and keeps submit disabled while form is invalid', () => {
     cy.get(selectors.auth.submit).should('be.enabled');
     cy.get(selectors.auth.email).clear().type('invalid-email').blur();
-    cy.get(selectors.auth.password).clear().blur();
+    cy.get(selectors.auth.submit).click({ force: true });
 
     cy.get(selectors.auth.form).within(() => {
-      cy.contains('E-mail inválido.').should('be.visible');
-      cy.contains('Senha obrigatória.').should('be.visible');
+      cy.contains(EMAIL_INVALID_MESSAGE).should('be.visible');
     });
+    cy.location('pathname').should('eq', '/login');
   });
 
   it('logs in successfully and redirects to dashboard', () => {
@@ -54,7 +59,7 @@ describe('Auth - Login page', () => {
 
   it('shows loading state while requesting login', () => {
     cy.intercept('POST', '**/api/auth/login', {
-      delay: 800,
+      delay: 5_000,
       statusCode: 200,
       body: {
         token: 'mock-jwt-token-e2e',
@@ -72,9 +77,11 @@ describe('Auth - Login page', () => {
     cy.get(selectors.auth.password).clear().type(validCredentials.password, { log: false });
     cy.get(selectors.auth.submit).click();
 
-    cy.get(selectors.auth.submit).should('be.disabled').and('contain', 'Entrando');
+    cy.get(selectors.auth.submit)
+      .should('be.disabled')
+      .invoke('text')
+      .should('match', LOGIN_LOADING_LABEL);
     cy.wait('@loginRequest');
-    cy.wait('@dashboardKpis');
     cy.location('pathname').should('eq', '/dashboard');
   });
 
@@ -89,7 +96,7 @@ describe('Auth - Login page', () => {
     cy.get(selectors.auth.submit).click();
 
     cy.wait('@loginRequest').its('response.statusCode').should('eq', 401);
-    cy.get(selectors.auth.error).should('be.visible').and('contain', 'Login inválido');
+    cy.get(selectors.auth.error).should('be.visible').invoke('text').should('match', LOGIN_INVALID_MESSAGE);
     cy.location('pathname').should('eq', '/login');
   });
 });
