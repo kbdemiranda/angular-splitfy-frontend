@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, HostListener, NgZone, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Cloud, LucideIconData } from 'lucide-angular';
 import { PlatformsService } from '../../core/services/platforms.service';
 import {
@@ -97,6 +98,7 @@ export class PlatformsComponent implements OnInit {
     private readonly platformsService: PlatformsService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly ngZone: NgZone,
+    private readonly router: Router,
   ) {
     this.editForm = this.formBuilder.group({
       name: this.formBuilder.nonNullable.control('', [Validators.required]),
@@ -217,6 +219,11 @@ export class PlatformsComponent implements OnInit {
   openDetails(platform: Platform): void {
     this.viewingPlatform = platform;
     this.openMenuPlatformId = null;
+  }
+
+  viewParticipants(platform: Platform): void {
+    this.openMenuPlatformId = null;
+    void this.router.navigate(['/platforms', platform.id, 'participants']);
   }
 
   closeDetails(): void {

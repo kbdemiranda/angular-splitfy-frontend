@@ -6,6 +6,7 @@ import { LoginComponent } from './features/auth/login/login-component';
 import { RegisterComponent } from './features/auth/register/register-component';
 import { SettingsComponent } from './features/settings/settings-component';
 import { PlatformsComponent } from './features/platforms/platforms-component';
+import { PlatformParticipantsComponent } from './features/platforms/platform-participants-component';
 import { SubscribersComponent } from './features/subscribers/subscribers-component';
 import { SubscriberSubscriptionsComponent } from './features/subscribers/subscriber-subscriptions-component';
 import { BillingChargesComponent } from './features/billing-charges/billing-charges-component';
@@ -35,6 +36,12 @@ const routes: Routes = [
     component: SubscribersComponent,
     canActivate: [AuthGuard],
     data: { title: 'Assinantes' },
+  },
+  {
+    path: 'platforms/:id/participants',
+    component: PlatformParticipantsComponent,
+    canActivate: [AuthGuard],
+    data: { title: 'Participantes da plataforma' },
   },
   {
     path: 'platforms',

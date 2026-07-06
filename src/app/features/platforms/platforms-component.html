@@ -50,6 +50,9 @@
               @if (openMenuPlatformId === platform.id) {
                 <div class="context-menu">
                   <button type="button" (click)="openDetails(platform)">{{ 'platforms.details' | t }}</button>
+                  <button type="button" (click)="viewParticipants(platform)">
+                    {{ 'platforms.participants' | t }}
+                  </button>
                   <button type="button" (click)="openEdit(platform)">Editar</button>
                   <button type="button" class="danger" (click)="askDelete(platform)">Excluir</button>
                 </div>

@@ -43,3 +43,24 @@ export interface PlatformPageResponse {
   totalElements: number;
   totalPages: number;
 }
+
+export interface PlatformParticipantItem {
+  subscriberId: number;
+  subscriberName: string;
+  subscriberEmail: string;
+  subscribedAt: string;
+  individualShare: number;
+  individualShareOriginal: number | null;
+}
+
+export interface PlatformParticipantsResponse {
+  platformId: number;
+  platformName: string;
+  price: number;
+  currency: PlatformCurrency;
+  priceInBrl: number;
+  participantsCount: number;
+  individualShare: number;
+  individualShareOriginal: number | null;
+  participants: PlatformParticipantItem[];
+}

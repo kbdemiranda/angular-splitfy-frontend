@@ -10,6 +10,7 @@ export const API_ROUTES = {
   kpiSummaryEmailSchedule: '/email-schedules/kpi-summary',
   platforms: '/platforms',
   platformById: (id: number | string) => `/platforms/${id}`,
+  platformParticipants: (id: number | string) => `/platforms/${id}/participants`,
   subscribers: '/subscribers',
   subscriberById: (id: number | string) => `/subscribers/${id}`,
   subscriberSubscriptions: (id: number | string) => `/subscribers/${id}/subscriptions`,

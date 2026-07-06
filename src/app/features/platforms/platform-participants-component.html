@@ -1,0 +1,70 @@
+@if (isLoading && !hasLoadedData) {
+  <section class="participants-page">
+    <div class="feedback" role="status" aria-live="polite">Carregando participantes...</div>
+  </section>
+} @else if (errorMessage && !hasLoadedData) {
+  <section class="participants-page">
+    <div class="feedback" role="alert">{{ errorMessage }}</div>
+  </section>
+} @else if (hasLoadedData && platform) {
+  <section class="participants-page">
+    <header class="participants-header">
+      <button type="button" class="back-button" (click)="backToPlatforms()">Voltar</button>
+      <div>
+        <h1>{{ platform.platformName }}</h1>
+        <p>Participantes ativos e o valor individual de cada um.</p>
+      </div>
+    </header>
+
+    <article class="summary-card">
+      <div>
+        <span>Preço total</span>
+        <strong>{{ formatCurrency(platform.price, platform.currency) }}</strong>
+      </div>
+      <div>
+        <span>Preço em BRL</span>
+        <strong>{{ formatCurrency(platform.priceInBrl) }}</strong>
+      </div>
+      <div>
+        <span>Participantes</span>
+        <strong>{{ platform.participantsCount }}</strong>
+      </div>
+      <div>
+        <span>Valor individual (BRL)</span>
+        <strong>{{ formatCurrency(platform.individualShare) }}</strong>
+      </div>
+      @if (platform.individualShareOriginal !== null) {
+        <div>
+          <span>Valor individual (original)</span>
+          <strong>{{ formatCurrency(platform.individualShareOriginal, platform.currency) }}</strong>
+        </div>
+      }
+    </article>
+
+    <div class="participants-list">
+      @for (participant of platform.participants; track participant.subscriberId) {
+        <article class="participant-card">
+          <div>
+            <strong>{{ participant.subscriberName }}</strong>
+            <p>{{ participant.subscriberEmail }}</p>
+            <p class="muted">Desde {{ formatDate(participant.subscribedAt) }}</p>
+          </div>
+          <div class="shares">
+            <span>{{ formatCurrency(participant.individualShare) }}</span>
+            @if (participant.individualShareOriginal !== null) {
+              <span class="muted">
+                {{ formatCurrency(participant.individualShareOriginal, platform.currency) }}
+              </span>
+            }
+          </div>
+        </article>
+      }
+
+      @if (platform.participants.length === 0) {
+        <article class="empty-card">
+          <strong>Nenhum participante nesta plataforma.</strong>
+        </article>
+      }
+    </div>
+  </section>
+}

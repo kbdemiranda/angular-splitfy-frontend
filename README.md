@@ -98,7 +98,7 @@ npm install
 npm run start
 ```
 
-Application URL: `http://localhost:4242`
+Application URL: `http://localhost:4200`
 
 ## Docker Workflows
 

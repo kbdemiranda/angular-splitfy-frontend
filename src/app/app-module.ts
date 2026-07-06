@@ -9,6 +9,7 @@ import { DashboardComponent } from './features/dashboard/dashboard-component';
 import { NavbarComponent, LUCIDE_ICONS } from './layout/navbar/navbar-component';
 import { ComingSoonComponent } from './features/common/coming-soon/coming-soon-component';
 import { PlatformsComponent } from './features/platforms/platforms-component';
+import { PlatformParticipantsComponent } from './features/platforms/platform-participants-component';
 import { SubscribersComponent } from './features/subscribers/subscribers-component';
 import { SubscriberSubscriptionsComponent } from './features/subscribers/subscriber-subscriptions-component';
 import { SettingsComponent } from './features/settings/settings-component';
@@ -28,6 +29,7 @@ import { RegisterComponent } from './features/auth/register/register-component';
     NavbarComponent,
     ComingSoonComponent,
     PlatformsComponent,
+    PlatformParticipantsComponent,
     SubscribersComponent,
     SubscriberSubscriptionsComponent,
     SettingsComponent,

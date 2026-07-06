@@ -4,6 +4,7 @@ import { map, Observable } from 'rxjs';
 import { API_ROUTES } from '../constants/api-routes';
 import {
   PlatformPageResponse,
+  PlatformParticipantsResponse,
   PlatformRequest,
   PlatformResponse,
 } from '../../shared/models/platforms.model';
@@ -29,6 +30,10 @@ export class PlatformsService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(API_ROUTES.platformById(id));
+  }
+
+  participants(id: number): Observable<PlatformParticipantsResponse> {
+    return this.http.get<PlatformParticipantsResponse>(API_ROUTES.platformParticipants(id));
   }
 
   private normalizePageResponse(response: unknown, page: number, size: number): PlatformPageResponse {

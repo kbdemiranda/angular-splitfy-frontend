@@ -118,6 +118,7 @@ export const TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     'platforms.new': '+ Nova plataforma',
     'platforms.close': 'Fechar',
     'platforms.details': 'Detalhes',
+    'platforms.participants': 'Ver participantes',
 
     'subscribers.title': 'Assinantes',
     'subscribers.subtitle': 'Acompanhe os participantes ativos das suas plataformas.',
@@ -243,6 +244,7 @@ export const TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     'platforms.new': '+ New platform',
     'platforms.close': 'Close',
     'platforms.details': 'Details',
+    'platforms.participants': 'View participants',
 
     'subscribers.title': 'Subscribers',
     'subscribers.subtitle': 'Track active participants on your platforms.',
@@ -368,6 +370,7 @@ export const TRANSLATIONS: Record<AppLanguage, Record<string, string>> = {
     'platforms.new': '+ Nueva plataforma',
     'platforms.close': 'Cerrar',
     'platforms.details': 'Detalles',
+    'platforms.participants': 'Ver participantes',
 
     'subscribers.title': 'Suscriptores',
     'subscribers.subtitle': 'Sigue a los participantes activos de tus plataformas.',
