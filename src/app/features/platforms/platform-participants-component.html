@@ -99,31 +99,49 @@
     <div class="participants-list">
       @for (participant of filteredParticipants; track participant.subscriberId) {
         <article class="participant-card">
-          <div>
-            <strong>{{ participant.subscriberName }}</strong>
-            <p>{{ participant.subscriberEmail }}</p>
-            <p class="muted">Desde {{ formatDate(participant.subscribedAt) }}</p>
-            <p class="history">
-              Pago até agora: {{ formatCurrency(participant.totalPaid) }}
-              @if (participant.totalPaidOriginal !== null) {
-                ({{ formatCurrency(participant.totalPaidOriginal, platform.currency) }})
+          <div class="participant-top">
+            <div class="participant-identity">
+              <strong>{{ participant.subscriberName }}</strong>
+              <p>{{ participant.subscriberEmail }}</p>
+            </div>
+            <div class="participant-share">
+              <span>{{ formatCurrency(participant.individualShare) }}</span>
+              @if (participant.individualShareOriginal !== null) {
+                <span class="muted">
+                  {{ formatCurrency(participant.individualShareOriginal, platform.currency) }}
+                </span>
               }
-            </p>
-            <p class="history">
-              Se assinasse sozinho: {{ formatCurrency(participant.totalIfSubscribedAlone) }}
-              @if (participant.totalIfSubscribedAloneOriginal !== null) {
-                ({{ formatCurrency(participant.totalIfSubscribedAloneOriginal, platform.currency) }})
-              }
-            </p>
+            </div>
           </div>
-          <div class="shares">
-            <span>{{ formatCurrency(participant.individualShare) }}</span>
-            @if (participant.individualShareOriginal !== null) {
-              <span class="muted">
-                {{ formatCurrency(participant.individualShareOriginal, platform.currency) }}
-              </span>
-            }
-          </div>
+
+          <dl class="participant-details">
+            <div>
+              <dt>Desde</dt>
+              <dd>{{ formatDate(participant.subscribedAt) }}</dd>
+            </div>
+            <div>
+              <dt>Pago até agora</dt>
+              <dd>
+                {{ formatCurrency(participant.totalPaid) }}
+                @if (participant.totalPaidOriginal !== null) {
+                  <span class="muted">
+                    {{ formatCurrency(participant.totalPaidOriginal, platform.currency) }}
+                  </span>
+                }
+              </dd>
+            </div>
+            <div>
+              <dt>Se assinasse sozinho</dt>
+              <dd>
+                {{ formatCurrency(participant.totalIfSubscribedAlone) }}
+                @if (participant.totalIfSubscribedAloneOriginal !== null) {
+                  <span class="muted">
+                    {{ formatCurrency(participant.totalIfSubscribedAloneOriginal, platform.currency) }}
+                  </span>
+                }
+              </dd>
+            </div>
+          </dl>
         </article>
       }
 
