@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --port 4242",
-    "start:dev": "ng serve --port 4242",
+    "start": "ng serve --port 4200",
+    "start:dev": "ng serve --port 4200",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "jest --config jest.config.ts --coverage",
@@ -13,8 +13,8 @@
     "cy:run": "cypress run",
     "cy:run:regression": "cypress run --spec \"cypress/e2e/regression/**/*.cy.ts\"",
     "cy:run:smoke": "cypress run --spec \"cypress/e2e/smoke/**/*.cy.ts\"",
-    "e2e": "start-server-and-test start:dev http://localhost:4242 cy:run:regression",
-    "e2e:smoke": "start-server-and-test start:dev http://localhost:4242 cy:run:smoke"
+    "e2e": "start-server-and-test start:dev http://localhost:4200 cy:run:regression",
+    "e2e:smoke": "start-server-and-test start:dev http://localhost:4200 cy:run:smoke"
   },
   "prettier": {
     "printWidth": 100,
