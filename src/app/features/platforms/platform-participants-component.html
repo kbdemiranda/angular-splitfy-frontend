@@ -41,8 +41,63 @@
       }
     </article>
 
+    @if (platform.participants.length > 0) {
+      <div class="participants-filter">
+        @if (!isSearchOpen) {
+          <button type="button" class="search-toggle" aria-label="Buscar participante" (click)="toggleSearch()">
+            <lucide-angular [img]="searchIcon" [size]="16"></lucide-angular>
+          </button>
+        } @else {
+          <div class="filter-search">
+            <lucide-angular [img]="searchIcon" [size]="16" class="search-icon-inline"></lucide-angular>
+            <input
+              #searchInput
+              type="text"
+              placeholder="Digite o nome do participante..."
+              [value]="searchTerm"
+              (input)="onSearchInput($any($event.target).value)"
+            />
+            <button type="button" class="search-close" aria-label="Fechar busca" (click)="toggleSearch()">×</button>
+
+            @if (searchSuggestions.length > 0) {
+              <ul class="suggestions-list">
+                @for (participant of searchSuggestions; track participant.subscriberId) {
+                  <li>
+                    <button type="button" (mousedown)="$event.preventDefault(); selectSuggestion(participant)">
+                      {{ participant.subscriberName }}
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+
+        @if (selectedParticipants.length > 0) {
+          <div class="filter-chips">
+            @for (participant of selectedParticipants; track participant.subscriberId) {
+              <span class="filter-chip">
+                {{ participant.subscriberName }}
+                <button
+                  type="button"
+                  class="chip-remove"
+                  aria-label="Remover do filtro"
+                  (click)="removeParticipantFilter(participant.subscriberId)"
+                >
+                  ×
+                </button>
+              </span>
+            }
+            <button type="button" class="clear-filter-link" (click)="clearParticipantFilter()">
+              Limpar filtro
+            </button>
+          </div>
+        }
+      </div>
+    }
+
     <div class="participants-list">
-      @for (participant of platform.participants; track participant.subscriberId) {
+      @for (participant of filteredParticipants; track participant.subscriberId) {
         <article class="participant-card">
           <div>
             <strong>{{ participant.subscriberName }}</strong>
@@ -75,6 +130,10 @@
       @if (platform.participants.length === 0) {
         <article class="empty-card">
           <strong>Nenhum participante nesta plataforma.</strong>
+        </article>
+      } @else if (filteredParticipants.length === 0) {
+        <article class="empty-card">
+          <strong>Nenhum participante selecionado no filtro.</strong>
         </article>
       }
     </div>

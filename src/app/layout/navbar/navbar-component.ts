@@ -10,6 +10,7 @@ import {
   LucideAngularModule,
   LucideIconData,
   Menu,
+  Search,
   Settings,
   Users,
 } from 'lucide-angular';
@@ -101,4 +102,5 @@ export const LUCIDE_ICONS = LucideAngularModule.pick({
   CircleCheck,
   Clock3,
   CircleX,
+  Search,
 });

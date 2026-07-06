@@ -1,7 +1,8 @@
-import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, NgZone, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Search, LucideIconData } from 'lucide-angular';
 import { PlatformsService } from '../../core/services/platforms.service';
-import { PlatformParticipantsResponse } from '../../shared/models/platforms.model';
+import { PlatformParticipantItem, PlatformParticipantsResponse } from '../../shared/models/platforms.model';
 
 @Component({
   selector: 'app-platform-participants',
@@ -10,10 +11,16 @@ import { PlatformParticipantsResponse } from '../../shared/models/platforms.mode
   standalone: false,
 })
 export class PlatformParticipantsComponent implements OnInit {
+  readonly searchIcon: LucideIconData = Search;
+
   platform: PlatformParticipantsResponse | null = null;
   isLoading = false;
   errorMessage: string | null = null;
   hasLoadedData = false;
+  searchTerm = '';
+  isSearchOpen = false;
+  @ViewChild('searchInput') private readonly searchInputRef?: ElementRef<HTMLInputElement>;
+  private readonly selectedParticipantIds = new Set<number>();
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -60,6 +67,64 @@ export class PlatformParticipantsComponent implements OnInit {
 
   backToPlatforms(): void {
     void this.router.navigate(['/platforms']);
+  }
+
+  get filteredParticipants(): PlatformParticipantItem[] {
+    const participants = this.platform?.participants ?? [];
+    if (this.selectedParticipantIds.size === 0) {
+      return participants;
+    }
+
+    return participants.filter((participant) => this.selectedParticipantIds.has(participant.subscriberId));
+  }
+
+  get selectedParticipants(): PlatformParticipantItem[] {
+    const participants = this.platform?.participants ?? [];
+    return participants.filter((participant) => this.selectedParticipantIds.has(participant.subscriberId));
+  }
+
+  get searchSuggestions(): PlatformParticipantItem[] {
+    const term = this.searchTerm.trim().toLowerCase();
+    if (term.length < 2) {
+      return [];
+    }
+
+    const participants = this.platform?.participants ?? [];
+    return participants
+      .filter(
+        (participant) =>
+          !this.selectedParticipantIds.has(participant.subscriberId) &&
+          participant.subscriberName.toLowerCase().includes(term),
+      )
+      .slice(0, 6);
+  }
+
+  toggleSearch(): void {
+    this.isSearchOpen = !this.isSearchOpen;
+
+    if (this.isSearchOpen) {
+      setTimeout(() => this.searchInputRef?.nativeElement.focus());
+    } else {
+      this.searchTerm = '';
+    }
+  }
+
+  onSearchInput(value: string): void {
+    this.searchTerm = value;
+  }
+
+  selectSuggestion(participant: PlatformParticipantItem): void {
+    this.selectedParticipantIds.add(participant.subscriberId);
+    this.searchTerm = '';
+  }
+
+  removeParticipantFilter(subscriberId: number): void {
+    this.selectedParticipantIds.delete(subscriberId);
+  }
+
+  clearParticipantFilter(): void {
+    this.selectedParticipantIds.clear();
+    this.searchTerm = '';
   }
 
   formatCurrency(value: number, currency = 'BRL'): string {
