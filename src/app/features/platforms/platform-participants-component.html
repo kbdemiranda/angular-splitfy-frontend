@@ -48,6 +48,18 @@
             <strong>{{ participant.subscriberName }}</strong>
             <p>{{ participant.subscriberEmail }}</p>
             <p class="muted">Desde {{ formatDate(participant.subscribedAt) }}</p>
+            <p class="history">
+              Pago até agora: {{ formatCurrency(participant.totalPaid) }}
+              @if (participant.totalPaidOriginal !== null) {
+                ({{ formatCurrency(participant.totalPaidOriginal, platform.currency) }})
+              }
+            </p>
+            <p class="history">
+              Se assinasse sozinho: {{ formatCurrency(participant.totalIfSubscribedAlone) }}
+              @if (participant.totalIfSubscribedAloneOriginal !== null) {
+                ({{ formatCurrency(participant.totalIfSubscribedAloneOriginal, platform.currency) }})
+              }
+            </p>
           </div>
           <div class="shares">
             <span>{{ formatCurrency(participant.individualShare) }}</span>

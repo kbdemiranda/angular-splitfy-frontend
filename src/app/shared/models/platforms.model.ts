@@ -51,6 +51,10 @@ export interface PlatformParticipantItem {
   subscribedAt: string;
   individualShare: number;
   individualShareOriginal: number | null;
+  totalPaid: number;
+  totalPaidOriginal: number | null;
+  totalIfSubscribedAlone: number;
+  totalIfSubscribedAloneOriginal: number | null;
 }
 
 export interface PlatformParticipantsResponse {
